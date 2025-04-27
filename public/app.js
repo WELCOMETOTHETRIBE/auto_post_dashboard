@@ -1,86 +1,96 @@
-const postsContainer = document.getElementById('posts-container');
+let openaiApiKey = "";
+let assistantId = "";
 
-async function fetchPosts() {
-  try {
-    const response = await fetch('posts.json');
-    const posts = await response.json();
-    displayPosts(posts);
-  } catch (error) {
-    console.error('Error loading posts:', error);
-  }
-}
-
-function updateMetaTags(caption, imageUrl, hashtags) {
-  document.getElementById('meta-og-title').setAttribute('content', caption);
-  document.getElementById('meta-og-image').setAttribute('content', imageUrl);
-  document.getElementById('meta-og-description').setAttribute('content', hashtags.join(' '));
-}
-
-function displayPosts(posts) {
-  posts.forEach((post, index) => {
-    const postCard = document.createElement('div');
-    postCard.classList.add('post-card');
-
-    const img = document.createElement('img');
-    img.src = post.imageUrl;
-    img.alt = 'Draft Image';
-
-    const captionTextarea = document.createElement('textarea');
-    captionTextarea.placeholder = "Enter caption...";
-    captionTextarea.value = post.caption || "";
-
-    const hashtagsTextarea = document.createElement('textarea');
-    hashtagsTextarea.placeholder = "Enter hashtags...";
-    hashtagsTextarea.value = post.hashtags ? post.hashtags.join(' ') : "";
-
-    const generateBtn = document.createElement('button');
-    generateBtn.textContent = "Generate Caption";
-    generateBtn.addEventListener('click', async () => {
-      await generateCaption(post.imageUrl, captionTextarea, hashtagsTextarea);
-      updateMetaTags(captionTextarea.value, post.imageUrl, hashtagsTextarea.value.split(' '));
-    });
-
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = "Save Changes";
-    saveBtn.addEventListener('click', () => {
-      updateMetaTags(captionTextarea.value, post.imageUrl, hashtagsTextarea.value.split(' '));
-      alert('Changes saved for Buffer share!');
-    });
-
-    postCard.appendChild(img);
-    postCard.appendChild(captionTextarea);
-    postCard.appendChild(hashtagsTextarea);
-    postCard.appendChild(generateBtn);
-    postCard.appendChild(saveBtn);
-
-    postsContainer.appendChild(postCard);
-  });
-}
-
-async function generateCaption(imageUrl, captionTextarea, hashtagsTextarea) {
-  try {
-    const response = await fetch('/api/generate-caption', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ imageUrl })
-    });
-
-    const data = await response.json();
-    console.log(data);
-
-    if (data.choices && data.choices[0]) {
-      const messageContent = JSON.parse(data.choices[0].message.content);
-      captionTextarea.value = messageContent.caption;
-      hashtagsTextarea.value = messageContent.hashtags.join(' ');
-    } else {
-      captionTextarea.value = "Error generating caption.";
+// Fetch OpenAI API Key and Assistant ID from the server
+async function fetchOpenAIKeyAndAssistant() {
+    try {
+        const response = await fetch('/api/key');
+        const data = await response.json();
+        openaiApiKey = data.key;
+        assistantId = data.assistantId;
+    } catch (error) {
+        console.error("❌ Failed to fetch OpenAI key and Assistant ID:", error);
     }
-  } catch (error) {
-    console.error('OpenAI Error:', error);
-    captionTextarea.value = "Error generating caption.";
-  }
 }
 
-fetchPosts();
+// Fetch posts.json to load drafts
+async function fetchPosts() {
+    const response = await fetch('/posts.json');
+    const data = await response.json();
+    return data;
+}
+
+// Render posts on the dashboard
+function renderPosts(posts) {
+    const container = document.getElementById('posts-container');
+    container.innerHTML = '';
+
+    posts.forEach((post, index) => {
+        const postCard = document.createElement('div');
+        postCard.className = 'post-card';
+
+        postCard.innerHTML = `
+            <img src="${post.image}" alt="Post Image">
+            <textarea id="keywords-${index}" class="keywords-input" placeholder="Enter keywords...">${post.keywords || ''}</textarea>
+            <textarea id="caption-${index}" class="caption-input" placeholder="Caption will appear here...">${post.caption || ''}</textarea>
+            <div class="platforms">
+                <label><input type="checkbox" ${post.platforms?.includes('instagram') ? 'checked' : ''}> Instagram</label>
+                <label><input type="checkbox" ${post.platforms?.includes('facebook') ? 'checked' : ''}> Facebook</label>
+                <label><input type="checkbox" ${post.platforms?.includes('twitter') ? 'checked' : ''}> Twitter</label>
+            </div>
+            <div class="actions">
+                <button onclick="generateCaption(${index})">Generate Caption</button>
+            </div>
+        `;
+
+        container.appendChild(postCard);
+    });
+}
+
+// Generate caption by sending keywords to OpenAI Assistant
+async function generateCaption(index) {
+    const keywordsInput = document.getElementById(`keywords-${index}`);
+    const captionInput = document.getElementById(`caption-${index}`);
+    const keywords = keywordsInput.value.trim();
+
+    if (!keywords) {
+        alert('Please enter some keywords first.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.openai.com/v1/assistants/${assistantId}/messages`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                input: {
+                    text: `Create a catchy caption using these keywords: ${keywords}`
+                }
+            })
+        });
+
+        const data = await response.json();
+        console.log("Assistant API Response:", data);
+
+        if (data.result && data.result.text) {
+            captionInput.value = data.result.text.trim();
+        } else {
+            captionInput.value = "❌ Error generating caption.";
+        }
+    } catch (error) {
+        console.error("❌ OpenAI Assistant Error:", error);
+        captionInput.value = "❌ Error generating caption.";
+    }
+}
+
+// Initial load
+async function init() {
+    await fetchOpenAIKeyAndAssistant();
+    const posts = await fetchPosts();
+    renderPosts(posts);
+}
+
+init();
