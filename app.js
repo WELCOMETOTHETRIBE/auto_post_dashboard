@@ -25,7 +25,7 @@ async function generateCaption(index) {
 
   try {
     // 🔥 Fetch the OpenAI API Key from your key.json file
-    const keyRes = await fetch('/key.json');
+    const keyRes = await fetch('/api/key');
     const keyData = await keyRes.json();
     const OPENAI_API_KEY = keyData.key;
 
