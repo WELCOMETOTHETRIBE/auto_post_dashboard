@@ -1,96 +1,70 @@
-let openaiApiKey = "";
-let assistantId = "";
-
-// Fetch OpenAI API Key and Assistant ID from the server
-async function fetchOpenAIKeyAndAssistant() {
-    try {
-        const response = await fetch('/api/key');
-        const data = await response.json();
-        openaiApiKey = data.key;
-        assistantId = data.assistantId;
-    } catch (error) {
-        console.error("❌ Failed to fetch OpenAI key and Assistant ID:", error);
-    }
-}
-
-// Fetch posts.json to load drafts
 async function fetchPosts() {
-    const response = await fetch('/posts.json');
-    const data = await response.json();
-    return data;
+  const response = await fetch('/posts.json');
+  const posts = await response.json();
+  return posts;
 }
 
-// Render posts on the dashboard
-function renderPosts(posts) {
-    const container = document.getElementById('posts-container');
-    container.innerHTML = '';
-
-    posts.forEach((post, index) => {
-        const postCard = document.createElement('div');
-        postCard.className = 'post-card';
-
-        postCard.innerHTML = `
-            <img src="${post.image}" alt="Post Image">
-            <textarea id="keywords-${index}" class="keywords-input" placeholder="Enter keywords...">${post.keywords || ''}</textarea>
-            <textarea id="caption-${index}" class="caption-input" placeholder="Caption will appear here...">${post.caption || ''}</textarea>
-            <div class="platforms">
-                <label><input type="checkbox" ${post.platforms?.includes('instagram') ? 'checked' : ''}> Instagram</label>
-                <label><input type="checkbox" ${post.platforms?.includes('facebook') ? 'checked' : ''}> Facebook</label>
-                <label><input type="checkbox" ${post.platforms?.includes('twitter') ? 'checked' : ''}> Twitter</label>
-            </div>
-            <div class="actions">
-                <button onclick="generateCaption(${index})">Generate Caption</button>
-            </div>
-        `;
-
-        container.appendChild(postCard);
+async function generateCaption(keywords) {
+  try {
+    const response = await fetch('/api/generate-caption', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keywords })
     });
-}
 
-// Generate caption by sending keywords to OpenAI Assistant
-async function generateCaption(index) {
-    const keywordsInput = document.getElementById(`keywords-${index}`);
-    const captionInput = document.getElementById(`caption-${index}`);
-    const keywords = keywordsInput.value.trim();
+    const data = await response.json();
 
-    if (!keywords) {
-        alert('Please enter some keywords first.');
-        return;
+    if (data.error) {
+      console.error('Assistant API Error:', data.error);
+      return 'Error generating caption.';
     }
 
-    try {
-        const response = await fetch(`https://api.openai.com/v1/assistants/${assistantId}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${openaiApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                input: {
-                    text: `Create a catchy caption using these keywords: ${keywords}`
-                }
-            })
-        });
-
-        const data = await response.json();
-        console.log("Assistant API Response:", data);
-
-        if (data.result && data.result.text) {
-            captionInput.value = data.result.text.trim();
-        } else {
-            captionInput.value = "❌ Error generating caption.";
-        }
-    } catch (error) {
-        console.error("❌ OpenAI Assistant Error:", error);
-        captionInput.value = "❌ Error generating caption.";
-    }
+    console.log('Assistant API Response:', data);
+    return data.caption;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return 'Error generating caption.';
+  }
 }
 
-// Initial load
-async function init() {
-    await fetchOpenAIKeyAndAssistant();
-    const posts = await fetchPosts();
-    renderPosts(posts);
+function createPostElement(post) {
+  const postDiv = document.createElement('div');
+  postDiv.classList.add('post');
+
+  const img = document.createElement('img');
+  img.src = post.image;
+  postDiv.appendChild(img);
+
+  const keywordsInput = document.createElement('input');
+  keywordsInput.type = 'text';
+  keywordsInput.placeholder = 'Enter keywords...';
+  keywordsInput.value = post.keywords || '';
+  postDiv.appendChild(keywordsInput);
+
+  const captionTextarea = document.createElement('textarea');
+  captionTextarea.placeholder = 'Generated caption will appear here...';
+  captionTextarea.value = post.caption || '';
+  postDiv.appendChild(captionTextarea);
+
+  const generateButton = document.createElement('button');
+  generateButton.textContent = 'Generate Caption';
+  generateButton.onclick = async () => {
+    const caption = await generateCaption(keywordsInput.value);
+    captionTextarea.value = caption;
+  };
+  postDiv.appendChild(generateButton);
+
+  return postDiv;
 }
 
-init();
+async function loadPosts() {
+  const postsContainer = document.getElementById('posts-container');
+  const posts = await fetchPosts();
+
+  posts.forEach(post => {
+    const postElement = createPostElement(post);
+    postsContainer.appendChild(postElement);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', loadPosts);
