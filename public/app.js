@@ -1,70 +1,69 @@
 async function fetchPosts() {
-  const response = await fetch('/posts.json');
-  const posts = await response.json();
-  return posts;
+  try {
+    const response = await fetch('/posts.json');
+    const posts = await response.json();
+    displayPosts(posts);
+  } catch (error) {
+    console.error('Failed to load posts:', error);
+  }
 }
 
-async function generateCaption(keywords) {
+function displayPosts(posts) {
+  const container = document.getElementById('posts-container');
+  container.innerHTML = '';
+
+  posts.forEach((post, index) => {
+    const card = document.createElement('div');
+    card.className = 'post-card';
+
+    card.innerHTML = `
+      <img src="${post.image}" alt="Post Image" class="post-image" />
+      <div class="form-group">
+        <label for="keywords-${index}">📝 Keywords (for AI caption generation):</label>
+        <input type="text" id="keywords-${index}" placeholder="Enter keywords..." />
+      </div>
+      <div class="form-group">
+        <button onclick="generateCaption(${index})">✨ Generate Caption</button>
+      </div>
+      <div class="form-group">
+        <label for="caption-${index}">🖋️ Final Caption:</label>
+        <textarea id="caption-${index}" rows="3" placeholder="Generated caption will appear here..."></textarea>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+async function generateCaption(postIndex) {
+  const keywordInput = document.getElementById(`keywords-${postIndex}`);
+  const prompt = keywordInput.value.trim();
+
+  if (!prompt) {
+    alert('❗ Please enter some keywords before generating a caption.');
+    return;
+  }
+
   try {
     const response = await fetch('/api/generate-caption', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ keywords })
+      body: JSON.stringify({ prompt })
     });
 
     const data = await response.json();
-
-    if (data.error) {
-      console.error('Assistant API Error:', data.error);
-      return 'Error generating caption.';
-    }
-
     console.log('Assistant API Response:', data);
-    return data.caption;
+
+    if (data.caption) {
+      document.getElementById(`caption-${postIndex}`).value = data.caption;
+    } else {
+      alert('❌ Failed to generate caption. Try again.');
+    }
   } catch (error) {
-    console.error('Fetch error:', error);
-    return 'Error generating caption.';
+    console.error('Assistant API Error:', error);
+    alert('⚡ Error generating caption.');
   }
 }
 
-function createPostElement(post) {
-  const postDiv = document.createElement('div');
-  postDiv.classList.add('post');
-
-  const img = document.createElement('img');
-  img.src = post.image;
-  postDiv.appendChild(img);
-
-  const keywordsInput = document.createElement('input');
-  keywordsInput.type = 'text';
-  keywordsInput.placeholder = 'Enter keywords...';
-  keywordsInput.value = post.keywords || '';
-  postDiv.appendChild(keywordsInput);
-
-  const captionTextarea = document.createElement('textarea');
-  captionTextarea.placeholder = 'Generated caption will appear here...';
-  captionTextarea.value = post.caption || '';
-  postDiv.appendChild(captionTextarea);
-
-  const generateButton = document.createElement('button');
-  generateButton.textContent = 'Generate Caption';
-  generateButton.onclick = async () => {
-    const caption = await generateCaption(keywordsInput.value);
-    captionTextarea.value = caption;
-  };
-  postDiv.appendChild(generateButton);
-
-  return postDiv;
-}
-
-async function loadPosts() {
-  const postsContainer = document.getElementById('posts-container');
-  const posts = await fetchPosts();
-
-  posts.forEach(post => {
-    const postElement = createPostElement(post);
-    postsContainer.appendChild(postElement);
-  });
-}
-
-document.addEventListener('DOMContentLoaded', loadPosts);
+// Load posts immediately
+fetchPosts();
