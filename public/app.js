@@ -1,86 +1,69 @@
-const postsContainer = document.getElementById('posts-container');
-
 async function fetchPosts() {
   try {
-    const response = await fetch('posts.json');
+    const response = await fetch('/posts.json');
     const posts = await response.json();
     displayPosts(posts);
   } catch (error) {
-    console.error('Error loading posts:', error);
+    console.error('Failed to load posts:', error);
   }
-}
-
-function updateMetaTags(caption, imageUrl, hashtags) {
-  document.getElementById('meta-og-title').setAttribute('content', caption);
-  document.getElementById('meta-og-image').setAttribute('content', imageUrl);
-  document.getElementById('meta-og-description').setAttribute('content', hashtags.join(' '));
 }
 
 function displayPosts(posts) {
+  const container = document.getElementById('posts-container');
+  container.innerHTML = '';
+
   posts.forEach((post, index) => {
-    const postCard = document.createElement('div');
-    postCard.classList.add('post-card');
+    const card = document.createElement('div');
+    card.className = 'post-card';
 
-    const img = document.createElement('img');
-    img.src = post.imageUrl;
-    img.alt = 'Draft Image';
+    card.innerHTML = `
+      <img src="${post.image}" alt="Post Image" class="post-image" />
+      <div class="form-group">
+        <label for="keywords-${index}">📝 Keywords (for AI caption generation):</label>
+        <input type="text" id="keywords-${index}" placeholder="Enter keywords..." />
+      </div>
+      <div class="form-group">
+        <button onclick="generateCaption(${index})">✨ Generate Caption</button>
+      </div>
+      <div class="form-group">
+        <label for="caption-${index}">🖋️ Final Caption:</label>
+        <textarea id="caption-${index}" rows="3" placeholder="Generated caption will appear here..."></textarea>
+      </div>
+    `;
 
-    const captionTextarea = document.createElement('textarea');
-    captionTextarea.placeholder = "Enter caption...";
-    captionTextarea.value = post.caption || "";
-
-    const hashtagsTextarea = document.createElement('textarea');
-    hashtagsTextarea.placeholder = "Enter hashtags...";
-    hashtagsTextarea.value = post.hashtags ? post.hashtags.join(' ') : "";
-
-    const generateBtn = document.createElement('button');
-    generateBtn.textContent = "Generate Caption";
-    generateBtn.addEventListener('click', async () => {
-      await generateCaption(post.imageUrl, captionTextarea, hashtagsTextarea);
-      updateMetaTags(captionTextarea.value, post.imageUrl, hashtagsTextarea.value.split(' '));
-    });
-
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = "Save Changes";
-    saveBtn.addEventListener('click', () => {
-      updateMetaTags(captionTextarea.value, post.imageUrl, hashtagsTextarea.value.split(' '));
-      alert('Changes saved for Buffer share!');
-    });
-
-    postCard.appendChild(img);
-    postCard.appendChild(captionTextarea);
-    postCard.appendChild(hashtagsTextarea);
-    postCard.appendChild(generateBtn);
-    postCard.appendChild(saveBtn);
-
-    postsContainer.appendChild(postCard);
+    container.appendChild(card);
   });
 }
 
-async function generateCaption(imageUrl, captionTextarea, hashtagsTextarea) {
+async function generateCaption(postIndex) {
+  const keywordInput = document.getElementById(`keywords-${postIndex}`);
+  const prompt = keywordInput.value.trim();
+
+  if (!prompt) {
+    alert('❗ Please enter some keywords before generating a caption.');
+    return;
+  }
+
   try {
     const response = await fetch('/api/generate-caption', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ imageUrl })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
     });
 
     const data = await response.json();
-    console.log(data);
+    console.log('Assistant API Response:', data);
 
-    if (data.choices && data.choices[0]) {
-      const messageContent = JSON.parse(data.choices[0].message.content);
-      captionTextarea.value = messageContent.caption;
-      hashtagsTextarea.value = messageContent.hashtags.join(' ');
+    if (data.caption) {
+      document.getElementById(`caption-${postIndex}`).value = data.caption;
     } else {
-      captionTextarea.value = "Error generating caption.";
+      alert('❌ Failed to generate caption. Try again.');
     }
   } catch (error) {
-    console.error('OpenAI Error:', error);
-    captionTextarea.value = "Error generating caption.";
+    console.error('Assistant API Error:', error);
+    alert('⚡ Error generating caption.');
   }
 }
 
+// Load posts immediately
 fetchPosts();
