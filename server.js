@@ -1,23 +1,48 @@
-// server.js
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+import express from 'express';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const ASSISTANT_ID = process.env.ASSISTANT_ID;
 
-// Required to resolve __dirname in ES modules
+// Serve static files from public
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve static files from /public
-app.use(express.static(path.join(__dirname, "public")));
+// API route to generate caption
+app.post('/api/generate-caption', express.json(), async (req, res) => {
+  const { imageUrl } = req.body;
 
-// New API route to serve the OpenAI API key
-app.get("/api/key", (req, res) => {
-  res.json({ key: process.env.OPENAI_API_KEY });
+  try {
+    const response = await fetch(`https://api.openai.com/v1/assistants/${ASSISTANT_ID}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        "input": {
+          "type": "image_url",
+          "value": imageUrl
+        }
+      })
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('OpenAI Error:', error);
+    res.status(500).json({ error: 'Failed to generate caption' });
+  }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
