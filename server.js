@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -34,7 +33,6 @@ app.get("/", (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
-=======
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -57,5 +55,4 @@ app.get('*', (req, res) => {
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
->>>>>>> 7e99c8f9b7f2b5f71be0a7f4033cc07918d3ecbb
 });
