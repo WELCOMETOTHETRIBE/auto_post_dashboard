@@ -1,8 +1,10 @@
+// server.js
+
 import express from 'express';
-import dotenv from 'dotenv';
+import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fetch from 'node-fetch';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -11,38 +13,23 @@ const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ASSISTANT_ID = process.env.ASSISTANT_ID;
 
-// Serve static files from public
+// Handle __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Middleware
+app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API route to generate caption
-app.post('/api/generate-caption', express.json(), async (req, res) => {
-  const { imageUrl } = req.body;
-
-  try {
-    const response = await fetch(`https://api.openai.com/v1/assistants/${ASSISTANT_ID}/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        "input": {
-          "type": "image_url",
-          "value": imageUrl
-        }
-      })
-    });
-
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    console.error('OpenAI Error:', error);
-    res.status(500).json({ error: 'Failed to generate caption' });
-  }
+// Route to fetch both the API Key and Assistant ID
+app.get('/api/key', (req, res) => {
+    if (!OPENAI_API_KEY || !ASSISTANT_ID) {
+        return res.status(500).json({ error: 'Environment variables not set properly' });
+    }
+    res.json({ key: OPENAI_API_KEY, assistantId: ASSISTANT_ID });
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`✅ Server running at http://localhost:${PORT}`);
 });
