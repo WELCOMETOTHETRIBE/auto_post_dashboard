@@ -3,94 +3,63 @@
 # === CONFIGURATION ===
 WORK_DIR="/Users/patrick/Desktop/taplink-assets"
 ARCHIVE_DIR="$WORK_DIR/archive"
-POSTS_JSON="/Users/patrick/Desktop/auto_post_dashboard/posts.json"
-GITHUB_REPO_URL="https://github.com/WELCOMETOTHETRIBE/taplink-assets.git"
-OPENAI_MODEL="gpt-4o"
+DASHBOARD_REPO="/Users/patrick/Desktop/auto_post"
+POSTS_JSON="$DASHBOARD_REPO/posts.json"
+GITHUB_REPO="https://github.com/WELCOMETOTHETRIBE/taplink-assets.git"
 
-# Make sure OpenAI API Key is loaded
-if [ -z "$OPENAI_API_KEY" ]; then
-  echo "❌ ERROR: OPENAI_API_KEY environment variable not set."
-  exit 1
-fi
-
-# === SETUP ===
+# === STEP 1: PREPARE WORK DIR ===
 cd "$WORK_DIR" || { echo "❌ ERROR: Cannot access $WORK_DIR"; exit 1; }
 
-# Ensure archive folder exists
-mkdir -p "$ARCHIVE_DIR"
-
-# === FIND LATEST FILE ===
-LATEST_FILE=$(ls -t -- *.png *.jpg *.jpeg 2>/dev/null | head -n 1)
-
-if [ -z "$LATEST_FILE" ]; then
-    osascript -e 'display notification "No new images found!" with title "Upload Failed"'
-    exit 1
-fi
-
-# === GIT SETUP ===
+# Ensure Git is set up
 if [ ! -d "$WORK_DIR/.git" ]; then
-    echo "❌ ERROR: Not a Git repo. Initializing..."
+    echo "❌ ERROR: Not a Git repository. Initializing..."
     git init
-    git remote add origin "$GITHUB_REPO_URL"
+    git remote add origin "$GITHUB_REPO"
     git pull origin main
 fi
 
-# === UPLOAD IMAGE TO GITHUB ===
+# === STEP 2: FIND THE NEWEST IMAGE ===
+LATEST_FILE=$(ls -t -- *.png *.jpg *.jpeg 2>/dev/null | head -n 1)
+
+if [ -z "$LATEST_FILE" ]; then
+    osascript -e 'display notification "No new images found!" with title "GitHub Upload Failed"'
+    exit 1
+fi
+
+echo "✅ Found latest image: $LATEST_FILE"
+
+# === STEP 3: COMMIT IMAGE TO GitHub ===
 git add "$LATEST_FILE"
 git commit -m "Add new image: $LATEST_FILE"
 git push origin main
 
-# === CONSTRUCT RAW IMAGE URL ===
-URL="https://raw.githubusercontent.com/WELCOMETOTHETRIBE/taplink-assets/main/$LATEST_FILE"
-echo "✅ Image uploaded. Public URL: $URL"
+# === STEP 4: GENERATE RAW URL ===
+RAW_URL="https://raw.githubusercontent.com/WELCOMETOTHETRIBE/taplink-assets/main/$LATEST_FILE"
+echo "✅ Image uploaded. Public URL: $RAW_URL"
 
-# === GENERATE CAPTION + HASHTAGS USING OPENAI ===
-CAPTION_RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
-  -H "Authorization: Bearer $OPENAI_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"model\": \"$OPENAI_MODEL\",
-    \"messages\": [
-      {\"role\": \"system\", \"content\": \"You are a creative copywriter specializing in short captions and social media hashtags.\"},
-      {\"role\": \"user\", \"content\": \"Write a captivating Instagram-style caption and 5 hashtags for an image found at this URL: $URL\"}
-    ]
-  }")
+# === STEP 5: PREPARE NEW POST DRAFT ===
+cd "$DASHBOARD_REPO" || { echo "❌ ERROR: Cannot access dashboard repo"; exit 1; }
 
-# Parse the JSON response
-CAPTION=$(echo "$CAPTION_RESPONSE" | jq -r '.choices[0].message.content' | awk -F'Hashtags:' '{print $1}' | xargs)
-HASHTAGS=$(echo "$CAPTION_RESPONSE" | jq -r '.choices[0].message.content' | awk -F'Hashtags:' '{print $2}' | xargs)
+# Check if posts.json exists
+if [ ! -f "$POSTS_JSON" ]; then
+    echo "[]" > "$POSTS_JSON"
+fi
 
-# Safety fallback
-CAPTION=${CAPTION:-"Amazing view!"}
-HASHTAGS=${HASHTAGS:-"#Adventure #Nature #Inspiration"}
+# Create a temp updated posts.json
+jq --arg url "$RAW_URL" '. += [{"Image URL": $url, "Caption": "", "Hashtags": "", "Status": "Draft"}]' "$POSTS_JSON" > tmp_posts.json && mv tmp_posts.json "$POSTS_JSON"
 
-echo "✅ Generated Caption: $CAPTION"
-echo "✅ Generated Hashtags: $HASHTAGS"
+echo "✅ Draft added to posts.json."
 
-# === UPDATE posts.json ===
-# Create a new post JSON block
-NEW_POST=$(jq -n \
-  --arg img "$URL" \
-  --arg caption "$CAPTION" \
-  --arg hashtags "$HASHTAGS" \
-  --arg status "Draft" \
-  '{ "Image URL": $img, "Caption": $caption, "Hashtags": $hashtags, "Status": $status }')
-
-# Append it to the posts array
-jq ". += [$NEW_POST]" "$POSTS_JSON" > tmp_posts.json && mv tmp_posts.json "$POSTS_JSON"
-
-echo "✅ posts.json updated."
-
-# === GIT PUSH posts.json TO DASHBOARD ===
-cd /Users/patrick/Desktop/auto_post_dashboard || { echo "❌ ERROR: Cannot access dashboard repo"; exit 1; }
-
+# === STEP 6: PUSH TO DASHBOARD REPO ===
 git add posts.json
-git commit -m "Add draft post for $LATEST_FILE"
+git commit -m "Add draft post for new image: $LATEST_FILE"
 git push origin main
 
-echo "✅ Dashboard updated."
-
-# === ARCHIVE IMAGE LOCALLY ===
+# === STEP 7: ARCHIVE ORIGINAL IMAGE ===
+mkdir -p "$ARCHIVE_DIR"
 mv "$WORK_DIR/$LATEST_FILE" "$ARCHIVE_DIR/"
 
-osascript -e "display notification \"Upload and draft creation complete!\" with title \"Automation Success\""
+echo "✅ Script completed successfully."
+
+exit 0
+
