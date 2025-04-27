@@ -1,66 +1,88 @@
-const sheetUrl = './posts.json'; // Local JSON file
-
 async function fetchPosts() {
+  const response = await fetch('posts.json');
+  const posts = await response.json();
+  return posts;
+}
+
+async function updatePost(index, updatedPost) {
+  console.log("Simulated saving updated post:", updatedPost);
+  // Here you would normally update your posts.json via server-side API call
+}
+
+async function generateCaption(index) {
+  const keywordsInput = document.getElementById(`keywords-${index}`);
+  const captionField = document.getElementById(`caption-${index}`);
+  const hashtagsField = document.getElementById(`hashtags-${index}`);
+  const keywords = keywordsInput.value.trim();
+
+  if (!keywords) {
+    alert('Please enter some keywords first.');
+    return;
+  }
+
+  captionField.value = "⏳ Generating caption...";
+  hashtagsField.value = "⏳ Generating hashtags...";
+
   try {
-    const response = await fetch(sheetUrl);
-    const posts = await response.json();
-    renderPosts(posts);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer YOUR-OPENAI-API-KEY-HERE`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a social media copywriter. Based on given keywords, write a short, engaging Instagram-style caption and 5 related hashtags."
+          },
+          {
+            role: "user",
+            content: `Keywords: ${keywords}\n\nWrite caption and hashtags now.`
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const output = data.choices[0].message.content;
+
+    const parts = output.split("Hashtags:");
+    captionField.value = parts[0].trim();
+    hashtagsField.value = (parts[1] || "").trim();
+
+    await updatePost(index, {
+      caption: captionField.value,
+      hashtags: hashtagsField.value
+    });
+
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error(error);
+    captionField.value = "❌ Error generating caption.";
+    hashtagsField.value = "❌ Error.";
   }
 }
 
 function renderPosts(posts) {
-  const container = document.getElementById('posts');
-  container.innerHTML = '';
+  const postsContainer = document.getElementById('posts');
+  postsContainer.innerHTML = '';
 
   posts.forEach((post, index) => {
-    if (!post['Image URL']) return;
+    const postElement = document.createElement('div');
+    postElement.className = 'post';
 
-    const postDiv = document.createElement('div');
-    postDiv.className = "post";
-
-    postDiv.innerHTML = `
-      <img src="${post['Image URL']}" alt="Post Image" class="post-image">
-      <div class="post-content">
-        <div class="status-badge">${post['Status'] || 'Draft'}</div>
-        <p class="caption">${post['Caption'] || ''}</p>
-        <p class="hashtags">${post['Hashtags'] || ''}</p>
-
-        <div class="platforms">
-          <input type="checkbox" id="insta-${index}">
-          <label for="insta-${index}">Instagram</label>
-
-          <input type="checkbox" id="fb-${index}">
-          <label for="fb-${index}">Facebook</label>
-
-          <input type="checkbox" id="linkedin-${index}">
-          <label for="linkedin-${index}">LinkedIn</label>
-
-          <input type="checkbox" id="twitter-${index}">
-          <label for="twitter-${index}">X (Twitter)</label>
-        </div>
-
-        <button class="save-button" onclick="savePlatforms(${index})">Save Platforms</button>
-      </div>
+    postElement.innerHTML = `
+      <img src="${post['Image URL']}" alt="Post Image">
+      <input type="text" id="keywords-${index}" placeholder="Enter keywords..." class="keywords-input">
+      <button onclick="generateCaption(${index})">Generate Caption</button>
+      <textarea id="caption-${index}" placeholder="Caption...">${post.Caption || ''}</textarea>
+      <textarea id="hashtags-${index}" placeholder="Hashtags...">${post.Hashtags || ''}</textarea>
+      <p>Status: ${post.Status}</p>
     `;
 
-    container.appendChild(postDiv);
+    postsContainer.appendChild(postElement);
   });
 }
 
-function savePlatforms(index) {
-  const platforms = [];
-  if (document.getElementById(`insta-${index}`).checked) platforms.push("Instagram");
-  if (document.getElementById(`fb-${index}`).checked) platforms.push("Facebook");
-  if (document.getElementById(`linkedin-${index}`).checked) platforms.push("LinkedIn");
-  if (document.getElementById(`twitter-${index}`).checked) platforms.push("X");
-
-  alert(`Platforms selected for Post ${index + 1}: ${platforms.join(', ')}`);
-
-  // 🔥 TODO NEXT: Hook into Zapier / Webhook to automate posting
-}
-
-// Load posts immediately
-fetchPosts();
-
+fetchPosts().then(renderPosts);
