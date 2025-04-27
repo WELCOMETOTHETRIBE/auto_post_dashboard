@@ -1,20 +1,12 @@
 {
-  "name": "auto_post",
+  "name": "auto_post_dashboard",
   "version": "1.0.0",
-  "main": "app.js",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/WELCOMETOTHETRIBE/auto_post_dashboard.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/WELCOMETOTHETRIBE/auto_post_dashboard/issues"
-  },
-  "homepage": "https://github.com/WELCOMETOTHETRIBE/auto_post_dashboard#readme",
-  "description": ""
+    "start": "node server.js"
+  }
 }
