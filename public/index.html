@@ -2,13 +2,63 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>📸 Welcome To The Tribe - Auto Post Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Post Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .image-container { margin: 10px 0; }
+    img { width: 100%; max-width: 400px; }
+    input, button { padding: 8px; margin: 5px 0; }
+  </style>
 </head>
 <body>
-  <h1>📸 Welcome To The Tribe - Auto Post Dashboard</h1>
-  <div id="posts-container"></div>
+  <h1>📸 Welcome to the Tribe - Auto Post Dashboard</h1>
 
-  <script src="app.js"></script>
+  <div id="image-dashboard">
+    <h2>Draft Images</h2>
+    <div id="images-list"></div>
+  </div>
+
+  <script>
+    // Function to fetch and display images from posts.json
+    async function fetchImages() {
+      try {
+        const response = await fetch('posts.json');
+        const posts = await response.json();
+        
+        const imagesList = document.getElementById('images-list');
+        imagesList.innerHTML = ''; // Clear previous images
+
+        // Loop through posts and display images
+        posts.forEach(post => {
+          const imageDiv = document.createElement('div');
+          imageDiv.classList.add('image-container');
+          
+          const image = document.createElement('img');
+          image.src = post.image_url;
+          image.alt = 'Image Preview';
+          imageDiv.appendChild(image);
+          
+          const captionInput = document.createElement('input');
+          captionInput.placeholder = 'Enter Caption';
+          captionInput.value = post.caption || '';
+          imageDiv.appendChild(captionInput);
+          
+          const hashtagsInput = document.createElement('input');
+          hashtagsInput.placeholder = 'Enter Hashtags';
+          hashtagsInput.value = post.hashtags || '';
+          imageDiv.appendChild(hashtagsInput);
+          
+          // Add to images list
+          imagesList.appendChild(imageDiv);
+        });
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      }
+    }
+
+    // Initial call to fetch and display images
+    fetchImages();
+  </script>
 </body>
 </html>
