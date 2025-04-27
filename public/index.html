@@ -1,64 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Post Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .image-container { margin: 10px 0; }
-    img { width: 100%; max-width: 400px; }
-    input, button { padding: 8px; margin: 5px 0; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Tribe - Auto Post Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #imageContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 400px;
+            border: 2px solid #000;
+        }
+
+        #caption {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-  <h1>📸 Welcome to the Tribe - Auto Post Dashboard</h1>
+    <h1>Welcome to the Tribe - Auto Post Dashboard</h1>
 
-  <div id="image-dashboard">
-    <h2>Draft Images</h2>
-    <div id="images-list"></div>
-  </div>
+    <div id="imageContainer">
+        <img id="image" src="" alt="Uploaded Image">
+    </div>
 
-  <script>
-    // Function to fetch and display images from posts.json
-    async function fetchImages() {
-      try {
-        const response = await fetch('posts.json');
-        const posts = await response.json();
-        
-        const imagesList = document.getElementById('images-list');
-        imagesList.innerHTML = ''; // Clear previous images
+    <div id="caption"></div>
 
-        // Loop through posts and display images
-        posts.forEach(post => {
-          const imageDiv = document.createElement('div');
-          imageDiv.classList.add('image-container');
-          
-          const image = document.createElement('img');
-          image.src = post.image_url;
-          image.alt = 'Image Preview';
-          imageDiv.appendChild(image);
-          
-          const captionInput = document.createElement('input');
-          captionInput.placeholder = 'Enter Caption';
-          captionInput.value = post.caption || '';
-          imageDiv.appendChild(captionInput);
-          
-          const hashtagsInput = document.createElement('input');
-          hashtagsInput.placeholder = 'Enter Hashtags';
-          hashtagsInput.value = post.hashtags || '';
-          imageDiv.appendChild(hashtagsInput);
-          
-          // Add to images list
-          imagesList.appendChild(imageDiv);
-        });
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
-    }
-
-    // Initial call to fetch and display images
-    fetchImages();
-  </script>
+    <script src="app.js"></script>
 </body>
 </html>
