@@ -1,15 +1,22 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const PORT = process.env.PORT || 5500;
 
-// Allow CORS
+// To handle __dirname properly (ES Module workaround)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
 app.use(cors());
 
-// Serve your static dashboard
-app.use(express.static("public")); // assuming your index.html is in "public" folder (or adjust)
+// Serve static files (your dashboard) from /public
+app.use(express.static(path.join(__dirname, "public")));
 
+// Serve OpenAI API Key securely
 app.get("/api/key", (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY;
   if (!openaiKey) {
@@ -18,11 +25,12 @@ app.get("/api/key", (req, res) => {
   res.json({ key: openaiKey });
 });
 
-// Keep alive
+// Default route (optional)
 app.get("/", (req, res) => {
-  res.send("Welcome to the Tribe Dashboard 🚀");
+  res.send("🚀 Welcome to your Auto Post Dashboard Server!");
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });
