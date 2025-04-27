@@ -6,7 +6,7 @@ async function fetchPosts() {
 
 async function updatePost(index, updatedPost) {
   console.log("Simulated saving updated post:", updatedPost);
-  // Here you would normally update your posts.json via server-side API call
+  // In a full version, this would update your backend/database
 }
 
 async function generateCaption(index) {
@@ -24,10 +24,16 @@ async function generateCaption(index) {
   hashtagsField.value = "⏳ Generating hashtags...";
 
   try {
+    // 🔥 Fetch the OpenAI API Key from your key.json file
+    const keyRes = await fetch('/key.json');
+    const keyData = await keyRes.json();
+    const OPENAI_API_KEY = keyData.key;
+
+    // 🔥 Now call OpenAI with the user's keywords
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer YOUR-OPENAI-API-KEY-HERE`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -35,20 +41,28 @@ async function generateCaption(index) {
         messages: [
           {
             role: "system",
-            content: "You are a social media copywriter. Based on given keywords, write a short, engaging Instagram-style caption and 5 related hashtags."
+            content: "You are a social media copywriter. Based on given keywords, write a short, engaging Instagram caption and 5 related hashtags."
           },
           {
             role: "user",
-            content: `Keywords: ${keywords}\n\nWrite caption and hashtags now.`
+            content: `Keywords: ${keywords}\n\nWrite a caption and hashtags.`
           }
         ]
       })
     });
 
     const data = await response.json();
-    const output = data.choices[0].message.content;
 
+    if (data.error) {
+      console.error("OpenAI Error:", data.error);
+      captionField.value = "❌ Error generating caption.";
+      hashtagsField.value = "❌ Error.";
+      return;
+    }
+
+    const output = data.choices[0].message.content;
     const parts = output.split("Hashtags:");
+
     captionField.value = parts[0].trim();
     hashtagsField.value = (parts[1] || "").trim();
 
@@ -85,4 +99,5 @@ function renderPosts(posts) {
   });
 }
 
+// Initialize dashboard
 fetchPosts().then(renderPosts);
