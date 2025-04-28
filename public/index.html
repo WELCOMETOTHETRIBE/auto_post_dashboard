@@ -3,13 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buffer Staging Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Image Grid Dashboard</title>
+  <style>
+    /* Basic styling for the grid layout */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    #posts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      width: 80%;
+    }
+
+    .post {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      text-align: center;
+      position: relative;
+    }
+
+    .post img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .post a {
+      display: block;
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      background-color: #4CAF50;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .post a:hover {
+      background-color: #45a049;
+    }
+
+    .buffer-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #00aaff;
+      color: white;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .buffer-button:hover {
+      background-color: #0099cc;
+    }
+  </style>
 </head>
 <body>
-  <h1>Auto Post Dashboard</h1>
+  <h1>Image Grid Dashboard</h1>
   <div id="posts-container">
-    <!-- Posts will be dynamically injected here -->
+    <!-- Images will be dynamically injected here -->
   </div>
 
   <script>
@@ -17,28 +79,41 @@
     fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/posts.json')
       .then(response => response.json())
       .then(data => {
+        console.log("Fetched data:", data);
+
         // Check if data is an array and contains posts
         if (Array.isArray(data) && data.length > 0) {
-          // Loop through each post in the array
-          data.forEach((post, index) => {
+          data.forEach(post => {
             let postElement = document.createElement('div');
             postElement.classList.add('post');
             postElement.innerHTML = `
+              <img src="${post.image_url}" alt="Image">
               <a href="${post.image_url}" target="_blank">View Image</a>
+              <div class="buffer-button" data-href="${post.image_url}" data-media="${post.image_url}" onclick="openBuffer(this)">Buffer</div>
             `;
             document.getElementById('posts-container').appendChild(postElement);
           });
         } else {
-          // Handle case if no posts are available
           document.getElementById('posts-container').innerHTML = '<p>No posts found.</p>';
         }
       })
       .catch(error => {
-        // Handle fetch error
         console.error('Error loading posts:', error);
         document.getElementById('posts-container').innerHTML = '<p>Error loading posts. Please try again later.</p>';
       });
+
+    // Function to open Buffer for sharing
+    function openBuffer(button) {
+      const url = button.getAttribute('data-href');
+      const media = button.getAttribute('data-media');
+      const text = 'Check out this image!'; // You can customize the text here
+
+      // Create a Buffer share URL with the image URL and text
+      const bufferUrl = `https://buffer.com/add?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}&media=${encodeURIComponent(media)}`;
+
+      // Open the Buffer URL in a new window
+      window.open(bufferUrl, '_blank');
+    }
   </script>
 </body>
 </html>
-
