@@ -1,83 +1,15 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
+/* Basic styling for the posts container */
+#posts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));  /* Flexible columns */
+  gap: 16px;
   padding: 20px;
 }
 
-h1 {
-  text-align: center;
-  font-size: 2em;
-  color: #333;
-}
-
-#posts-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.post {
-  border: 1px solid #ccc;
-  padding: 15px;
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
+/* Styling for individual post elements */
 .post img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 5px;
-  display: block;
-  margin-bottom: 10px;
+  width: 100%;  /* Make the images responsive */
+  height: auto;  /* Maintain aspect ratio */
+  border-radius: 8px;  /* Optional: rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Optional: add some shadow */
 }
-
-input {
-  margin: 5px 0;
-  padding: 10px;
-  width: 100%;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
-
-button {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-.post .image-url {
-  font-weight: bold;
-  color: #333;
-}
-
-.post .input-container {
-  margin-bottom: 15px;
-}
-
-.post .input-container label {
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-input[type="text"] {
-  width: calc(100% - 20px);
-}
-
-input[type="text"]:focus {
-  outline: 2px solid #007bff;
-}
-
-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
