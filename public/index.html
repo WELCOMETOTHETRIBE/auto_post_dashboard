@@ -61,27 +61,34 @@
   <script>
     // Fetch the posts data from posts.json (from GitHub)
     fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/posts.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();  // Parse JSON
-      })
-      .then(data => {
-        console.log("Fetched data:", data);  // Log the parsed data
-        // Check if the data is an array and contains items
-        if (Array.isArray(data) && data.length > 0) {
-          data.forEach(post => {
-            let postElement = document.createElement('div');
-            postElement.classList.add('post');
-            postElement.innerHTML = `
-              <img src="${post.image_url}" alt="Image">
-              <a href="${post.image_url}" target="_blank">View Image</a>
-            `;
-            document.getElementById('posts-container').appendChild(postElement);
-          });
-        } else {
-          document.getElementById('posts-container').innerHTML = '<p>No posts found.</p>';
+      .then(response => response.text())  // Get the raw text to debug issues
+      .then(text => {
+        console.log("Fetched raw response:", text);  // Log the raw fetched text
+
+        // Check for unexpected characters (like BOM or extra characters)
+        console.log("Raw response length:", text.length);  // Log the length of the fetched content
+
+        try {
+          const data = JSON.parse(text);  // Try parsing the JSON
+          console.log("Parsed data:", data);  // Log parsed data to verify if it worked
+
+          if (Array.isArray(data) && data.length > 0) {
+            // Loop through each post in the array
+            data.forEach(post => {
+              let postElement = document.createElement('div');
+              postElement.classList.add('post');
+              postElement.innerHTML = `
+                <img src="${post.image_url}" alt="Image">
+                <a href="${post.image_url}" target="_blank">View Image</a>
+              `;
+              document.getElementById('posts-container').appendChild(postElement);
+            });
+          } else {
+            document.getElementById('posts-container').innerHTML = '<p>No posts found.</p>';
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+          document.getElementById('posts-container').innerHTML = '<p>Error loading posts. Please try again later.</p>';
         }
       })
       .catch(error => {
