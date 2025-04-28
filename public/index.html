@@ -22,11 +22,21 @@
 
         // Loop through the data and create post elements
         data.forEach((post, index) => {
+          // Create the post container
           let postElement = document.createElement('div');
           postElement.classList.add('post');
-          postElement.innerHTML = `
-            <img src="${post.image_url}" alt="Image ${index + 1}">
-          `;
+
+          // Create the image element with a 'data-buffer' attribute for Buffer extension
+          let imageElement = document.createElement('img');
+          imageElement.src = post.image_url;
+          imageElement.alt = `Image ${index + 1}`;
+          imageElement.classList.add('post-image');  // Optional: Add a class for styling
+          imageElement.setAttribute('data-buffer', 'true');  // Attribute for Buffer to detect it
+
+          // Append the image to the post container
+          postElement.appendChild(imageElement);
+
+          // Add the post to the container
           document.getElementById('posts-container').appendChild(postElement);
         });
       })
