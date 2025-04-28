@@ -14,38 +14,20 @@
 
   <script>
     // Fetch the posts data from posts.json
-    fetch('posts.json')
+    fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/posts.json')
       .then(response => response.json())
       .then(data => {
         data.forEach((post, index) => {
           let postElement = document.createElement('div');
           postElement.classList.add('post');
           postElement.innerHTML = `
-            <img src="${post.image_url}" alt="Image">
-            <div>
-              <label for="caption-${index}">Caption:</label>
-              <input type="text" id="caption-${index}" value="${post.caption || ''}" />
-            </div>
-            <div>
-              <label for="hashtags-${index}">Hashtags:</label>
-              <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
-            </div>
-            <button onclick="generateCaption(${index})">Generate Caption</button>
+            <a href="${post.image_url}" target="_blank">View Image</a>
           `;
           document.getElementById('posts-container').appendChild(postElement);
         });
       })
       .catch(error => console.error('Error loading posts:', error));
-
-    function generateCaption(index) {
-      const captionInput = document.getElementById(`caption-${index}`);
-      const hashtagsInput = document.getElementById(`hashtags-${index}`);
-      const caption = captionInput.value;
-      const hashtags = hashtagsInput.value;
-
-      // You can call the Buffer API or your AI service here to generate caption and hashtags
-      console.log(`Generating caption for post ${index}: ${caption} ${hashtags}`);
-    }
   </script>
 </body>
 </html>
+
