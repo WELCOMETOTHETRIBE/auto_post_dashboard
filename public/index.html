@@ -61,9 +61,15 @@
   <script>
     // Fetch the posts data from posts.json (from GitHub)
     fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/posts.json')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();  // Parse JSON
+      })
       .then(data => {
-        // Check if data is an array and contains posts
+        console.log("Fetched data:", data);  // Log the parsed data
+        // Check if the data is an array and contains items
         if (Array.isArray(data) && data.length > 0) {
           data.forEach(post => {
             let postElement = document.createElement('div');
