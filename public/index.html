@@ -30,8 +30,7 @@
           let imageElement = document.createElement('img');
           imageElement.src = post.image_url;
           imageElement.alt = `Image ${index + 1}`;
-          imageElement.classList.add('post-image');  // Optional: Add a class for styling
-          imageElement.setAttribute('data-buffer', 'true');  // Optional attribute to assist Buffer extension
+          imageElement.classList.add('post-image');  // Apply styling class
 
           // Append the image to the post container
           postElement.appendChild(imageElement);
