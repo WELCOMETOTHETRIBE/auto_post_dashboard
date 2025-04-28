@@ -39,6 +39,11 @@
       display: block;
     }
 
+    /* Optional: Add some hover effects for images */
+    .post img:hover {
+      opacity: 0.8;
+    }
+
     .post a {
       display: block;
       padding: 10px;
@@ -50,21 +55,6 @@
 
     .post a:hover {
       background-color: #45a049;
-    }
-
-    .buffer-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #00aaff;
-      color: white;
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    .buffer-button:hover {
-      background-color: #0099cc;
     }
   </style>
 </head>
@@ -88,8 +78,6 @@
             postElement.classList.add('post');
             postElement.innerHTML = `
               <img src="${post.image_url}" alt="Image">
-              <a href="${post.image_url}" target="_blank">View Image</a>
-              <div class="buffer-button" data-href="${post.image_url}" data-media="${post.image_url}" onclick="openBuffer(this)">Buffer</div>
             `;
             document.getElementById('posts-container').appendChild(postElement);
           });
@@ -101,19 +89,6 @@
         console.error('Error loading posts:', error);
         document.getElementById('posts-container').innerHTML = '<p>Error loading posts. Please try again later.</p>';
       });
-
-    // Function to open Buffer for sharing
-    function openBuffer(button) {
-      const url = button.getAttribute('data-href');
-      const media = button.getAttribute('data-media');
-      const text = 'Check out this image!'; // You can customize the text here
-
-      // Create a Buffer share URL with the image URL and text
-      const bufferUrl = `https://buffer.com/add?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}&media=${encodeURIComponent(media)}`;
-
-      // Open the Buffer URL in a new window
-      window.open(bufferUrl, '_blank');
-    }
   </script>
 </body>
 </html>
