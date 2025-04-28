@@ -13,20 +13,31 @@
   </div>
 
   <script>
-    // Fetch the posts data from posts.json
+    // Fetch the posts data from posts.json (from GitHub)
     fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/posts.json')
       .then(response => response.json())
       .then(data => {
-        data.forEach((post, index) => {
-          let postElement = document.createElement('div');
-          postElement.classList.add('post');
-          postElement.innerHTML = `
-            <a href="${post.image_url}" target="_blank">View Image</a>
-          `;
-          document.getElementById('posts-container').appendChild(postElement);
-        });
+        // Check if data is an array and contains posts
+        if (Array.isArray(data) && data.length > 0) {
+          // Loop through each post in the array
+          data.forEach((post, index) => {
+            let postElement = document.createElement('div');
+            postElement.classList.add('post');
+            postElement.innerHTML = `
+              <a href="${post.image_url}" target="_blank">View Image</a>
+            `;
+            document.getElementById('posts-container').appendChild(postElement);
+          });
+        } else {
+          // Handle case if no posts are available
+          document.getElementById('posts-container').innerHTML = '<p>No posts found.</p>';
+        }
       })
-      .catch(error => console.error('Error loading posts:', error));
+      .catch(error => {
+        // Handle fetch error
+        console.error('Error loading posts:', error);
+        document.getElementById('posts-container').innerHTML = '<p>Error loading posts. Please try again later.</p>';
+      });
   </script>
 </body>
 </html>
