@@ -3,43 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image Grid Dashboard</title>
+  <title>Auto Post Dashboard</title>
   <style>
-    /* Basic styling for the grid layout */
     body {
       font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
+      flex-direction: column;
       height: 100vh;
       margin: 0;
       background-color: #f4f4f4;
+      padding: 20px;
     }
 
-    #posts-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      width: 80%;
+    h1 {
+      margin-bottom: 20px;
     }
 
     .post {
       background-color: white;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
       overflow: hidden;
       text-align: center;
       position: relative;
+      width: 100%;
     }
 
     .post img {
       width: 100%;
       height: auto;
       display: block;
+      cursor: pointer;
     }
 
-    /* Optional: Add some hover effects for images */
     .post img:hover {
       opacity: 0.8;
     }
@@ -51,6 +50,7 @@
       color: #333;
       background-color: #4CAF50;
       border-radius: 0 0 8px 8px;
+      text-align: center;
     }
 
     .post a:hover {
@@ -59,7 +59,7 @@
   </style>
 </head>
 <body>
-  <h1>Image Grid Dashboard</h1>
+  <h1>Auto Post Dashboard</h1>
   <div id="posts-container">
     <!-- Images will be dynamically injected here -->
   </div>
@@ -77,7 +77,9 @@
             let postElement = document.createElement('div');
             postElement.classList.add('post');
             postElement.innerHTML = `
-              <img src="${post.image_url}" alt="Image">
+              <a href="${post.image_url}" target="_blank">
+                <img src="${post.image_url}" alt="Image">
+              </a>
             `;
             document.getElementById('posts-container').appendChild(postElement);
           });
