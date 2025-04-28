@@ -17,7 +17,7 @@ h1 {
 
 #posts-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));  /* Flexible grid */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));  /* Make sure images are large enough */
   gap: 20px;
   padding: 20px;
 }
@@ -35,9 +35,16 @@ h1 {
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Ensure the images take up a larger size */
 .post img {
-  width: 100%;
-  height: auto;
+  width: 100%;  /* Make the image fill the width of its container */
+  height: 100%; /* Ensures that the height scales with width */
+  object-fit: cover;  /* Ensures the image aspect ratio is preserved */
   border-radius: 8px;
+}
+
+/* Optional: Add a hover effect for a better user experience */
+.post img:hover {
+  opacity: 0.85;  /* Slightly fade the image on hover */
 }
 
