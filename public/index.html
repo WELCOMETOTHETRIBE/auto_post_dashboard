@@ -3,13 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buffer Staging Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Image Grid Dashboard</title>
+  <style>
+    /* Basic styling for the grid layout */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    #posts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      width: 80%;
+    }
+
+    .post {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .post img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .post a {
+      display: block;
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      background-color: #4CAF50;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .post a:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
-  <h1>Auto Post Dashboard</h1>
+  <h1>Image Grid Dashboard</h1>
   <div id="posts-container">
-    <!-- Posts will be dynamically injected here -->
+    <!-- Images will be dynamically injected here -->
   </div>
 
   <script>
@@ -19,26 +65,23 @@
       .then(data => {
         // Check if data is an array and contains posts
         if (Array.isArray(data) && data.length > 0) {
-          // Loop through each post in the array
-          data.forEach((post, index) => {
+          data.forEach(post => {
             let postElement = document.createElement('div');
             postElement.classList.add('post');
             postElement.innerHTML = `
+              <img src="${post.image_url}" alt="Image">
               <a href="${post.image_url}" target="_blank">View Image</a>
             `;
             document.getElementById('posts-container').appendChild(postElement);
           });
         } else {
-          // Handle case if no posts are available
           document.getElementById('posts-container').innerHTML = '<p>No posts found.</p>';
         }
       })
       .catch(error => {
-        // Handle fetch error
         console.error('Error loading posts:', error);
         document.getElementById('posts-container').innerHTML = '<p>Error loading posts. Please try again later.</p>';
       });
   </script>
 </body>
 </html>
-
