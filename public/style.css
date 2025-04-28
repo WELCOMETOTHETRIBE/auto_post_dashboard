@@ -20,6 +20,7 @@ h1 {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));  /* Make sure images are large enough */
   gap: 20px;
   padding: 20px;
+  overflow: hidden; /* Prevent overflow if images are too large */
 }
 
 .post {
@@ -41,10 +42,5 @@ h1 {
   height: 100%; /* Ensures that the height scales with width */
   object-fit: cover;  /* Ensures the image aspect ratio is preserved */
   border-radius: 8px;
-}
-
-/* Optional: Add a hover effect for a better user experience */
-.post img:hover {
-  opacity: 0.85;  /* Slightly fade the image on hover */
 }
 
