@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/autopost-assets/133.jpg",
+    "caption": "Beautiful sunset over the ocean.",
+    "hashtags": "#sunset #ocean #nature"
+  },
+  {
+    "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/autopost-assets/153.jpg",
+    "caption": "",
+    "hashtags": ""
+  },
+  {
+    "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/autopost-assets/145.jpg",
+    "caption": "",
+    "hashtags": ""
+  },
+  {
+    "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/autopost-assets/655.jpg",
+    "caption": "",
+    "hashtags": ""
+  },
+  {
+    "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/autopost-assets/7433.jpg",
+    "caption": "",
+    "hashtags": ""
+  }
+]
