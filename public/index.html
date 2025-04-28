@@ -26,29 +26,15 @@
           let postElement = document.createElement('div');
           postElement.classList.add('post');
 
-          // Create the image element with a 'data-buffer' attribute for Buffer extension
+          // Create the image element with the correct 'src' and 'alt' attributes
           let imageElement = document.createElement('img');
           imageElement.src = post.image_url;
           imageElement.alt = `Image ${index + 1}`;
           imageElement.classList.add('post-image');  // Optional: Add a class for styling
-          imageElement.setAttribute('data-buffer', 'true');  // Attribute for Buffer to detect it
+          imageElement.setAttribute('data-buffer', 'true');  // Optional attribute to assist Buffer extension
 
-          // Create a caption for the image (optional)
-          let captionElement = document.createElement('div');
-          captionElement.classList.add('caption');
-          captionElement.textContent = `Image ${index + 1}`;
-
-          // Create the Buffer share button link
-          let bufferLink = document.createElement('a');
-          bufferLink.href = `https://buffer.com/add?url=${encodeURIComponent(post.image_url)}&text=Check+this+out!`;
-          bufferLink.target = '_blank';
-          bufferLink.classList.add('buffer-button');
-          bufferLink.innerHTML = 'Share on Buffer';
-
-          // Append elements to the post container
+          // Append the image to the post container
           postElement.appendChild(imageElement);
-          postElement.appendChild(captionElement);
-          postElement.appendChild(bufferLink);
 
           // Add the post to the container
           document.getElementById('posts-container').appendChild(postElement);
