@@ -5,57 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auto Post Dashboard</title>
   <style>
+    /* General styling */
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       flex-direction: column;
       height: 100vh;
-      margin: 0;
-      background-color: #f4f4f4;
       padding: 20px;
     }
 
     h1 {
-      margin-bottom: 20px;
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 30px;
+      color: #333;
     }
 
+    #posts-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Styling for each image post */
     .post {
       background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
       overflow: hidden;
-      text-align: center;
-      position: relative;
       width: 100%;
+      max-width: 800px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
+    /* Styling for the image itself */
     .post img {
       width: 100%;
       height: auto;
       display: block;
+      border-bottom: 5px solid #ddd;
       cursor: pointer;
+      transition: transform 0.3s ease;
+      border-radius: 15px 15px 0 0;
     }
 
     .post img:hover {
-      opacity: 0.8;
+      transform: scale(1.05); /* Slight zoom on hover */
     }
 
+    /* Optional: Styling for hover effects on the whole card */
+    .post:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Styling for image caption or information under each image */
     .post a {
       display: block;
-      padding: 10px;
-      text-decoration: none;
-      color: #333;
+      padding: 15px;
       background-color: #4CAF50;
-      border-radius: 0 0 8px 8px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 0 0 15px 15px;
       text-align: center;
+      transition: background-color 0.3s ease;
     }
 
     .post a:hover {
       background-color: #45a049;
     }
+
   </style>
 </head>
 <body>
