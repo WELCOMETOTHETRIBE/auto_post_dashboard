@@ -1,34 +1,51 @@
-// Assuming you have the posts array from posts.json (make sure it's in JSON format)
-const posts = [
-    {
-        "Image URL": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/taplink-assets/main/coconut.jpg",
-        "Caption": "Sipping on island vibes, one coconut at a time 🥥✨",
-        "Hashtags": "#TropicalDreams #CoconutCraze #IslandLife #NatureInABottle #SunshineSips",
-        "Status": "Draft"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Post Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Auto Post Dashboard</h1>
+  <div id="posts-container">
+    <!-- Posts will be dynamically injected here -->
+  </div>
+
+  <script>
+    // Fetch the posts data from posts.json
+    fetch('posts.json')
+      .then(response => response.json())
+      .then(data => {
+        data.forEach((post, index) => {
+          let postElement = document.createElement('div');
+          postElement.classList.add('post');
+          postElement.innerHTML = `
+            <img src="${post.image_url}" alt="Image">
+            <div>
+              <label for="caption-${index}">Caption:</label>
+              <input type="text" id="caption-${index}" value="${post.caption || ''}" />
+            </div>
+            <div>
+              <label for="hashtags-${index}">Hashtags:</label>
+              <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
+            </div>
+            <button onclick="generateCaption(${index})">Generate Caption</button>
+          `;
+          document.getElementById('posts-container').appendChild(postElement);
+        });
+      })
+      .catch(error => console.error('Error loading posts:', error));
+
+    function generateCaption(index) {
+      const captionInput = document.getElementById(`caption-${index}`);
+      const hashtagsInput = document.getElementById(`hashtags-${index}`);
+      const caption = captionInput.value;
+      const hashtags = hashtagsInput.value;
+
+      // You can call the Buffer API or your AI service here to generate caption and hashtags
+      console.log(`Generating caption for post ${index}: ${caption} ${hashtags}`);
     }
-    // Add more posts as needed
-];
-
-const postContainer = document.getElementById('postContainer');
-
-posts.forEach(post => {
-    const postDiv = document.createElement('div');
-    postDiv.classList.add('post');
-    
-    // Add the image to the post
-    const image = document.createElement('img');
-    image.src = post["Image URL"];
-    image.alt = "Post Image";
-    postDiv.appendChild(image);
-    
-    // Create the "Open in Canva" button
-    const canvaBtn = document.createElement('button');
-    canvaBtn.innerText = "Open in Canva";
-    canvaBtn.onclick = () => window.open(`https://www.canva.com/design?image=${post["Image URL"]}`, '_blank');
-    
-    // Append the button to the post div
-    postDiv.appendChild(canvaBtn);
-    
-    // Add the post div to the container
-    postContainer.appendChild(postDiv);
-});
+  </script>
+</body>
+</html>
