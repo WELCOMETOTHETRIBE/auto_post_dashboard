@@ -1,45 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buffer Staging Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📸 Welcome To The Tribe - Auto Post Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Auto Post Dashboard</h1>
-  <div id="posts-container">
-    <!-- Posts will be dynamically injected here -->
-  </div>
+    <div class="header">
+        <h1>Welcome To The Tribe - Auto Post Dashboard</h1>
+        <p>Manage your images and posts for the Tribe.</p>
+    </div>
 
-  <script>
-    // Fetch the posts data from posts.json with cache busting
-    fetch('posts.json?' + new Date().getTime())
-      .then(response => response.json())
-      .then(data => {
-        console.log('Fetched data:', data);
-        console.log('Fetched data length:', data.length);  // Log the number of objects
+    <div id="postContainer"></div> <!-- This is where the posts will appear dynamically -->
 
-        // Loop through the data and create post elements
-        data.forEach((post, index) => {
-          // Create the post container
-          let postElement = document.createElement('div');
-          postElement.classList.add('post');
-
-          // Create the image element with the correct 'src' and 'alt' attributes
-          let imageElement = document.createElement('img');
-          imageElement.src = post.image_url;
-          imageElement.alt = `Image ${index + 1}`;
-          imageElement.classList.add('post-image');  // Apply styling class
-
-          // Append the image to the post container
-          postElement.appendChild(imageElement);
-
-          // Add the post to the container
-          document.getElementById('posts-container').appendChild(postElement);
-        });
-      })
-      .catch(error => console.error('Error loading posts:', error));
-  </script>
+    <script src="app.js"></script>
 </body>
 </html>
