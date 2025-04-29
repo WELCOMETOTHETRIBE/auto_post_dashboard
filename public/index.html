@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buffer Staging Dashboard</title>
+  <title>Auto Post Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,29 +13,19 @@
   </div>
 
   <script>
-    // Fetch the posts data from posts.json with cache busting
-    fetch('posts.json?' + new Date().getTime())
+    // Fetch the posts data from posts.json
+    fetch('posts.json')
       .then(response => response.json())
       .then(data => {
-        console.log('Fetched data:', data);
-        console.log('Fetched data length:', data.length);  // Log the number of objects
-
-        // Loop through the data and create post elements
-        data.forEach((post, index) => {
-          // Create the post container
+        // Loop through each post and inject into the page
+        data.forEach((post) => {
           let postElement = document.createElement('div');
           postElement.classList.add('post');
 
-          // Create the image element with the correct 'src' and 'alt' attributes
-          let imageElement = document.createElement('img');
-          imageElement.src = post.image_url;
-          imageElement.alt = `Image ${index + 1}`;
-          imageElement.classList.add('post-image');  // Apply styling class
-
-          // Append the image to the post container
-          postElement.appendChild(imageElement);
-
-          // Add the post to the container
+          // Image and URL from posts.json
+          postElement.innerHTML = `
+            <img src="${post.image_url}" alt="Image" style="max-width: 100%; height: auto;" />
+          `;
           document.getElementById('posts-container').appendChild(postElement);
         });
       })
