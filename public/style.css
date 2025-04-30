@@ -35,11 +35,11 @@ h1 {
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Larger images with sufficient size */
+/* Ensure images are properly sized */
 .post img {
-  width: 100%;
-  height: 250px;  /* Ensure images are tall enough */
-  object-fit: cover;  /* Keep the aspect ratio */
+  width: 100%;  /* Ensures images take full width */
+  height: auto;  /* Maintain aspect ratio */
+  max-height: 300px;  /* Adjust to ensure images are large enough */
+  object-fit: cover;  /* Keeps the aspect ratio intact */
   border-radius: 8px;
 }
-

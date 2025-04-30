@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buffer Staging Dashboard</title>
+  <title>Auto Post Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,33 +13,33 @@
   </div>
 
   <script>
-    // Fetch the posts data from posts.json with cache busting
-    fetch('posts.json?' + new Date().getTime())
-      .then(response => response.json())
+    // Fetch the posts data from posts.json (no path prefix because both files are in the same directory)
+    fetch('posts.json')
+      .then(response => {
+        // Check if the response is ok (status 200-299)
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();  // Proceed to parse JSON if response is valid
+      })
       .then(data => {
-        console.log('Fetched data:', data);
-        console.log('Fetched data length:', data.length);  // Log the number of objects
+        console.log('Fetched data:', data);  // Debugging: log the fetched data
 
-        // Loop through the data and create post elements
-        data.forEach((post, index) => {
-          // Create the post container
+        // Loop through each post and inject into the page
+        data.forEach((post) => {
           let postElement = document.createElement('div');
           postElement.classList.add('post');
 
-          // Create the image element with the correct 'src' and 'alt' attributes
-          let imageElement = document.createElement('img');
-          imageElement.src = post.image_url;
-          imageElement.alt = `Image ${index + 1}`;
-          imageElement.classList.add('post-image');  // Apply styling class
-
-          // Append the image to the post container
-          postElement.appendChild(imageElement);
-
-          // Add the post to the container
+          // Image and URL from posts.json
+          postElement.innerHTML = `
+            <img src="${post.image_url}" alt="Image" />
+          `;
           document.getElementById('posts-container').appendChild(postElement);
         });
       })
-      .catch(error => console.error('Error loading posts:', error));
+      .catch(error => {
+        console.error('Error loading posts:', error);  // Error handling for any fetch or parsing issues
+      });
   </script>
 </body>
 </html>
