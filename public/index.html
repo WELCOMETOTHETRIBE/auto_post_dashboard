@@ -4,130 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auto Post Dashboard</title>
+  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f9fafb;
-      color: #333;
-    }
-
-    h1 {
-      text-align: center;
-      padding: 20px;
-      background-color: #1e3a8a;
-      color: white;
-      font-size: 28px;
-      margin: 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    #posts-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 24px;
-      padding: 30px;
-    }
-
-    .post {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
-      transition: transform 0.2s ease;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .post:hover {
-      transform: translateY(-6px);
-    }
-
-    .post img {
-      width: 100%;
-      height: auto;
-      max-height: 280px;
-      object-fit: contain;
-      border-radius: 8px;
-      background: #f1f5f9;
-      padding: 8px;
-    }
-
-    .post label {
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: block;
-      color: #1f2937;
-    }
-
-    .post input[type="text"],
-    .post select,
-    .post textarea {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      background-color: #f9fafb;
-      transition: border 0.2s;
-    }
-
-    .post input[type="text"]:focus,
-    .post select:focus,
-    .post textarea:focus {
-      border-color: #2563eb;
-      outline: none;
-    }
-
-    .post textarea {
-      resize: vertical;
-      min-height: 60px;
-      line-height: 1.5;
-      overflow-wrap: break-word;
-      white-space: pre-wrap;
-    }
-
-    .post button {
-      padding: 10px 16px;
-      font-weight: bold;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .post button:last-of-type {
-      background-color: #10b981;
-      color: white;
-    }
-
-    .post button:last-of-type:hover {
-      background-color: #059669;
-    }
-
-    .fix-caption-btn {
-      background-color: #6366f1;
-      color: white;
-    }
-
-    .fix-caption-btn:hover {
-      background-color: #4f46e5;
-    }
-
-    .checkbox-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-    }
-  </style>
 </head>
 <body>
   <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
@@ -146,7 +25,9 @@
           const postElement = document.createElement('div');
           postElement.classList.add('post');
           postElement.innerHTML = `
-            <img src="${post.image_url}" alt="Image">
+            <div class="image-wrapper">
+              <img src="${post.image_url}" alt="Image" />
+            </div>
             <div>
               <label for="product-${index}">Product</label>
               <select id="product-${index}">
