@@ -137,8 +137,13 @@
           postElement.innerHTML = `
             <img src="${post.image_url}" alt="Image">
             <div>
-              <label for="product-${index}">Product Name</label>
-              <input type="text" id="product-${index}" value="${post.product_name || ''}" />
+  <label for="product-${index}">Product</label>
+  <select id="product-${index}">
+    <option value="THRIVE">THRIVE</option>
+    <option value="DRIVE">DRIVE</option>
+    <option value="ALIGN">ALIGN</option>
+    <option value="Clusters">Clusters</option>
+  </select>
             </div>
             <div>
               <label for="caption-${index}">Caption</label>
