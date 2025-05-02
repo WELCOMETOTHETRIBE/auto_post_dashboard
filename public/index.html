@@ -107,8 +107,8 @@
           <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
         </div>
         <div>
-          <label for="platform-${index}">Platform</label>
-          <select id="platform-${index}">
+          <label for="platform-${index}">Platform(s)</label>
+          <select id="platform-${index}" multiple>
             <option value="Instagram">Instagram</option>
             <option value="Facebook">Facebook</option>
             <option value="LinkedIn">LinkedIn</option>
@@ -161,7 +161,10 @@
       const caption = document.getElementById(`caption-${index}`).value;
       const link = document.getElementById(`link-${index}`).value;
       const hashtags = document.getElementById(`hashtags-${index}`).value;
-      const platform = document.getElementById(`platform-${index}`).value;
+
+      const platformSelect = document.getElementById(`platform-${index}`);
+      const selectedPlatforms = Array.from(platformSelect.selectedOptions).map(opt => opt.value).join(' ');
+
       const publishNow = document.getElementById(`publish-${index}`).checked;
 
       const payload = {
@@ -171,7 +174,7 @@
         system_token_id: tokenId,
         caption: caption,
         hashtags: hashtags,
-        platform: platform,
+        platform: selectedPlatforms,
         publish_now: publishNow
       };
 
@@ -189,7 +192,6 @@
           submittedPost.querySelector('button.fix-caption-btn').disabled = true;
           document.getElementById('finished-drafts-container').appendChild(submittedPost);
 
-          // Switch to Finished Drafts tab
           showTab('finished-drafts-container');
         })
         .catch(error => {
