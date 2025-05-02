@@ -1,171 +1,206 @@
-/* General Styling */
-body {
-  font-family: 'Inter', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f7fa;
-  color: #333;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto Post Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .header-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      background-color: #1e3a8a;
+      padding: 10px 0;
+    }
+    .header-links a {
+      color: white;
+      font-size: 18px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.3s ease;
+    }
+    .header-links a:hover {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
 
-h1 {
-  text-align: center;
-  padding: 20px;
-  background-color: #1e3a8a;
-  color: white;
-  margin: 0;
-  font-size: 28px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+  <div class="header-links">
+    <a href="https://www.reddit.com/r/wttt_official/" target="_blank"><i class="fab fa-reddit"></i> Reddit</a>
+    <a href="https://www.instagram.com/wttt_official/" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+    <a href="https://www.facebook.com/wttt_official/" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+  </div>
 
-/* Container Grid */
-#posts-container,
-#finished-drafts-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 24px;
-  padding: 30px;
-}
+  <div class="tab-nav">
+    <button id="tab-staging" class="active" onclick="showTab('staging')">Staging Area</button>
+    <button id="tab-drafts" onclick="showTab('drafts')">Finished Drafts</button>
+  </div>
 
-/* Tab Navigation */
-.tab-nav {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 20px 0;
-}
+  <div id="posts-container" class="tab-content active"></div>
+  <div id="finished-drafts-container" class="tab-content"></div>
 
-.tab-nav button {
-  padding: 10px 20px;
-  font-weight: bold;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #e0e7ff;
-  color: #1e3a8a;
-}
+  <script>
+    function showTab(tab) {
+      document.getElementById('posts-container').classList.remove('active');
+      document.getElementById('finished-drafts-container').classList.remove('active');
+      document.getElementById('tab-staging').classList.remove('active');
+      document.getElementById('tab-drafts').classList.remove('active');
 
-.tab-nav button.active {
-  background-color: #1e3a8a;
-  color: white;
-}
+      if (tab === 'staging') {
+        document.getElementById('posts-container').classList.add('active');
+        document.getElementById('tab-staging').classList.add('active');
+      } else {
+        document.getElementById('finished-drafts-container').classList.add('active');
+        document.getElementById('tab-drafts').classList.add('active');
+      }
+    }
 
-/* Cards */
-.post {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+    function generateTokenId() {
+      return 'token_' + Math.random().toString(36).substring(2, 10);
+    }
 
-/* Image */
-.post img {
-  width: 100%;
-  height: auto;
-  max-height: 280px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #f1f5f9;
-  padding: 8px;
-}
+    function togglePlatform(button, input) {
+      button.classList.toggle('active');
+      const platforms = Array.from(button.parentElement.querySelectorAll('.platform-button.active')).map(btn => btn.dataset.platform);
+      input.value = platforms.join(' ');
+    }
 
-/* Labels and Inputs */
-.post label {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-  display: block;
-  color: #1f2937;
-}
+    fetch('posts.json')
+      .then(response => response.json())
+      .then(data => {
+        data.forEach((post, index) => {
+          const tokenId = generateTokenId();
+          const postElement = createPostElement(post, index, tokenId);
+          document.getElementById('posts-container').appendChild(postElement);
+        });
+      })
+      .catch(error => console.error('Error loading posts:', error));
 
-.post input[type="text"],
-.post textarea,
-.post select {
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background-color: #fff;
-  resize: vertical;
-  min-height: 40px;
-  box-sizing: border-box;
-  transition: border 0.2s ease;
-}
+    function createPostElement(post, index, tokenId) {
+      const postElement = document.createElement('div');
+      postElement.classList.add('post');
+      postElement.innerHTML = `
+        <div class="image-wrapper">
+          <img src="${post.image_url}" alt="Image" />
+        </div>
+        <div>
+          <label for="product-${index}">Product</label>
+          <select id="product-${index}">
+            <option value="N/A">N/A</option>
+            <option value="THRIVE">THRIVE</option>
+            <option value="DRIVE">DRIVE</option>
+            <option value="ALIGN">ALIGN</option>
+            <option value="Clusters">Clusters</option>
+          </select>
+        </div>
+        <div>
+          <label for="caption-${index}">Caption</label>
+          <textarea id="caption-${index}">${post.caption || ''}</textarea>
+        </div>
+        <div>
+          <label for="link-${index}">Link</label>
+          <input type="text" id="link-${index}" value="${post.link || ''}" />
+        </div>
+        <div>
+          <label for="hashtags-${index}">Hashtags</label>
+          <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
+        </div>
+        <div>
+          <label>Platforms</label>
+          <div class="platform-buttons">
+            <button type="button" class="platform-button" data-platform="Instagram" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Instagram</button>
+            <button type="button" class="platform-button" data-platform="Facebook" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Facebook</button>
+            <button type="button" class="platform-button" data-platform="LinkedIn" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">LinkedIn</button>
+            <button type="button" class="platform-button" data-platform="X" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">X (Twitter)</button>
+            <button type="button" class="platform-button" data-platform="Pinterest" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Pinterest</button>
+            <button type="button" class="platform-button" data-platform="Reddit" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Reddit</button>
+          </div>
+          <input type="hidden" id="platform-${index}" value="${post.platform || ''}" />
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="publish-${index}">
+          <label for="publish-${index}">Publish Now</label>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="fix-caption-btn" id="fix-btn-${index}" onclick="fixCaption(${index})">🪄 Fix Caption</button>
+          <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">Submit to Sheet</button>
+        </div>
+      `;
+      return postElement;
+    }
 
-.post textarea {
-  min-height: 60px;
-  line-height: 1.5;
-}
+    function fixCaption(index) {
+      const button = document.getElementById(`fix-btn-${index}`);
+      const input = document.getElementById(`caption-${index}`);
+      const prompt = input.value || "Generate a caption";
 
-.post input:focus,
-.post textarea:focus,
-.post select:focus {
-  border-color: #2563eb;
-  outline: none;
-}
+      button.disabled = true;
+      button.innerText = '⏳ Fixing...';
 
-/* Buttons */
-.post button {
-  padding: 10px 16px;
-  font-weight: bold;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
+      fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      })
+        .then(res => res.json())
+        .then(data => {
+          input.value = data.caption || input.value;
+          button.innerText = '🪄 Fix Caption';
+          button.disabled = false;
+        })
+        .catch(error => {
+          console.error('Error generating caption:', error);
+          button.innerText = '🪄 Fix Caption';
+          button.disabled = false;
+          alert('❌ Failed to fix caption.');
+        });
+    }
 
-.fix-caption-btn {
-  background-color: #6366f1;
-  color: white;
-}
+    function submitToSheet(index, imageUrl, tokenId, button) {
+      const productName = document.getElementById(`product-${index}`).value;
+      const caption = document.getElementById(`caption-${index}`).value;
+      const link = document.getElementById(`link-${index}`).value;
+      const hashtags = document.getElementById(`hashtags-${index}`).value;
+      const platform = document.getElementById(`platform-${index}`).value;
+      const publishNow = document.getElementById(`publish-${index}`).checked;
 
-.fix-caption-btn:hover {
-  background-color: #4f46e5;
-}
+      const payload = {
+        image_url: imageUrl,
+        product_name: productName,
+        link: link,
+        system_token_id: tokenId,
+        caption: caption,
+        hashtags: hashtags,
+        platform: platform,
+        publish_now: publishNow
+      };
 
-.post button:last-of-type {
-  background-color: #10b981;
-  color: white;
-}
+      fetch('/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(response => {
+          alert(`✅ Submitted!`);
 
-.post button:last-of-type:hover {
-  background-color: #059669;
-}
-
-/* Checkbox */
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-/* Platform Buttons */
-.platform-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 10px 0;
-}
-
-.platform-button {
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 2px solid #1e3a8a;
-  border-radius: 20px;
-  cursor: pointer;
-  background-color: white !important;
-  color: #1e3a8a !important;
-  transition: all 0.2s ease;
-}
-
-.platform-button.active {
-  background-color: #1e3a8a !important;
-  color: white !important;
-}
+          const submittedPost = button.closest('.post');
+          submittedPost.querySelector('button:last-of-type').disabled = true;
+          submittedPost.querySelector('button.fix-caption-btn').disabled = true;
+          document.getElementById('finished-drafts-container').appendChild(submittedPost);
+        })
+        .catch(error => {
+          console.error('Error submitting to sheet:', error);
+          alert('❌ Error submitting post.');
+        });
+    }
+  </script>
+</body>
+</html>
