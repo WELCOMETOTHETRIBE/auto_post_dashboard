@@ -40,25 +40,24 @@
   <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
 
   <div class="tab-nav">
-    <button id="tab-staging" class="active" onclick="showTab('staging')">Staging Area</button>
-    <button id="tab-drafts" onclick="showTab('drafts')">Finished Drafts</button>
+    <button id="tab-staging" class="active" onclick="showTab('posts-container')">Staging Area</button>
+    <button id="tab-drafts" onclick="showTab('finished-drafts-container')">Finished Drafts</button>
   </div>
 
   <div id="posts-container" class="tab-content active"></div>
   <div id="finished-drafts-container" class="tab-content"></div>
 
   <script>
-    function showTab(tab) {
-      document.getElementById('posts-container').classList.remove('active');
-      document.getElementById('finished-drafts-container').classList.remove('active');
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+
       document.getElementById('tab-staging').classList.remove('active');
       document.getElementById('tab-drafts').classList.remove('active');
 
-      if (tab === 'staging') {
-        document.getElementById('posts-container').classList.add('active');
+      if (tabId === 'posts-container') {
         document.getElementById('tab-staging').classList.add('active');
       } else {
-        document.getElementById('finished-drafts-container').classList.add('active');
         document.getElementById('tab-drafts').classList.add('active');
       }
     }
@@ -189,6 +188,9 @@
           submittedPost.querySelector('button:last-of-type').disabled = true;
           submittedPost.querySelector('button.fix-caption-btn').disabled = true;
           document.getElementById('finished-drafts-container').appendChild(submittedPost);
+
+          // Switch to Finished Drafts tab
+          showTab('finished-drafts-container');
         })
         .catch(error => {
           console.error('Error submitting to sheet:', error);
