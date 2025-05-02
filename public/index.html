@@ -188,7 +188,7 @@
         publish_now: publishNow
       };
 
-      fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
+      fetch('/submit', {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: {
