@@ -17,7 +17,7 @@ h1 {
 
 #posts-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));  /* Ensure the images are larger */
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
   padding: 20px;
 }
@@ -28,6 +28,10 @@ h1 {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .post:hover {
@@ -35,11 +39,85 @@ h1 {
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Ensure images are properly sized */
-.post img {
-  width: 100%;  /* Ensures images take full width */
-  height: auto;  /* Maintain aspect ratio */
-  max-height: 300px;  /* Adjust to ensure images are large enough */
-  object-fit: cover;  /* Keeps the aspect ratio intact */
+/* New wrapper to cleanly style image box */
+.image-wrapper {
+  background-color: #f1f5f9;
+  padding: 8px;
   border-radius: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 280px;
+  overflow: hidden;
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+}
+
+/* Inputs, dropdowns, and textarea styling */
+.post label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.post input[type="text"],
+.post select,
+.post textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f9fafb;
+}
+
+.post textarea {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+button {
+  padding: 10px 14px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.fix-caption-btn {
+  background-color: #6366f1;
+  color: white;
+}
+
+.fix-caption-btn:hover {
+  background-color: #4f46e5;
+}
+
+.post button:last-of-type {
+  background-color: #10b981;
+  color: white;
+}
+
+.post button:last-of-type:hover {
+  background-color: #059669;
 }
