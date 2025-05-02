@@ -123,19 +123,23 @@
   <div id="posts-container"></div>
 
   <script>
+    function generateTokenId() {
+      return 'token_' + Math.random().toString(36).substring(2, 10);
+    }
+
     fetch('posts.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
         data.forEach((post, index) => {
+          const tokenId = generateTokenId();
           const postElement = document.createElement('div');
           postElement.classList.add('post');
           postElement.innerHTML = `
             <img src="${post.image_url}" alt="Image">
+            <div>
+              <label for="product-${index}">Product Name</label>
+              <input type="text" id="product-${index}" value="${post.product_name || ''}" />
+            </div>
             <div>
               <label for="caption-${index}">Caption</label>
               <input type="text" id="caption-${index}" value="${post.caption || ''}" />
@@ -158,7 +162,7 @@
             </div>
             <div style="display: flex; gap: 10px;">
               <button onclick="generateCaption(${index})">Generate Caption</button>
-              <button onclick="submitToSheet(${index}, '${post.image_url}')">Submit to Sheet</button>
+              <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}')">Submit to Sheet</button>
             </div>
           `;
           document.getElementById('posts-container').appendChild(postElement);
@@ -167,21 +171,37 @@
       .catch(error => console.error('Error loading posts:', error));
 
     function generateCaption(index) {
-      const captionInput = document.getElementById(`caption-${index}`);
-      const hashtagsInput = document.getElementById(`hashtags-${index}`);
-      const caption = captionInput.value;
-      const hashtags = hashtagsInput.value;
-      console.log(`Generating caption for post ${index}: ${caption} ${hashtags}`);
+      const prompt = document.getElementById(`caption-${index}`).value || "Generate a caption";
+      fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.caption) {
+            document.getElementById(`caption-${index}`).value = data.caption;
+          } else {
+            alert("No caption returned.");
+          }
+        })
+        .catch(error => {
+          console.error('Error generating caption:', error);
+          alert('❌ Failed to generate caption.');
+        });
     }
 
-    function submitToSheet(index, imageUrl) {
+    function submitToSheet(index, imageUrl, tokenId) {
       const caption = document.getElementById(`caption-${index}`).value;
       const hashtags = document.getElementById(`hashtags-${index}`).value;
       const platform = document.getElementById(`platform-${index}`).value;
       const publishNow = document.getElementById(`publish-${index}`).checked;
+      const productName = document.getElementById(`product-${index}`).value;
 
       const payload = {
         image_url: imageUrl,
+        product_name: productName,
+        system_token_id: tokenId,
         caption: caption,
         hashtags: hashtags,
         platform: platform,
@@ -190,19 +210,17 @@
 
       fetch('/submit', {
         method: 'POST',
-        body: JSON.stringify(payload),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       })
-      .then(res => res.json())
-      .then(response => {
-        alert(`✅ Submitted! Row ID: ${response.row_id}`);
-      })
-      .catch(error => {
-        console.error('Error submitting to sheet:', error);
-        alert('❌ Error submitting post.');
-      });
+        .then(res => res.json())
+        .then(response => {
+          alert(`✅ Submitted!`);
+        })
+        .catch(error => {
+          console.error('Error submitting to sheet:', error);
+          alert('❌ Error submitting post.');
+        });
     }
   </script>
 </body>
