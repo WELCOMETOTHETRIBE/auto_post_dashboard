@@ -12,6 +12,7 @@ const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 app.use(express.json());
 app.use(express.static('public'));
 
+// === Caption Generation via OpenAI Assistant ===
 app.post('/api/generate-caption', async (req, res) => {
   try {
     const userMessage = req.body.prompt || "Generate a caption.";
@@ -28,7 +29,6 @@ app.post('/api/generate-caption', async (req, res) => {
     });
 
     const threadData = await threadResponse.json();
-
     if (!threadData.id) {
       console.error('Error creating thread:', threadData);
       return res.status(500).json({ error: 'Failed to create thread' });
@@ -64,7 +64,6 @@ app.post('/api/generate-caption', async (req, res) => {
     });
 
     const runData = await runResponse.json();
-
     if (!runData.id) {
       console.error('Error starting run:', runData);
       return res.status(500).json({ error: 'Failed to start run' });
@@ -105,9 +104,7 @@ app.post('/api/generate-caption', async (req, res) => {
 
         const messagesData = await messagesResponse.json();
         const messages = messagesData.data || [];
-
         const latestMessage = messages.find(msg => msg.role === 'assistant');
-
         output = latestMessage?.content?.[0]?.text?.value || "No response generated.";
       }
 
@@ -125,7 +122,24 @@ app.post('/api/generate-caption', async (req, res) => {
   }
 });
 
-// Start server
+// === Forward to Zapier Webhook ===
+app.post('/submit', async (req, res) => {
+  try {
+    const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await zapierRes.text();
+    res.status(200).json({ status: 'ok', zapier_response: data });
+  } catch (error) {
+    console.error('Error forwarding to Zapier:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// === Start the server ===
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
