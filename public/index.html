@@ -4,10 +4,122 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auto Post Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9fafb;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px;
+      background-color: #1e3a8a;
+      color: white;
+      font-size: 28px;
+      margin: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #posts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
+      padding: 30px;
+    }
+
+    .post {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .post:hover {
+      transform: translateY(-6px);
+    }
+
+    .post img {
+      width: 100%;
+      height: auto;
+      max-height: 280px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #f1f5f9;
+      padding: 8px;
+    }
+
+    .post label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: block;
+      color: #1f2937;
+    }
+
+    .post input[type="text"],
+    .post select {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background-color: #f9fafb;
+      transition: border 0.2s;
+    }
+
+    .post input[type="text"]:focus,
+    .post select:focus {
+      border-color: #2563eb;
+      outline: none;
+    }
+
+    .post button {
+      padding: 10px 16px;
+      font-weight: bold;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .post button:first-of-type {
+      background-color: #6b7280;
+      color: white;
+    }
+
+    .post button:first-of-type:hover {
+      background-color: #4b5563;
+    }
+
+    .post button:last-of-type {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .post button:last-of-type:hover {
+      background-color: #059669;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Auto Post Dashboard</h1>
+  <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
   <div id="posts-container"></div>
 
   <script>
@@ -25,26 +137,29 @@
           postElement.innerHTML = `
             <img src="${post.image_url}" alt="Image">
             <div>
-              <label for="caption-${index}">Caption:</label>
+              <label for="caption-${index}">Caption</label>
               <input type="text" id="caption-${index}" value="${post.caption || ''}" />
             </div>
             <div>
-              <label for="hashtags-${index}">Hashtags:</label>
+              <label for="hashtags-${index}">Hashtags</label>
               <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
             </div>
             <div>
-              <label for="platform-${index}">Platform:</label>
+              <label for="platform-${index}">Platform</label>
               <select id="platform-${index}">
                 <option value="Instagram">Instagram</option>
                 <option value="Facebook">Facebook</option>
                 <option value="LinkedIn">LinkedIn</option>
               </select>
             </div>
-            <div>
-              <label><input type="checkbox" id="publish-${index}"> Publish Now</label>
+            <div class="checkbox-container">
+              <input type="checkbox" id="publish-${index}">
+              <label for="publish-${index}">Publish Now</label>
             </div>
-            <button onclick="generateCaption(${index})">Generate Caption</button>
-            <button onclick="submitToSheet(${index}, '${post.image_url}')">Submit to Sheet</button>
+            <div style="display: flex; gap: 10px;">
+              <button onclick="generateCaption(${index})">Generate Caption</button>
+              <button onclick="submitToSheet(${index}, '${post.image_url}')">Submit to Sheet</button>
+            </div>
           `;
           document.getElementById('posts-container').appendChild(postElement);
         });
@@ -73,7 +188,7 @@
         publish_now: publishNow
       };
 
-      fetch('https://script.google.com/macros/s/AKfycbxoAxAMkMr_LNUouGspEHDsRN3WiAdxHO8B4j7axi15Z3nx8XSuCBPuv8IX40nEIPaF/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbxoAxAMkMr_LNUouGspEHb5RN3WiAdxH0B84j7axi1523nx8XSuCBPuv8lX40nEIPaF/exec', {
         method: 'POST',
         body: JSON.stringify(payload),
         headers: {
@@ -82,11 +197,11 @@
       })
       .then(res => res.json())
       .then(response => {
-        alert(`Submitted! Row ID: ${response.row_id}`);
+        alert(`✅ Submitted! Row ID: ${response.row_id}`);
       })
       .catch(error => {
         console.error('Error submitting to sheet:', error);
-        alert('Error submitting post.');
+        alert('❌ Error submitting post.');
       });
     }
   </script>
