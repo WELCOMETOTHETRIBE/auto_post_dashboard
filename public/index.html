@@ -12,6 +12,9 @@
   <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
   <div id="posts-container"></div>
 
+  <h2 style="text-align:center; margin-top: 40px;">Finished Drafts</h2>
+  <div id="finished-drafts-container"></div>
+
   <script>
     function generateTokenId() {
       return 'token_' + Math.random().toString(36).substring(2, 10);
@@ -22,58 +25,63 @@
       .then(data => {
         data.forEach((post, index) => {
           const tokenId = generateTokenId();
-          const postElement = document.createElement('div');
-          postElement.classList.add('post');
-          postElement.innerHTML = `
-            <div class="image-wrapper">
-              <img src="${post.image_url}" alt="Image" />
-            </div>
-            <div>
-              <label for="product-${index}">Product</label>
-              <select id="product-${index}">
-                <option value="N/A">N/A</option>
-                <option value="THRIVE">THRIVE</option>
-                <option value="DRIVE">DRIVE</option>
-                <option value="ALIGN">ALIGN</option>
-                <option value="Clusters">Clusters</option>
-              </select>
-            </div>
-            <div>
-              <label for="caption-${index}">Caption</label>
-              <textarea id="caption-${index}">${post.caption || ''}</textarea>
-            </div>
-            <div>
-              <label for="link-${index}">Link</label>
-              <input type="text" id="link-${index}" value="${post.link || ''}" />
-            </div>
-            <div>
-              <label for="hashtags-${index}">Hashtags</label>
-              <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
-            </div>
-            <div>
-              <label for="platform-${index}">Platform</label>
-              <select id="platform-${index}">
-                <option value="Instagram">Instagram</option>
-                <option value="Facebook">Facebook</option>
-                <option value="LinkedIn">LinkedIn</option>
-                <option value="X">X (Twitter)</option>
-                <option value="Pinterest">Pinterest</option>
-                <option value="Reddit">Reddit</option>
-              </select>
-            </div>
-            <div class="checkbox-container">
-              <input type="checkbox" id="publish-${index}">
-              <label for="publish-${index}">Publish Now</label>
-            </div>
-            <div style="display: flex; gap: 10px;">
-              <button class="fix-caption-btn" id="fix-btn-${index}" onclick="fixCaption(${index})">🪄 Fix Caption</button>
-              <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}')">Submit to Sheet</button>
-            </div>
-          `;
+          const postElement = createPostElement(post, index, tokenId);
           document.getElementById('posts-container').appendChild(postElement);
         });
       })
       .catch(error => console.error('Error loading posts:', error));
+
+    function createPostElement(post, index, tokenId) {
+      const postElement = document.createElement('div');
+      postElement.classList.add('post');
+      postElement.innerHTML = `
+        <div class="image-wrapper">
+          <img src="${post.image_url}" alt="Image" />
+        </div>
+        <div>
+          <label for="product-${index}">Product</label>
+          <select id="product-${index}">
+            <option value="N/A">N/A</option>
+            <option value="THRIVE">THRIVE</option>
+            <option value="DRIVE">DRIVE</option>
+            <option value="ALIGN">ALIGN</option>
+            <option value="Clusters">Clusters</option>
+          </select>
+        </div>
+        <div>
+          <label for="caption-${index}">Caption</label>
+          <textarea id="caption-${index}">${post.caption || ''}</textarea>
+        </div>
+        <div>
+          <label for="link-${index}">Link</label>
+          <input type="text" id="link-${index}" value="${post.link || ''}" />
+        </div>
+        <div>
+          <label for="hashtags-${index}">Hashtags</label>
+          <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
+        </div>
+        <div>
+          <label for="platform-${index}">Platform</label>
+          <select id="platform-${index}">
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="X">X (Twitter)</option>
+            <option value="Pinterest">Pinterest</option>
+            <option value="Reddit">Reddit</option>
+          </select>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="publish-${index}">
+          <label for="publish-${index}">Publish Now</label>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="fix-caption-btn" id="fix-btn-${index}" onclick="fixCaption(${index})">🪄 Fix Caption</button>
+          <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">Submit to Sheet</button>
+        </div>
+      `;
+      return postElement;
+    }
 
     function fixCaption(index) {
       const button = document.getElementById(`fix-btn-${index}`);
@@ -102,7 +110,7 @@
         });
     }
 
-    function submitToSheet(index, imageUrl, tokenId) {
+    function submitToSheet(index, imageUrl, tokenId, button) {
       const productName = document.getElementById(`product-${index}`).value;
       const caption = document.getElementById(`caption-${index}`).value;
       const link = document.getElementById(`link-${index}`).value;
@@ -129,6 +137,11 @@
         .then(res => res.json())
         .then(response => {
           alert(`✅ Submitted!`);
+
+          const submittedPost = button.closest('.post');
+          submittedPost.querySelector('button:last-of-type').disabled = true;
+          submittedPost.querySelector('button.fix-caption-btn').disabled = true;
+          document.getElementById('finished-drafts-container').appendChild(submittedPost);
         })
         .catch(error => {
           console.error('Error submitting to sheet:', error);
