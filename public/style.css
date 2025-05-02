@@ -1,4 +1,3 @@
-/* General Styling */
 body {
   font-family: 'Arial', sans-serif;
   margin: 0;
@@ -10,24 +9,26 @@ body {
 h1 {
   text-align: center;
   padding: 20px;
-  background-color: #007BFF;
+  background-color: #1e3a8a;
   color: white;
   margin: 0;
+  font-size: 28px;
 }
 
-#posts-container {
+#posts-container,
+#finished-drafts-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+  padding: 30px;
 }
 
 .post {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s ease;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -35,57 +36,133 @@ h1 {
 }
 
 .post:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-6px);
 }
 
-/* New wrapper to cleanly style image box */
-.image-wrapper {
-  background-color: #f1f5f9;
-  padding: 8px;
-  border-radius: 8px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-height: 280px;
-  overflow: hidden;
-}
-
-.image-wrapper img {
+.post img {
   width: 100%;
   height: auto;
+  max-height: 280px;
   object-fit: contain;
-  padding: 0;
-  margin: 0;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  padding: 8px;
 }
 
-/* Inputs, dropdowns, and textarea styling */
 .post label {
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 4px;
   display: block;
+  color: #1f2937;
 }
 
 .post input[type="text"],
-.post select,
-.post textarea {
+.post textarea,
+.post select {
   width: 100%;
-  box-sizing: border-box;
   padding: 10px;
   font-size: 14px;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   background-color: #f9fafb;
+  transition: border 0.2s;
+  resize: vertical;
+  box-sizing: border-box;
 }
 
-.post textarea {
-  resize: vertical;
+.post input[type="text"]:focus,
+.post textarea:focus,
+.post select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+textarea {
   min-height: 60px;
-  line-height: 1.5;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
+}
+
+.platform-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.platform-button {
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 2px solid #1e3a8a;
+  border-radius: 20px;
+  cursor: pointer;
+  background: white;
+  color: #1e3a8a;
+  transition: all 0.2s ease;
+}
+
+.platform-button.active {
+  background: #1e3a8a;
+  color: white;
+}
+
+button.fix-caption-btn {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-grow: 1;
+}
+
+button.fix-caption-btn:hover {
+  background-color: #4f46e5;
+}
+
+button:last-of-type {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-grow: 1;
+}
+
+button:last-of-type:hover {
+  background-color: #059669;
+}
+
+.tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.tab-nav button {
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #e0e7ff;
+  color: #1e3a8a;
+}
+
+.tab-nav button.active {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: grid;
 }
 
 .checkbox-container {
@@ -93,31 +170,4 @@ h1 {
   align-items: center;
   gap: 10px;
   font-size: 14px;
-}
-
-button {
-  padding: 10px 14px;
-  font-weight: bold;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.fix-caption-btn {
-  background-color: #6366f1;
-  color: white;
-}
-
-.fix-caption-btn:hover {
-  background-color: #4f46e5;
-}
-
-.post button:last-of-type {
-  background-color: #10b981;
-  color: white;
-}
-
-.post button:last-of-type:hover {
-  background-color: #059669;
 }
