@@ -68,7 +68,8 @@
     .post input[type="text"],
     .post select,
     .post textarea {
-      width: calc(100% - 4px);
+      width: 100%;
+      box-sizing: border-box;
       padding: 10px;
       font-size: 14px;
       border: 1px solid #d1d5db;
@@ -88,6 +89,7 @@
       resize: vertical;
       min-height: 60px;
       line-height: 1.5;
+      overflow-wrap: break-word;
       white-space: pre-wrap;
     }
 
