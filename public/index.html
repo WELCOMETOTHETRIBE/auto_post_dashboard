@@ -145,6 +145,10 @@
               <input type="text" id="caption-${index}" value="${post.caption || ''}" />
             </div>
             <div>
+              <label for="link-${index}">Link</label>
+              <input type="text" id="link-${index}" value="${post.link || ''}" />
+            </div>
+            <div>
               <label for="hashtags-${index}">Hashtags</label>
               <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
             </div>
@@ -192,15 +196,17 @@
     }
 
     function submitToSheet(index, imageUrl, tokenId) {
+      const productName = document.getElementById(`product-${index}`).value;
       const caption = document.getElementById(`caption-${index}`).value;
+      const link = document.getElementById(`link-${index}`).value;
       const hashtags = document.getElementById(`hashtags-${index}`).value;
       const platform = document.getElementById(`platform-${index}`).value;
       const publishNow = document.getElementById(`publish-${index}`).checked;
-      const productName = document.getElementById(`product-${index}`).value;
 
       const payload = {
         image_url: imageUrl,
         product_name: productName,
+        link: link,
         system_token_id: tokenId,
         caption: caption,
         hashtags: hashtags,
