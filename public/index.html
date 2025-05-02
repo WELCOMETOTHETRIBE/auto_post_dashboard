@@ -4,12 +4,39 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auto Post Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .header-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      background-color: #1e3a8a;
+      padding: 10px 0;
+    }
+    .header-links a {
+      color: white;
+      font-size: 18px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.3s ease;
+    }
+    .header-links a:hover {
+      opacity: 0.75;
+    }
+  </style>
 </head>
 <body>
   <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
+
+  <div class="header-links">
+    <a href="https://www.reddit.com/r/wttt_official/" target="_blank"><i class="fab fa-reddit"></i> Reddit</a>
+    <a href="https://www.instagram.com/wttt_official/" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+    <a href="https://www.facebook.com/wttt_official/" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+  </div>
 
   <div class="tab-nav">
     <button id="tab-staging" class="active" onclick="showTab('staging')">Staging Area</button>
@@ -163,6 +190,7 @@
         .then(res => res.json())
         .then(response => {
           alert(`✅ Submitted!`);
+
           const submittedPost = button.closest('.post');
           submittedPost.querySelector('button:last-of-type').disabled = true;
           submittedPost.querySelector('button.fix-caption-btn').disabled = true;
