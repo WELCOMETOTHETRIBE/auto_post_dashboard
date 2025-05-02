@@ -66,8 +66,9 @@
     }
 
     .post input[type="text"],
-    .post select {
-      width: 100%;
+    .post select,
+    .post textarea {
+      width: calc(100% - 4px);
       padding: 10px;
       font-size: 14px;
       border: 1px solid #d1d5db;
@@ -77,9 +78,17 @@
     }
 
     .post input[type="text"]:focus,
-    .post select:focus {
+    .post select:focus,
+    .post textarea:focus {
       border-color: #2563eb;
       outline: none;
+    }
+
+    .post textarea {
+      resize: vertical;
+      min-height: 60px;
+      line-height: 1.5;
+      white-space: pre-wrap;
     }
 
     .post button {
@@ -139,6 +148,7 @@
             <div>
               <label for="product-${index}">Product</label>
               <select id="product-${index}">
+                <option value="N/A">N/A</option>
                 <option value="THRIVE">THRIVE</option>
                 <option value="DRIVE">DRIVE</option>
                 <option value="ALIGN">ALIGN</option>
@@ -147,7 +157,7 @@
             </div>
             <div>
               <label for="caption-${index}">Caption</label>
-              <input type="text" id="caption-${index}" value="${post.caption || ''}" />
+              <textarea id="caption-${index}">${post.caption || ''}</textarea>
             </div>
             <div>
               <label for="link-${index}">Link</label>
