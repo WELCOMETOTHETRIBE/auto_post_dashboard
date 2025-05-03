@@ -1,105 +1,139 @@
-// Load posts from posts.json and build the UI
-fetch('posts.json')
-  .then(response => response.json())
-  .then(data => {
-    data.forEach((post, index) => {
-      const postElement = document.createElement('div');
-      postElement.classList.add('post');
-      postElement.innerHTML = `
-        <img src="${post.image_url}" alt="Image" />
-        <div>
-          <label for="caption-${index}">Caption:</label>
-          <input type="text" id="caption-${index}" value="${post.caption || ''}" />
-        </div>
-        <div>
-          <label for="hashtags-${index}">Hashtags:</label>
-          <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
-        </div>
-        <div>
-          <label for="platform-${index}">Platform:</label>
-          <select id="platform-${index}">
-            <option value="Instagram">Instagram</option>
-            <option value="Facebook">Facebook</option>
-            <option value="TikTok">TikTok</option>
-            <option value="LinkedIn">LinkedIn</option>
-          </select>
-        </div>
-        <div>
-          <input type="checkbox" id="publish-${index}" />
-          <label for="publish-${index}">Publish Now</label>
-        </div>
-        <div style="margin-top: 10px;">
-          <button onclick="generateCaption(${index})">Generate Caption</button>
-          <button onclick="submitToSheet(${index}, '${post.image_url}')">Submit to Sheet</button>
-        </div>
-      `;
-      document.getElementById('posts-container').appendChild(postElement);
+// app.js
+import express from "express";
+import dotenv from "dotenv";
+import fetch from "node-fetch";
+import fs from "fs";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
+
+app.use(express.json());
+app.use(express.static("public"));
+
+// === Caption Generation via OpenAI Assistant ===
+app.post("/api/generate-caption", async (req, res) => {
+  try {
+    const userMessage = req.body.prompt || "Generate a caption.";
+
+    const threadRes = await fetch("https://api.openai.com/v1/threads", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({}),
     });
-  })
-  .catch(error => console.error('Error loading posts:', error));
 
-// Send data to the server-side /submit and /update-jsons endpoints
-function submitToSheet(index, image_url) {
-  const caption = document.getElementById(`caption-${index}`).value;
-  const hashtags = document.getElementById(`hashtags-${index}`).value;
-  const platform = document.getElementById(`platform-${index}`).value;
-  const publish_now = document.getElementById(`publish-${index}`).checked;
+    const threadData = await threadRes.json();
+    if (!threadData.id) return res.status(500).json({ error: "Thread creation failed" });
+    const threadId = threadData.id;
 
-  const payload = {
-    image_url,
-    caption,
-    hashtags,
-    platform,
-    publish_now
-  };
+    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({ role: "user", content: userMessage }),
+    });
 
-  // First, send to Zapier
-  fetch('/submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-    .then(res => res.json())
-    .then(data => {
-      console.log('✅ Submitted to Zapier:', data);
+    const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({ assistant_id: ASSISTANT_ID }),
+    });
 
-      // Then, update local JSON files
-      return fetch('/update-jsons', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+    const runData = await runRes.json();
+    const runId = runData.id;
+    let completed = false, attempts = 0, output = "";
+
+    while (!completed && attempts < 10) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const statusRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+          "OpenAI-Beta": "assistants=v2",
+        },
       });
-    })
-    .then(res => res.json())
-    .then(updateResponse => {
-      console.log('✅ Updated JSONs:', updateResponse);
-      alert('✅ Post moved to Drafts.');
-      window.location.reload();
-    })
-    .catch(error => {
-      console.error('Error submitting:', error);
-      alert('❌ Submission failed.');
-    });
-}
+      const statusData = await statusRes.json();
 
-// Optional: Call your OpenAI caption generator
-function generateCaption(index) {
-  const prompt = document.getElementById(`caption-${index}`).value || "Generate a caption";
-  fetch('/api/generate-caption', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.caption) {
-        document.getElementById(`caption-${index}`).value = data.caption;
-      } else {
-        alert("No caption returned.");
+      if (statusData.status === "completed") {
+        completed = true;
+        const messagesRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+            "OpenAI-Beta": "assistants=v2",
+          },
+        });
+        const messagesData = await messagesRes.json();
+        const latest = messagesData.data.find((msg) => msg.role === "assistant");
+        output = latest?.content?.[0]?.text?.value || "No response generated.";
       }
-    })
-    .catch(error => {
-      console.error('Error generating caption:', error);
-      alert('❌ Failed to generate caption.');
+      attempts++;
+    }
+
+    if (!completed) return res.status(500).json({ error: "Assistant timeout" });
+    res.json({ caption: output });
+  } catch (err) {
+    console.error("Caption Error:", err);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// === Zapier Webhook Submission ===
+app.post("/submit", async (req, res) => {
+  try {
+    const zapRes = await fetch("https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
     });
-}
+
+    const data = await zapRes.text();
+    res.status(200).json({ status: "ok", zapier_response: data });
+  } catch (err) {
+    console.error("Zapier Error:", err);
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
+// === Draft Migration Endpoint ===
+app.post("/update-jsons", async (req, res) => {
+  const { image_url, caption, hashtags, platform, publish_now } = req.body;
+
+  try {
+    const posts = JSON.parse(fs.readFileSync("posts.json", "utf8"));
+    const drafts = fs.existsSync("drafts.json")
+      ? JSON.parse(fs.readFileSync("drafts.json", "utf8"))
+      : [];
+
+    const filteredPosts = posts.filter((post) => post.image_url !== image_url);
+    const newDraft = { image_url, caption, hashtags, platform, publish_now };
+    drafts.push(newDraft);
+
+    fs.writeFileSync("posts.json", JSON.stringify(filteredPosts, null, 2));
+    fs.writeFileSync("drafts.json", JSON.stringify(drafts, null, 2));
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Update JSON Error:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// === Start Server ===
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
