@@ -166,7 +166,7 @@
       const hashtagsField = document.getElementById(`hashtags-${index}`);
       hashtagsField.placeholder = "⏳ Generating...";
 
-      fetch('/api/generate-caption', {
+      fetch('/api/generate-hashtags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
