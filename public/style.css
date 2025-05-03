@@ -5,6 +5,7 @@ body {
   padding: 0;
   background-color: #f9fafb;
   color: #1f2937;
+  padding-top: 70px; /* Prevents content from being hidden under header */
 }
 
 h1 {
@@ -53,6 +54,19 @@ h1 {
 .header-links a:focus {
   outline: none;
   box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .header-links {
+    flex-wrap: wrap;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .header-links a {
+    font-size: 14px;
+    padding: 8px;
+  }
 }
 
 /* === Tab Navigation === */
