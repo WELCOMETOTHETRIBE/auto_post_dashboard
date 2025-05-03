@@ -11,14 +11,15 @@
 <body>
   <h1><i class="fas fa-paper-plane"></i> Auto Post Dashboard</h1>
 
-<div class="header-links">
-  <a href="https://www.reddit.com/r/wttt_official/" target="_blank" class="social-link">Reddit</a>
-  <a href="https://www.instagram.com/wttt_official/" target="_blank" class="social-link">Instagram</a>
-  <a href="https://www.facebook.com/wttt_official/" target="_blank" class="social-link">Facebook</a>
-  <a href="https://twitter.com/wttt_official" target="_blank" class="social-link">Twitter</a>
-  <a href="https://www.tiktok.com/@wttt_official" target="_blank" class="social-link">TikTok</a>
-  <a href="https://www.youtube.com/@wttt_official" target="_blank" class="social-link">YouTube</a>
-</div>
+  <div class="header-links">
+    <a href="https://www.reddit.com/r/wttt_official/" target="_blank" class="social-link">Reddit</a>
+    <a href="https://www.instagram.com/wttt_official/" target="_blank" class="social-link">Instagram</a>
+    <a href="https://www.facebook.com/wttt_official/" target="_blank" class="social-link">Facebook</a>
+    <a href="https://twitter.com/wttt_official" target="_blank" class="social-link">Twitter</a>
+    <a href="https://www.tiktok.com/@wttt_official" target="_blank" class="social-link">TikTok</a>
+    <a href="https://www.youtube.com/@wttt_official" target="_blank" class="social-link">YouTube</a>
+    <button onclick="triggerUpload()" class="fix-caption-btn">🔁 Pull New Images</button>
+  </div>
 
   <div class="tab-nav">
     <button id="tab-staging" class="active" onclick="showTab('staging')">Staging Area</button>
@@ -196,6 +197,21 @@
         .catch(error => {
           console.error('Error generating hashtags:', error);
           alert('❌ Failed to generate hashtags.');
+        });
+    }
+
+    function triggerUpload() {
+      fetch('https://00c0-2603-8000-7200-1f00-a969-605b-880a-5fe0.ngrok-free.app/trigger-upload', {
+        method: 'POST'
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert('🆕 Pull triggered!');
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('❌ Error triggering pull:', error);
+          alert('❌ Failed to pull new images.');
         });
     }
   </script>
