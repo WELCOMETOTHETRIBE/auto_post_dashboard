@@ -38,7 +38,7 @@ fetch('posts.json')
   })
   .catch(error => console.error('Error loading posts:', error));
 
-// Send data to the server-side /submit endpoint (Zapier proxy)
+// Send data to the server-side /submit and /update-jsons endpoints
 function submitToSheet(index, image_url) {
   const caption = document.getElementById(`caption-${index}`).value;
   const hashtags = document.getElementById(`hashtags-${index}`).value;
@@ -53,6 +53,7 @@ function submitToSheet(index, image_url) {
     publish_now
   };
 
+  // First, send to Zapier
   fetch('/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -60,12 +61,24 @@ function submitToSheet(index, image_url) {
   })
     .then(res => res.json())
     .then(data => {
-      alert('✅ Submitted to Zapier successfully!');
-      console.log(data);
+      console.log('✅ Submitted to Zapier:', data);
+
+      // Then, update local JSON files
+      return fetch('/update-jsons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    })
+    .then(res => res.json())
+    .then(updateResponse => {
+      console.log('✅ Updated JSONs:', updateResponse);
+      alert('✅ Post moved to Drafts.');
+      window.location.reload();
     })
     .catch(error => {
-      console.error('Error submitting to sheet:', error);
-      alert('❌ Error submitting to Zapier.');
+      console.error('Error submitting:', error);
+      alert('❌ Submission failed.');
     });
 }
 
