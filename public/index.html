@@ -28,6 +28,140 @@
   <div id="posts-container" class="tab-content active"></div>
   <div id="finished-drafts-container" class="tab-content"></div>
 
-  <script src="app.js"></script>
+  <script>
+    function showTab(tab) {
+      document.getElementById('posts-container').classList.remove('active');
+      document.getElementById('finished-drafts-container').classList.remove('active');
+      document.getElementById('tab-staging').classList.remove('active');
+      document.getElementById('tab-drafts').classList.remove('active');
+
+      if (tab === 'staging') {
+        document.getElementById('posts-container').classList.add('active');
+        document.getElementById('tab-staging').classList.add('active');
+      } else {
+        document.getElementById('finished-drafts-container').classList.add('active');
+        document.getElementById('tab-drafts').classList.add('active');
+      }
+    }
+
+    function generateTokenId() {
+      return 'token_' + Math.random().toString(36).substring(2, 10);
+    }
+
+    function togglePlatform(button, input) {
+      button.classList.toggle('active');
+      const platforms = Array.from(button.parentElement.querySelectorAll('.platform-button.active')).map(btn => btn.dataset.platform);
+      input.value = platforms.join(' ');
+    }
+
+    fetch('posts.json')
+      .then(response => response.json())
+      .then(data => {
+        data.forEach((post, index) => {
+          const tokenId = generateTokenId();
+          const postElement = createPostElement(post, index, tokenId);
+          document.getElementById('posts-container').appendChild(postElement);
+        });
+      })
+      .catch(error => console.error('Error loading posts:', error));
+
+    function createPostElement(post, index, tokenId) {
+      const postElement = document.createElement('div');
+      postElement.classList.add('post');
+      postElement.innerHTML = `
+        <div class="image-wrapper">
+          <img src="${post.image_url}" alt="Image" />
+        </div>
+        <div>
+          <label for="product-${index}">Product</label>
+          <select id="product-${index}">
+            <option value="N/A">N/A</option>
+            <option value="THRIVE">THRIVE</option>
+            <option value="DRIVE">DRIVE</option>
+            <option value="ALIGN">ALIGN</option>
+            <option value="Clusters">Clusters</option>
+          </select>
+        </div>
+        <div>
+          <label for="prompt-${index}">Prompt</label>
+          <textarea id="prompt-${index}" placeholder="Describe the image or message...">${post.caption || ''}</textarea>
+        </div>
+        <div>
+          <label for="caption-${index}">Generated Caption</label>
+          <textarea id="caption-${index}"></textarea>
+          <button class="fix-caption-btn" onclick="generateCaption(${index})">🪄 Generate Caption</button>
+        </div>
+        <div>
+          <label for="hashtags-${index}">Generated Hashtags</label>
+          <input type="text" id="hashtags-${index}" />
+          <button class="fix-caption-btn" onclick="generateHashtags(${index})">#️⃣ Generate Hashtags</button>
+        </div>
+        <div>
+          <label for="link-${index}">Link</label>
+          <input type="text" id="link-${index}" value="${post.link || ''}" />
+        </div>
+        <div>
+          <label>Platforms</label>
+          <div class="platform-buttons">
+            <button type="button" class="platform-button" data-platform="Instagram" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Instagram</button>
+            <button type="button" class="platform-button" data-platform="Facebook" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Facebook</button>
+            <button type="button" class="platform-button" data-platform="LinkedIn" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">LinkedIn</button>
+            <button type="button" class="platform-button" data-platform="X" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">X (Twitter)</button>
+            <button type="button" class="platform-button" data-platform="Pinterest" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Pinterest</button>
+            <button type="button" class="platform-button" data-platform="Reddit" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">Reddit</button>
+          </div>
+          <input type="hidden" id="platform-${index}" value="${post.platform || ''}" />
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="publish-${index}">
+          <label for="publish-${index}">Publish Now</label>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">Submit to Sheet</button>
+        </div>
+      `;
+      return postElement;
+    }
+
+    function generateCaption(index) {
+      const prompt = document.getElementById(`prompt-${index}`).value;
+      const captionField = document.getElementById(`caption-${index}`);
+      captionField.placeholder = "⏳ Generating...";
+
+      fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      })
+        .then(res => res.json())
+        .then(data => {
+          captionField.value = data.caption || '';
+        })
+        .catch(error => {
+          console.error('Error generating caption:', error);
+          alert('❌ Failed to generate caption.');
+        });
+    }
+
+    function generateHashtags(index) {
+      const caption = document.getElementById(`caption-${index}`).value;
+      const hashtagsField = document.getElementById(`hashtags-${index}`);
+      hashtagsField.placeholder = "⏳ Generating...";
+
+      fetch('/api/generate-hashtags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption })  // uses caption now
+      })
+        .then(res => res.json())
+        .then(data => {
+          hashtagsField.value = data.hashtags || '';
+        })
+        .catch(error => {
+          console.error('Error generating hashtags:', error);
+          alert('❌ Failed to generate hashtags.');
+        });
+    }
+  </script>
 </body>
 </html>
