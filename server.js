@@ -1,6 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import session from "express-session";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
@@ -8,11 +11,91 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
 
-// Shared function to run OpenAI assistant
+// Enable sessions
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecret',
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Middleware to protect dashboard
+function requireAuth(req, res, next) {
+  if (req.session && req.session.authenticated) {
+    return next();
+  }
+  return res.redirect('/login');
+}
+
+// Serve login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Handle login form
+app.post('/login', (req, res) => {
+  const { password } = req.body;
+  if (password === process.env.DASHBOARD_PASSWORD) {
+    req.session.authenticated = true;
+    return res.redirect('/');
+  }
+  res.send('Incorrect password. <a href="/login">Try again</a>');
+});
+
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/login'));
+});
+
+// Serve dashboard only if authenticated
+app.use('/', requireAuth, express.static('public'));
+
+// === Caption Generation ===
+app.post('/api/generate-caption', async (req, res) => {
+  try {
+    const prompt = `You are a caption generator for FruTropics. Return only one engaging caption for this image description, no hashtags, no follow-up: ${req.body.prompt}`;
+    const caption = await runAssistant(prompt);
+    res.json({ caption });
+  } catch (error) {
+    console.error('Caption Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// === Hashtag Generation ===
+app.post('/api/generate-hashtags', async (req, res) => {
+  try {
+    const prompt = `Generate relevant, concise, and viral hashtags for the following caption. Only return hashtags and nothing else: ${req.body.caption}`;
+    const hashtags = await runAssistant(prompt);
+    res.json({ hashtags });
+  } catch (error) {
+    console.error('Hashtag Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// === Forward to Zapier ===
+app.post('/submit', async (req, res) => {
+  try {
+    const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await zapierRes.text();
+    res.status(200).json({ status: 'ok', zapier_response: data });
+  } catch (error) {
+    console.error('Zapier Error:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// === OpenAI Assistant Runner ===
 async function runAssistant(userMessage) {
   const threadResponse = await fetch('https://api.openai.com/v1/threads', {
     method: 'POST',
@@ -90,47 +173,6 @@ async function runAssistant(userMessage) {
   if (!completed) throw new Error("Assistant did not complete in time");
   return output;
 }
-
-// === Caption Generation ===
-app.post('/api/generate-caption', async (req, res) => {
-  try {
-    const prompt = `You are a caption generator for FruTropics. Return only one engaging caption for this image description, no hashtags, no follow-up: ${req.body.prompt}`;
-    const caption = await runAssistant(prompt);
-    res.json({ caption });
-  } catch (error) {
-    console.error('Caption Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// === Hashtag Generation ===
-app.post('/api/generate-hashtags', async (req, res) => {
-  try {
-    const prompt = `Generate relevant, concise, and viral hashtags for the following caption. Only return hashtags and nothing else: ${req.body.caption}`;
-    const hashtags = await runAssistant(prompt);
-    res.json({ hashtags });
-  } catch (error) {
-    console.error('Hashtag Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// === Forward to Zapier ===
-app.post('/submit', async (req, res) => {
-  try {
-    const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
-
-    const data = await zapierRes.text();
-    res.status(200).json({ status: 'ok', zapier_response: data });
-  } catch (error) {
-    console.error('Zapier Error:', error);
-    res.status(500).json({ status: 'error', message: error.message });
-  }
-});
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
