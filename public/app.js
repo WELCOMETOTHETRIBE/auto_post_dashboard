@@ -14,7 +14,7 @@ const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 app.use(express.json());
 app.use(express.static("public"));
 
-// === Caption Generation via OpenAI Assistant ===
+// === Generate Caption via OpenAI Assistant ===
 app.post("/api/generate-caption", async (req, res) => {
   try {
     const userMessage = req.body.prompt || "Generate a caption.";
@@ -79,7 +79,7 @@ app.post("/api/generate-caption", async (req, res) => {
         });
         const messagesData = await messagesRes.json();
         const latest = messagesData.data.find((msg) => msg.role === "assistant");
-        output = latest?.content?.[0]?.text?.value || "No response generated.";
+        output = latest?.content?.[0]?.text?.value || "No caption generated.";
       }
       attempts++;
     }
@@ -92,7 +92,85 @@ app.post("/api/generate-caption", async (req, res) => {
   }
 });
 
-// === Zapier Webhook Submission ===
+// === Generate Hashtags via OpenAI Assistant ===
+app.post("/api/generate-hashtags", async (req, res) => {
+  try {
+    const userMessage = req.body.caption || "Generate hashtags for this caption.";
+
+    const threadRes = await fetch("https://api.openai.com/v1/threads", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({}),
+    });
+
+    const threadData = await threadRes.json();
+    if (!threadData.id) return res.status(500).json({ error: "Thread creation failed" });
+    const threadId = threadData.id;
+
+    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({ role: "user", content: userMessage }),
+    });
+
+    const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({ assistant_id: ASSISTANT_ID }),
+    });
+
+    const runData = await runRes.json();
+    const runId = runData.id;
+    let completed = false, attempts = 0, output = "";
+
+    while (!completed && attempts < 10) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const statusRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+          "OpenAI-Beta": "assistants=v2",
+        },
+      });
+      const statusData = await statusRes.json();
+
+      if (statusData.status === "completed") {
+        completed = true;
+        const messagesRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+            "OpenAI-Beta": "assistants=v2",
+          },
+        });
+        const messagesData = await messagesRes.json();
+        const latest = messagesData.data.find((msg) => msg.role === "assistant");
+        output = latest?.content?.[0]?.text?.value || "No hashtags generated.";
+      }
+      attempts++;
+    }
+
+    if (!completed) return res.status(500).json({ error: "Assistant timeout" });
+    res.json({ hashtags: output });
+  } catch (err) {
+    console.error("Hashtag Error:", err);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// === Webhook Submit to Zapier ===
 app.post("/submit", async (req, res) => {
   try {
     const zapRes = await fetch("https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/", {
@@ -109,7 +187,7 @@ app.post("/submit", async (req, res) => {
   }
 });
 
-// === Draft Migration Endpoint ===
+// === Update JSONs on Submit ===
 app.post("/update-jsons", async (req, res) => {
   const { image_url, caption, hashtags, platform, publish_now } = req.body;
 
