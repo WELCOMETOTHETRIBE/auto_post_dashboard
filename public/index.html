@@ -141,34 +141,33 @@
     }
 
     function generateContent(index) {
-      const prompt = document.getElementById(`prompt-${index}`).value;
-      const captionField = document.getElementById(`caption-out-${index}`);
-      const hashtagsField = document.getElementById(`hashtags-${index}`);
-      const button = document.getElementById(`generate-btn-${index}`);
+    const button = document.getElementById(`fix-btn-${index}`);
+    const prompt = document.getElementById(`prompt-${index}`).value;
+    const captionField = document.getElementById(`caption-${index}`);
+    const hashtagsField = document.getElementById(`hashtags-output-${index}`);
 
-      button.disabled = true;
-      button.innerText = '⏳ Generating...';
+    button.disabled = true;
+    button.innerText = '⏳ Generating...';
 
-      fetch('/api/generate-caption', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+    fetch('/api/generate-caption', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    })
+      .then(res => res.json())
+      .then(data => {
+        captionField.value = data.caption || '';
+        hashtagsField.value = data.hashtags || '';
+        button.innerText = '🪄 Generate';
+        button.disabled = false;
       })
-        .then(res => res.json())
-        .then(data => {
-          captionField.value = data.caption || 'No caption returned.';
-          hashtagsField.value = data.hashtags || '';
-          button.innerText = '🪄 Generate';
-          button.disabled = false;
-        })
-        .catch(error => {
-          console.error('Error generating content:', error);
-          captionField.value = '❌ Failed to generate caption.';
-          hashtagsField.value = '';
-          button.innerText = '🪄 Generate';
-          button.disabled = false;
-        });
-    }
+      .catch(error => {
+        console.error('Error generating content:', error);
+        alert('❌ Failed to generate content.');
+        button.innerText = '🪄 Generate';
+        button.disabled = false;
+      });
+  }
   </script>
 </body>
 </html>
