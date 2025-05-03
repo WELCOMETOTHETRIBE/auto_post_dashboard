@@ -139,7 +139,8 @@
     function fixCaption(index) {
       const button = document.getElementById(`fix-btn-${index}`);
       const input = document.getElementById(`caption-${index}`);
-      const prompt = input.value || "Generate a caption";
+      const prompt = input.value || "Write a social media caption";
+      const image_url = document.querySelector(`.post:nth-child(${index + 1}) img`).src;
 
       button.disabled = true;
       button.innerText = '⏳ Fixing...';
@@ -147,19 +148,23 @@
       fetch('/api/generate-caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, image_url })
       })
         .then(res => res.json())
         .then(data => {
-          input.value = data.caption || input.value;
+          if (data.caption) {
+            input.value = data.caption;
+          } else {
+            alert("❌ Assistant did not return a caption.");
+          }
           button.innerText = '🪄 Fix Caption';
           button.disabled = false;
         })
         .catch(error => {
-          console.error('Error generating caption:', error);
+          console.error('❌ Caption generation error:', error);
+          alert('❌ Failed to generate caption.');
           button.innerText = '🪄 Fix Caption';
           button.disabled = false;
-          alert('❌ Failed to fix caption.');
         });
     }
 
@@ -190,7 +195,6 @@
         .then(res => res.json())
         .then(response => {
           alert(`✅ Submitted!`);
-
           const submittedPost = button.closest('.post');
           submittedPost.querySelector('button:last-of-type').disabled = true;
           submittedPost.querySelector('button.fix-caption-btn').disabled = true;
