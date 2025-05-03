@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 app.post('/trigger-upload', (req, res) => {
   const SCRIPT_PATH = path.join(__dirname, 'scripts/auto.sh');
 
-  exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+  exec(`bash "${SCRIPT_PATH}"`, (error, stdout, stderr) => {
     if (error) {
       console.error('❌ Script execution error:', error);
       return res.status(500).json({ status: 'error', message: error.message });
