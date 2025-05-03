@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 // === GOOGLE SHEET CONFIG ===
 const SPREADSHEET_ID = '1k-aIvAPcwc8URudZJEdDEd91kyPK9MgwVdmsm5lxC1A';
-const RANGE = 'Sheet1!A1'; // Adjust if your sheet uses a different tab name or starts elsewhere
+const RANGE = 'Sheet1!A2'; // Start at row 2 to avoid overwriting headers
 
 async function getGoogleSheetsClient() {
   const keyPath = path.join(__dirname, 'key.json');
@@ -32,6 +32,8 @@ async function getGoogleSheetsClient() {
 // === API ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
+    console.log('📥 Received request at /trigger-upload:', req.body);
+
     const {
       image_url,
       caption,
@@ -43,9 +45,15 @@ app.post('/trigger-upload', async (req, res) => {
       product
     } = req.body;
 
-    const sheets = await getGoogleSheetsClient();
+    // Validate required fields
+    if (!image_url || !token_id) {
+      return res.status(400).json({ status: 'error', message: 'Missing image_url or token_id' });
+    }
 
-    await sheets.spreadsheets.values.append({
+    const sheets = await getGoogleSheetsClient();
+    if (!sheets) throw new Error('❌ Google Sheets client not initialized.');
+
+    const response = await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: RANGE,
       valueInputOption: 'USER_ENTERED',
@@ -53,21 +61,22 @@ app.post('/trigger-upload', async (req, res) => {
         values: [[
           new Date().toISOString(),
           image_url,
-          caption,
-          hashtags,
-          platform,
+          caption || '',
+          hashtags || '',
+          platform || '',
           publish_now ? 'TRUE' : 'FALSE',
           token_id,
-          link,
-          product
+          link || '',
+          product || ''
         ]]
       }
     });
 
-    console.log('✅ Data appended to Google Sheet.');
+    console.log('✅ Google Sheets append response:', response.data);
     res.status(200).json({ status: 'success' });
+
   } catch (error) {
-    console.error('❌ Google Sheets Append Error:', error);
+    console.error('❌ Google Sheets Append Error:', error.response?.data || error.message || error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
