@@ -94,7 +94,7 @@ async function runAssistant(userMessage) {
 // === Caption Generation ===
 app.post('/api/generate-caption', async (req, res) => {
   try {
-    const prompt = req.body.prompt || "Generate a caption.";
+    const prompt = `You are a caption generator for FruTropics. Return only one engaging caption for this image description, no hashtags, no follow-up: ${req.body.prompt}`;
     const caption = await runAssistant(prompt);
     res.json({ caption });
   } catch (error) {
@@ -106,8 +106,8 @@ app.post('/api/generate-caption', async (req, res) => {
 // === Hashtag Generation ===
 app.post('/api/generate-hashtags', async (req, res) => {
   try {
-    const caption = req.body.caption || "Generate hashtags.";
-    const hashtags = await runAssistant(`Generate relevant, concise, viral hashtags for this caption: ${caption}`);
+    const prompt = `Generate relevant, concise, and viral hashtags for the following caption. Only return hashtags and nothing else: ${req.body.caption}`;
+    const hashtags = await runAssistant(prompt);
     res.json({ hashtags });
   } catch (error) {
     console.error('Hashtag Error:', error);
