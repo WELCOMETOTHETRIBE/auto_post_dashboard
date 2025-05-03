@@ -101,16 +101,20 @@
           </select>
         </div>
         <div>
-          <label for="caption-${index}">Caption</label>
-          <textarea id="caption-${index}">${post.caption || ''}</textarea>
+          <label for="prompt-${index}">Prompt</label>
+          <textarea id="prompt-${index}" placeholder="Describe the image or vibe...">${post.caption || ''}</textarea>
+        </div>
+        <div>
+          <label for="caption-${index}">Generated Caption</label>
+          <textarea id="caption-${index}" readonly></textarea>
         </div>
         <div>
           <label for="link-${index}">Link</label>
           <input type="text" id="link-${index}" value="${post.link || ''}" />
         </div>
         <div>
-          <label for="hashtags-${index}">Hashtags</label>
-          <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
+          <label for="hashtags-${index}">Generated Hashtags</label>
+          <input type="text" id="hashtags-${index}" readonly />
         </div>
         <div>
           <label>Platforms</label>
@@ -129,41 +133,38 @@
           <label for="publish-${index}">Publish Now</label>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button class="fix-caption-btn" id="fix-btn-${index}" onclick="fixCaption(${index})">🪄 Fix Caption</button>
+          <button class="fix-caption-btn" id="fix-btn-${index}" onclick="generateContent(${index})">🪄 Generate</button>
           <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">Submit to Sheet</button>
         </div>
       `;
       return postElement;
     }
 
-    function fixCaption(index) {
+    function generateContent(index) {
       const button = document.getElementById(`fix-btn-${index}`);
-      const input = document.getElementById(`caption-${index}`);
-      const prompt = input.value || "Write a social media caption";
-      const image_url = document.querySelector(`.post:nth-child(${index + 1}) img`).src;
+      const prompt = document.getElementById(`prompt-${index}`).value;
+      const captionField = document.getElementById(`caption-${index}`);
+      const hashtagsField = document.getElementById(`hashtags-${index}`);
 
       button.disabled = true;
-      button.innerText = '⏳ Fixing...';
+      button.innerText = '⏳ Generating...';
 
       fetch('/api/generate-caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, image_url })
+        body: JSON.stringify({ prompt })
       })
         .then(res => res.json())
         .then(data => {
-          if (data.caption) {
-            input.value = data.caption;
-          } else {
-            alert("❌ Assistant did not return a caption.");
-          }
-          button.innerText = '🪄 Fix Caption';
+          captionField.value = data.caption || '';
+          hashtagsField.value = data.hashtags || '';
+          button.innerText = '🪄 Generate';
           button.disabled = false;
         })
         .catch(error => {
-          console.error('❌ Caption generation error:', error);
-          alert('❌ Failed to generate caption.');
-          button.innerText = '🪄 Fix Caption';
+          console.error('Error generating content:', error);
+          alert('❌ Failed to generate content.');
+          button.innerText = '🪄 Generate';
           button.disabled = false;
         });
     }
