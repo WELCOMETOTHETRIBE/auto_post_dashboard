@@ -123,6 +123,36 @@
       return postElement;
     }
 
+    function submitToSheet(index, image_url, tokenId, button) {
+      const caption = document.getElementById(`caption-${index}`).value;
+      const hashtags = document.getElementById(`hashtags-${index}`).value;
+      const platform = document.getElementById(`platform-${index}`).value;
+      const publish_now = document.getElementById(`publish-${index}`).checked;
+
+      const payload = {
+        image_url,
+        caption,
+        hashtags,
+        platform,
+        publish_now
+      };
+
+      fetch('/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert('✅ Submitted to Zapier successfully!');
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error submitting to Zapier:', error);
+          alert('❌ Error submitting to Zapier.');
+        });
+    }
+
     function generateCaption(index) {
       const prompt = document.getElementById(`prompt-${index}`).value;
       const captionField = document.getElementById(`caption-${index}`);
