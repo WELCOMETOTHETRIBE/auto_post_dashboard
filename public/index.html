@@ -86,12 +86,12 @@
         <div>
           <label for="caption-${index}">Generated Caption</label>
           <textarea id="caption-${index}"></textarea>
-          <button onclick="generateCaption(${index})">🪄 Generate Caption</button>
+          <button class="fix-caption-btn" onclick="generateCaption(${index})">🪄 Generate Caption</button>
         </div>
         <div>
           <label for="hashtags-${index}">Generated Hashtags</label>
           <input type="text" id="hashtags-${index}" />
-          <button onclick="generateHashtags(${index})">#️⃣ Generate Hashtags</button>
+          <button class="fix-caption-btn" onclick="generateHashtags(${index})">#️⃣ Generate Hashtags</button>
         </div>
         <div>
           <label for="link-${index}">Link</label>
@@ -130,14 +130,14 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       })
-      .then(res => res.json())
-      .then(data => {
-        captionField.value = data.caption || '';
-      })
-      .catch(error => {
-        console.error('Error generating caption:', error);
-        alert('❌ Failed to generate caption.');
-      });
+        .then(res => res.json())
+        .then(data => {
+          captionField.value = data.caption || '';
+        })
+        .catch(error => {
+          console.error('Error generating caption:', error);
+          alert('❌ Failed to generate caption.');
+        });
     }
 
     function generateHashtags(index) {
@@ -148,16 +148,16 @@
       fetch('/api/generate-hashtags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caption })
+        body: JSON.stringify({ caption })  // uses caption now
       })
-      .then(res => res.json())
-      .then(data => {
-        hashtagsField.value = data.hashtags || '';
-      })
-      .catch(error => {
-        console.error('Error generating hashtags:', error);
-        alert('❌ Failed to generate hashtags.');
-      });
+        .then(res => res.json())
+        .then(data => {
+          hashtagsField.value = data.hashtags || '';
+        })
+        .catch(error => {
+          console.error('Error generating hashtags:', error);
+          alert('❌ Failed to generate hashtags.');
+        });
     }
   </script>
 </body>
