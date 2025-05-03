@@ -1,116 +1,140 @@
-// app.js (Node-style version)
-const express = require("express");
-const dotenv = require("dotenv");
-const fetch = require("node-fetch");
-const fs = require("fs");
-const path = require("path");
-
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-// === Caption Generation ===
-app.post("/api/generate-caption", async (req, res) => {
-  try {
-    const userMessage = req.body.prompt || "Generate a caption.";
-
-    const threadRes = await fetch("https://api.openai.com/v1/threads", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-        "OpenAI-Beta": "assistants=v2",
-      },
-      body: JSON.stringify({}),
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Post Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Auto Post Dashboard</h1>
+  <div id="posts-container">
+    <!-- Posts will be dynamically injected here -->
+  </div>
+// Load posts from posts.json and build the UI
+fetch('posts.json')
+  .then(response => response.json())
+  .then(data => {
+    data.forEach((post, index) => {
+      const postElement = document.createElement('div');
+      postElement.classList.add('post');
+      postElement.innerHTML = `
+        <img src="${post.image_url}" alt="Image" />
+        <div>
+          <label for="caption-${index}">Caption:</label>
+          <input type="text" id="caption-${index}" value="${post.caption || ''}" />
+        </div>
+        <div>
+          <label for="hashtags-${index}">Hashtags:</label>
+          <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
+        </div>
+        <div>
+          <label for="platform-${index}">Platform:</label>
+          <select id="platform-${index}">
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="TikTok">TikTok</option>
+            <option value="LinkedIn">LinkedIn</option>
+          </select>
+        </div>
+        <div>
+          <input type="checkbox" id="publish-${index}" />
+          <label for="publish-${index}">Publish Now</label>
+        </div>
+        <div style="margin-top: 10px;">
+          <button onclick="generateCaption(${index})">Generate Caption</button>
+          <button onclick="submitToSheet(${index}, '${post.image_url}')">Submit to Sheet</button>
+        </div>
+      `;
+      document.getElementById('posts-container').appendChild(postElement);
     });
+  })
+  .catch(error => console.error('Error loading posts:', error));
 
-    const threadData = await threadRes.json();
-    const threadId = threadData.id;
-
-    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-        "OpenAI-Beta": "assistants=v2",
-      },
-      body: JSON.stringify({ role: "user", content: userMessage }),
-    });
-
-    const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-        "OpenAI-Beta": "assistants=v2",
-      },
-      body: JSON.stringify({ assistant_id: ASSISTANT_ID }),
-    });
-
-    const runId = runRes.id;
-    let output = "";
-    let completed = false;
-    let attempts = 0;
-
-    while (!completed && attempts < 10) {
-      await new Promise((r) => setTimeout(r, 1500));
-      const statusRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-          "OpenAI-Beta": "assistants=v2",
-        },
-      });
-
-      const statusData = await statusRes.json();
-      if (statusData.status === "completed") {
-        completed = true;
-        const messagesRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-          headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-            "OpenAI-Beta": "assistants=v2",
-          },
+  <script>
+    // Fetch the posts data from posts.json
+    fetch('posts.json')
+      .then(response => response.json())
+      .then(data => {
+        data.forEach((post, index) => {
+          let postElement = document.createElement('div');
+          postElement.classList.add('post');
+          postElement.innerHTML = `
+            <img src="${post.image_url}" alt="Image">
+            <div>
+              <label for="caption-${index}">Caption:</label>
+              <input type="text" id="caption-${index}" value="${post.caption || ''}" />
+            </div>
+            <div>
+              <label for="hashtags-${index}">Hashtags:</label>
+              <input type="text" id="hashtags-${index}" value="${post.hashtags || ''}" />
+            </div>
+            <button onclick="generateCaption(${index})">Generate Caption</button>
+          `;
+          document.getElementById('posts-container').appendChild(postElement);
         });
+      })
+      .catch(error => console.error('Error loading posts:', error));
+// Send data to the server-side /submit endpoint (Zapier proxy)
+function submitToSheet(index, image_url) {
+  const caption = document.getElementById(`caption-${index}`).value;
+  const hashtags = document.getElementById(`hashtags-${index}`).value;
+  const platform = document.getElementById(`platform-${index}`).value;
+  const publish_now = document.getElementById(`publish-${index}`).checked;
 
-        const messagesData = await messagesRes.json();
-        const latest = messagesData.data.find((msg) => msg.role === "assistant");
-        output = latest?.content?.[0]?.text?.value || "No response.";
-      }
-      attempts++;
+    function generateCaption(index) {
+      const captionInput = document.getElementById(`caption-${index}`);
+      const hashtagsInput = document.getElementById(`hashtags-${index}`);
+      const caption = captionInput.value;
+      const hashtags = hashtagsInput.value;
+  const payload = {
+    image_url,
+    caption,
+    hashtags,
+    platform,
+    publish_now
+  };
+
+      // You can call the Buffer API or your AI service here to generate caption and hashtags
+      console.log(`Generating caption for post ${index}: ${caption} ${hashtags}`);
     }
-
-    res.json({ caption: output });
-  } catch (err) {
-    console.error("Caption Error:", err);
-    res.status(500).json({ error: "Caption generation failed" });
-  }
-});
-
-// === Zapier Hook ===
-app.post("/submit", async (req, res) => {
-  try {
-    const zapRes = await fetch("https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body),
+  </script>
+</body>
+</html>
+  fetch('/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert('✅ Submitted to Zapier successfully!');
+      console.log(data);
+    })
+    .catch(error => {
+      console.error('Error submitting to sheet:', error);
+      alert('❌ Error submitting to Zapier.');
     });
+}
 
-    const data = await zapRes.text();
-    res.status(200).json({ status: "ok", zapier_response: data });
-  } catch (err) {
-    console.error("Zapier Error:", err);
-    res.status(500).json({ error: "Failed to send to Zapier" });
-  }
-});
-
-// === Start Server ===
-app.listen(PORT, () => {
-  console.log(`🚀 Running at http://localhost:${PORT}`);
-});
+// Optional: Call your OpenAI caption generator
+function generateCaption(index) {
+  const prompt = document.getElementById(`caption-${index}`).value || "Generate a caption";
+  fetch('/api/generate-caption', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.caption) {
+        document.getElementById(`caption-${index}`).value = data.caption;
+      } else {
+        alert("No caption returned.");
+      }
+    })
+    .catch(error => {
+      console.error('Error generating caption:', error);
+      alert('❌ Failed to generate caption.');
+    });
+}
