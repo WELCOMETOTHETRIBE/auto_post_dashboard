@@ -1,6 +1,6 @@
 // server_trigger.js
 import express from 'express';
-import cors from 'cors'; // ✅ Enable CORS
+import cors from 'cors';
 import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,10 +8,11 @@ import { fileURLToPath } from 'url';
 const app = express();
 const PORT = 9001;
 
-// ✅ Use CORS to allow frontend access
+// ✅ Enable CORS for the deployed frontend
 app.use(cors({
-  origin: 'https://autopostdashboard-production.up.railway.app' // ✅ Only allow your Railway frontend
+  origin: 'https://autopostdashboard-production.up.railway.app'
 }));
+
 app.use(express.json());
 
 // Required for __dirname in ES modules
@@ -36,6 +37,7 @@ app.post('/trigger-upload', (req, res) => {
   });
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Trigger server running at http://localhost:${PORT}`);
 });
