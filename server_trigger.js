@@ -1,11 +1,17 @@
 // server_trigger.js
 import express from 'express';
+import cors from 'cors'; // ✅ Enable CORS
 import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const app = express();
 const PORT = 9001;
+
+// ✅ Use CORS to allow frontend access
+app.use(cors({
+  origin: 'https://autopostdashboard-production.up.railway.app' // ✅ Only allow your Railway frontend
+}));
 app.use(express.json());
 
 // Required for __dirname in ES modules
