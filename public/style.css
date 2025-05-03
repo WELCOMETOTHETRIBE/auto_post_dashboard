@@ -1,4 +1,4 @@
-/* Updated Dashboard Styling */
+/* === Base Styles === */
 body {
   font-family: 'Inter', sans-serif;
   margin: 0;
@@ -14,31 +14,48 @@ h1 {
   color: white;
   font-size: 28px;
   margin: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
-.links-bar, .header-links {
+/* === Header Link Bar === */
+.header-links {
   display: flex;
   justify-content: center;
   gap: 20px;
-  background: #f1f5f9;
+  background-color: #1e3a8a;
   padding: 10px 0;
 }
 
-.links-bar a, .header-links a {
-  color: #1e3a8a;
+.header-links a {
+  color: white;
+  font-size: 18px;
   text-decoration: none;
-  font-weight: bold;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: color 0.3s ease;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  outline: none;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
 }
 
-.links-bar a:hover, .header-links a:hover {
-  color: #3b82f6;
+.header-links a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  opacity: 0.9;
 }
 
+.header-links a:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* === Tab Navigation === */
 .tab-nav {
   display: flex;
   justify-content: center;
@@ -63,6 +80,7 @@ h1 {
   color: white;
 }
 
+/* === Content Display === */
 .tab-content {
   display: none;
 }
@@ -74,6 +92,7 @@ h1 {
   padding: 30px;
 }
 
+/* === Post Cards === */
 .post {
   background-color: white;
   border-radius: 12px;
@@ -110,7 +129,7 @@ h1 {
 .post textarea,
 .post input[type="text"],
 .post select {
-  width: calc(100% - 6px);
+  width: 100%;
   padding: 10px;
   font-size: 14px;
   border: 1px solid #d1d5db;
@@ -127,6 +146,7 @@ h1 {
   outline: none;
 }
 
+/* === Platform Buttons === */
 .platform-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -134,24 +154,23 @@ h1 {
   margin: 10px 0;
 }
 
-.platform-button,
-.platform-button:visited {
+.platform-button {
   padding: 6px 12px;
   font-size: 12px;
   border: 2px solid #1e3a8a;
   border-radius: 20px;
   cursor: pointer;
-  background: white !important;
-  color: #1e3a8a !important;
+  background: white;
+  color: #1e3a8a;
   transition: all 0.2s ease;
 }
 
-.platform-button.active,
-.platform-button.active:visited {
-  background: #1e3a8a !important;
-  color: white !important;
+.platform-button.active {
+  background: #1e3a8a;
+  color: white;
 }
 
+/* === Checkbox === */
 .checkbox-container {
   display: flex;
   align-items: center;
@@ -159,21 +178,8 @@ h1 {
   font-size: 14px;
 }
 
-.fix-caption-btn {
-  background-color: #6366f1;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.fix-caption-btn:hover {
-  background-color: #4f46e5;
-}
-
+/* === Buttons === */
+.fix-caption-btn,
 button {
   padding: 10px 16px;
   font-weight: bold;
@@ -184,6 +190,15 @@ button {
   transition: background 0.3s ease;
 }
 
+.fix-caption-btn {
+  background-color: #6366f1;
+  color: white;
+}
+
+.fix-caption-btn:hover {
+  background-color: #4f46e5;
+}
+
 button:last-of-type {
   background-color: #10b981;
   color: white;
@@ -191,23 +206,4 @@ button:last-of-type {
 
 button:last-of-type:hover {
   background-color: #059669;
-}
-
-/* Fix for Reddit default branding color */
-.platform-button .fa-reddit,
-.header-links .fa-reddit {
-  color: inherit !important;
-}
-
-/* Ensure Reddit buttons look consistent with others */
-.platform-button[data-platform="Reddit"],
-.header-links a[href*="reddit.com"] {
-  background: white !important;
-  color: #1e3a8a !important;
-  border: 2px solid #1e3a8a !important;
-}
-
-.platform-button[data-platform="Reddit"].active {
-  background: #1e3a8a !important;
-  color: white !important;
 }
