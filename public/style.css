@@ -160,14 +160,21 @@ h1 {
   border: 2px solid #1e3a8a;
   border-radius: 20px;
   cursor: pointer;
-  background: white;
-  color: #1e3a8a;
+  background: white !important;
+  color: #1e3a8a !important;
   transition: all 0.2s ease;
 }
 
 .platform-button.active {
-  background: #1e3a8a;
-  color: white;
+  background: #1e3a8a !important;
+  color: white !important;
+}
+
+/* Remove browser styling that could affect specific buttons like Reddit */
+.platform-button:focus,
+.platform-button:visited {
+  outline: none;
+  box-shadow: none;
 }
 
 /* === Checkbox === */
