@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 // === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', (req, res) => {
   const SCRIPT_PATH = path.join(__dirname, 'scripts/auto.sh');
+  console.log('🧭 Resolved script path:', SCRIPT_PATH);
 
   exec(`bash "${SCRIPT_PATH}"`, (error, stdout, stderr) => {
     if (error) {
