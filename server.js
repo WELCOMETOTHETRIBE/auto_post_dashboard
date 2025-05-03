@@ -1,9 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
 dotenv.config();
 
@@ -12,13 +9,10 @@ const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(express.json());
 app.use(express.static('public'));
 
-// === Shared: Run Assistant ===
+// Shared function to run OpenAI assistant
 async function runAssistant(userMessage) {
   const threadResponse = await fetch('https://api.openai.com/v1/threads', {
     method: 'POST',
@@ -121,36 +115,19 @@ app.post('/api/generate-hashtags', async (req, res) => {
   }
 });
 
-// === Submit to Zapier + Move to drafts.json ===
+// === Forward to Zapier ===
 app.post('/submit', async (req, res) => {
   try {
-    const payload = req.body;
-
-    // Forward to Zapier
     const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(req.body)
     });
 
-    const zapierResponse = await zapierRes.text();
-
-    // === Move to drafts.json ===
-    const postsPath = path.join(__dirname, 'public', 'posts.json');
-    const draftsPath = path.join(__dirname, 'public', 'drafts.json');
-
-    const posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
-    const drafts = fs.existsSync(draftsPath) ? JSON.parse(fs.readFileSync(draftsPath, 'utf-8')) : [];
-
-    const filteredPosts = posts.filter(post => post.image_url !== payload.image_url);
-    drafts.push(payload);
-
-    fs.writeFileSync(postsPath, JSON.stringify(filteredPosts, null, 2));
-    fs.writeFileSync(draftsPath, JSON.stringify(drafts, null, 2));
-
-    res.status(200).json({ status: 'ok', zapier_response: zapierResponse });
+    const data = await zapierRes.text();
+    res.status(200).json({ status: 'ok', zapier_response: data });
   } catch (error) {
-    console.error('Submit Error:', error);
+    console.error('Zapier Error:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
