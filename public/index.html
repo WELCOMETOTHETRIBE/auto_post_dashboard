@@ -141,14 +141,14 @@
     }
 
     function generateHashtags(index) {
-      const prompt = document.getElementById(`prompt-${index}`).value;
+      const caption = document.getElementById(`caption-${index}`).value;
       const hashtagsField = document.getElementById(`hashtags-${index}`);
       hashtagsField.placeholder = "⏳ Generating...";
 
       fetch('/api/generate-hashtags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ caption })
       })
       .then(res => res.json())
       .then(data => {
