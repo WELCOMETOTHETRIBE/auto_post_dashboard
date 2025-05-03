@@ -1,6 +1,6 @@
 // server_trigger.js
 import express from 'express';
-import cors from 'cors';
+import cors from 'cors'; // ✅ CORS support
 import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,9 +8,13 @@ import { fileURLToPath } from 'url';
 const app = express();
 const PORT = 9001;
 
-// ✅ Enable CORS for the deployed frontend
+const FRONTEND_ORIGIN = 'https://autopostdashboard-production.up.railway.app';
+
+// ✅ Enable CORS for your frontend domain
 app.use(cors({
-  origin: 'https://autopostdashboard-production.up.railway.app'
+  origin: FRONTEND_ORIGIN,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
 }));
 
 app.use(express.json());
@@ -18,6 +22,11 @@ app.use(express.json());
 // Required for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// ✅ Handle preflight OPTIONS request
+app.options('/trigger-upload', cors({
+  origin: FRONTEND_ORIGIN
+}));
 
 // === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', (req, res) => {
@@ -37,7 +46,6 @@ app.post('/trigger-upload', (req, res) => {
   });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Trigger server running at http://localhost:${PORT}`);
 });
