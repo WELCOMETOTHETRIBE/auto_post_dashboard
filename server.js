@@ -12,74 +12,66 @@ const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 app.use(express.json());
 app.use(express.static('public'));
 
-// === Caption Generation via OpenAI Assistant ===
-app.post('/api/generate-caption', async (req, res) => {
-  try {
-    const userMessage = req.body.prompt || "Generate a caption.";
+// Shared function to run OpenAI assistant
+async function runAssistant(userMessage) {
+  const threadResponse = await fetch('https://api.openai.com/v1/threads', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+      'OpenAI-Beta': 'assistants=v2'
+    },
+    body: JSON.stringify({})
+  });
 
-    // Step 1: Create a new Thread
-    const threadResponse = await fetch('https://api.openai.com/v1/threads', {
-      method: 'POST',
+  const threadData = await threadResponse.json();
+  if (!threadData.id) throw new Error("Failed to create thread");
+
+  const threadId = threadData.id;
+
+  await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+      'OpenAI-Beta': 'assistants=v2'
+    },
+    body: JSON.stringify({ role: "user", content: userMessage })
+  });
+
+  const runResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+      'OpenAI-Beta': 'assistants=v2'
+    },
+    body: JSON.stringify({ assistant_id: ASSISTANT_ID })
+  });
+
+  const runData = await runResponse.json();
+  if (!runData.id) throw new Error("Failed to start run");
+
+  const runId = runData.id;
+  let attempts = 0;
+  let completed = false;
+  let output = "";
+
+  while (!completed && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const statusResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
         'OpenAI-Beta': 'assistants=v2'
-      },
-      body: JSON.stringify({})
+      }
     });
+    const statusData = await statusResponse.json();
 
-    const threadData = await threadResponse.json();
-    if (!threadData.id) {
-      console.error('Error creating thread:', threadData);
-      return res.status(500).json({ error: 'Failed to create thread' });
-    }
-
-    const threadId = threadData.id;
-
-    // Step 2: Post user message into the thread
-    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-        'OpenAI-Beta': 'assistants=v2'
-      },
-      body: JSON.stringify({
-        role: "user",
-        content: userMessage
-      })
-    });
-
-    // Step 3: Run the assistant
-    const runResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-        'OpenAI-Beta': 'assistants=v2'
-      },
-      body: JSON.stringify({
-        assistant_id: ASSISTANT_ID
-      })
-    });
-
-    const runData = await runResponse.json();
-    if (!runData.id) {
-      console.error('Error starting run:', runData);
-      return res.status(500).json({ error: 'Failed to start run' });
-    }
-
-    const runId = runData.id;
-
-    // Step 4: Poll for run status
-    let completed = false;
-    let attempts = 0;
-    let output = '';
-
-    while (!completed && attempts < 10) {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // wait 1.5 seconds
-
-      const statusResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+    if (statusData.status === 'completed') {
+      completed = true;
+      const messagesResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -87,42 +79,43 @@ app.post('/api/generate-caption', async (req, res) => {
           'OpenAI-Beta': 'assistants=v2'
         }
       });
-
-      const statusData = await statusResponse.json();
-
-      if (statusData.status === 'completed') {
-        completed = true;
-
-        const messagesResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
-          }
-        });
-
-        const messagesData = await messagesResponse.json();
-        const messages = messagesData.data || [];
-        const latestMessage = messages.find(msg => msg.role === 'assistant');
-        output = latestMessage?.content?.[0]?.text?.value || "No response generated.";
-      }
-
-      attempts++;
+      const messagesData = await messagesResponse.json();
+      const messages = messagesData.data || [];
+      const latestMessage = messages.find(msg => msg.role === 'assistant');
+      output = latestMessage?.content?.[0]?.text?.value || "No response generated.";
     }
+    attempts++;
+  }
 
-    if (!completed) {
-      return res.status(500).json({ error: 'Assistant did not complete in time.' });
-    }
+  if (!completed) throw new Error("Assistant did not complete in time");
+  return output;
+}
 
-    res.json({ caption: output });
+// === Caption Generation ===
+app.post('/api/generate-caption', async (req, res) => {
+  try {
+    const prompt = req.body.prompt || "Generate a caption.";
+    const caption = await runAssistant(prompt);
+    res.json({ caption });
   } catch (error) {
-    console.error('Assistant API Error:', error);
-    res.status(500).json({ error: 'Something went wrong.' });
+    console.error('Caption Error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// === Forward to Zapier Webhook ===
+// === Hashtag Generation ===
+app.post('/api/generate-hashtags', async (req, res) => {
+  try {
+    const caption = req.body.caption || "Generate hashtags.";
+    const hashtags = await runAssistant(`Generate relevant, concise, viral hashtags for this caption: ${caption}`);
+    res.json({ hashtags });
+  } catch (error) {
+    console.error('Hashtag Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// === Forward to Zapier ===
 app.post('/submit', async (req, res) => {
   try {
     const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
@@ -134,12 +127,11 @@ app.post('/submit', async (req, res) => {
     const data = await zapierRes.text();
     res.status(200).json({ status: 'ok', zapier_response: data });
   } catch (error) {
-    console.error('Error forwarding to Zapier:', error);
+    console.error('Zapier Error:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
-// === Start the server ===
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
