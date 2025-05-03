@@ -105,12 +105,14 @@
           <textarea id="prompt-${index}" placeholder="Describe the image or message...">${post.caption || ''}</textarea>
         </div>
         <div>
-          <label for="caption-out-${index}">Generated Caption</label>
-          <textarea id="caption-out-${index}" readonly></textarea>
+          <label for="caption-${index}">Generated Caption</label>
+          <textarea id="caption-${index}"></textarea>
+          <button onclick="generateCaption(${index})">🪄 Generate Caption</button>
         </div>
         <div>
           <label for="hashtags-${index}">Generated Hashtags</label>
-          <input type="text" id="hashtags-${index}" readonly />
+          <input type="text" id="hashtags-${index}" />
+          <button onclick="generateHashtags(${index})">#️⃣ Generate Hashtags</button>
         </div>
         <div>
           <label for="link-${index}">Link</label>
@@ -133,40 +135,50 @@
           <label for="publish-${index}">Publish Now</label>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button class="fix-caption-btn" id="generate-btn-${index}" onclick="generateContent(${index})">🪄 Generate</button>
           <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">Submit to Sheet</button>
         </div>
       `;
       return postElement;
     }
 
-    function generateContent(index) {
-      const button = document.getElementById(`generate-btn-${index}`);
+    function generateCaption(index) {
       const prompt = document.getElementById(`prompt-${index}`).value;
-      const captionField = document.getElementById(`caption-out-${index}`);
-      const hashtagsField = document.getElementById(`hashtags-${index}`);
-
-      button.disabled = true;
-      button.innerText = '⏳ Generating...';
+      const captionField = document.getElementById(`caption-${index}`);
+      captionField.placeholder = "⏳ Generating...";
 
       fetch('/api/generate-caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       })
-        .then(res => res.json())
-        .then(data => {
-          captionField.value = data.caption || '';
-          hashtagsField.value = data.hashtags || '';
-          button.innerText = '🪄 Generate';
-          button.disabled = false;
-        })
-        .catch(error => {
-          console.error('Error generating content:', error);
-          alert('❌ Failed to generate content.');
-          button.innerText = '🪄 Generate';
-          button.disabled = false;
-        });
+      .then(res => res.json())
+      .then(data => {
+        captionField.value = data.caption || '';
+      })
+      .catch(error => {
+        console.error('Error generating caption:', error);
+        alert('❌ Failed to generate caption.');
+      });
+    }
+
+    function generateHashtags(index) {
+      const prompt = document.getElementById(`prompt-${index}`).value;
+      const hashtagsField = document.getElementById(`hashtags-${index}`);
+      hashtagsField.placeholder = "⏳ Generating...";
+
+      fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      })
+      .then(res => res.json())
+      .then(data => {
+        hashtagsField.value = data.hashtags || '';
+      })
+      .catch(error => {
+        console.error('Error generating hashtags:', error);
+        alert('❌ Failed to generate hashtags.');
+      });
     }
   </script>
 </body>
