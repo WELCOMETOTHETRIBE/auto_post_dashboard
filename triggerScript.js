@@ -1,12 +1,10 @@
 // triggerScript.js
 import fs from 'fs/promises';
-import fsSync from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 import { google } from 'googleapis';
 import mime from 'mime-types';
 import dotenv from 'dotenv';
-import simpleGit from 'simple-git';
 
 dotenv.config();
 
@@ -19,11 +17,10 @@ const credentials = JSON.parse(keyBuffer.toString());
 
 const auth = new google.auth.GoogleAuth({
   credentials,
-  scopes: ['https://www.googleapis.com/auth/drive']
+  scopes: ['https://www.googleapis.com/auth/drive'],
 });
 
 const drive = google.drive({ version: 'v3', auth });
-const git = simpleGit();
 
 async function getFolderIdByName(name) {
   const res = await drive.files.list({
@@ -43,15 +40,15 @@ async function listImageFiles(folderId) {
 }
 
 async function downloadFile(fileId) {
-  const destPath = `/tmp/${fileId}`;
-  const dest = fsSync.createWriteStream(destPath);
+  const dest = `/tmp/${fileId}`;
+  const stream = (await import('node:fs')).createWriteStream(dest);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
-      res.data.pipe(dest).on('finish', resolve).on('error', reject);
+      res.data.pipe(stream).on('finish', resolve).on('error', reject);
     });
   });
-  return destPath;
+  return dest;
 }
 
 async function moveFileToFolder(fileId, folderId) {
@@ -61,7 +58,7 @@ async function moveFileToFolder(fileId, folderId) {
     fileId,
     addParents: folderId,
     removeParents: previousParents,
-    fields: 'id, parents'
+    fields: 'id, parents',
   });
 }
 
@@ -75,17 +72,6 @@ async function updatePostsJson(imageUrl) {
   }
   posts.push({ image_url: imageUrl });
   await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
-}
-
-async function pushJsonToGitHub() {
-  try {
-    await git.add('./public/posts.json');
-    await git.commit('✅ Updated posts.json with new image URLs');
-    await git.push('origin', 'main');
-    console.log('🚀 posts.json pushed to GitHub');
-  } catch (err) {
-    console.error('❌ Git push failed:', err);
-  }
 }
 
 export async function runTriggerScript() {
@@ -104,15 +90,12 @@ export async function runTriggerScript() {
 
     let finalPath = filePath;
     let newFileName = file.name;
-
     if (file.mimeType === 'image/heic') {
       newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
       const jpgPath = `/tmp/${newFileName}`;
       await sharp(filePath).jpeg().toFile(jpgPath);
       finalPath = jpgPath;
     }
-
-    const mediaBuffer = await fs.readFile(finalPath);
 
     const uploaded = await drive.files.create({
       requestBody: {
@@ -122,9 +105,9 @@ export async function runTriggerScript() {
       },
       media: {
         mimeType: mime.lookup(newFileName) || 'image/jpeg',
-        body: fsSync.createReadStream(finalPath),
+        body: (await import('node:fs')).createReadStream(finalPath),
       },
-      fields: 'id'
+      fields: 'id',
     });
 
     const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
@@ -132,6 +115,5 @@ export async function runTriggerScript() {
     await moveFileToFolder(file.id, archiveId);
   }
 
-  await pushJsonToGitHub();
-  return `✅ Processed ${files.length} images.`;
+  return `✅ Processed ${files.length} image(s).`;
 }
