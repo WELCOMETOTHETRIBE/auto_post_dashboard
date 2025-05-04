@@ -6,7 +6,7 @@
     "start": "node server.js",
     "trigger": "node server_trigger.js",
     "build": "echo 'No build step needed'",
-    "postinstall": "npm rebuild sharp"
+    "postinstall": "npm install --platform=linux --arch=x64 sharp"
   },
   "dependencies": {
     "cors": "^2.8.5",
