@@ -24,6 +24,11 @@ app.use(express.json());
 // ✅ Serve static frontend files (index.html, style.css, posts.json, etc.)
 app.use(express.static(PUBLIC_DIR));
 
+// === HEALTH CHECK ROUTE (optional for Railway status) ===
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
