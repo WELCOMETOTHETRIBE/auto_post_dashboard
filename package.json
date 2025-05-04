@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server_trigger.js"
+    "start": "node server_trigger.js",
+    "build": "echo 'No build step needed'",
+    "postinstall": "npm rebuild sharp"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -12,5 +14,8 @@
     "simple-git": "^3.19.1",
     "fs-extra": "^11.1.1",
     "sharp": "^0.33.2"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }

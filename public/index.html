@@ -30,7 +30,7 @@
   <div id="finished-drafts-container" class="tab-content"></div>
 
   <script>
-    const NGROK_TRIGGER_URL = 'https://79db-2603-8000-7200-1f00-a969-605b-880a-5fe0.ngrok-free.app/trigger-upload';
+    const TRIGGER_URL = 'https://autopostdashboard-production.up.railway.app/trigger-upload';
 
     function showTab(tab) {
       document.getElementById('posts-container').classList.remove('active');
@@ -203,7 +203,7 @@
     }
 
     function triggerUpload() {
-      fetch(NGROK_TRIGGER_URL, {
+      fetch(TRIGGER_URL, {
         method: 'POST'
       })
         .then(res => res.json())

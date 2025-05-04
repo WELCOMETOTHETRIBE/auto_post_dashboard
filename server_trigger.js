@@ -1,14 +1,15 @@
 // server_trigger.js
 import express from 'express';
 import cors from 'cors';
-import { runTriggerScript } from './triggerScript.js'; // ✅ Import the new JS version
+import { runTriggerScript } from './triggerScript.js';
 
 const app = express();
-const PORT = 9001;
+const PORT = process.env.PORT || 9001; // ✅ Use Railway or fallback to 9001
 
-// ✅ Enable CORS for your deployed frontend
+// ✅ CORS configuration for your frontend
 app.use(cors({
-  origin: 'https://autopostdashboard-production.up.railway.app'
+  origin: 'https://autopostdashboard-production.up.railway.app',
+  optionsSuccessStatus: 200
 }));
 
 app.use(express.json());
@@ -16,7 +17,7 @@ app.use(express.json());
 // === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
-    const result = await runTriggerScript(); // ✅ Trigger image discovery + processing
+    const result = await runTriggerScript();
     res.status(200).json({ status: 'success', result });
   } catch (error) {
     console.error('❌ Script execution error:', error);
@@ -25,6 +26,6 @@ app.post('/trigger-upload', async (req, res) => {
 });
 
 // === SERVER START ===
-app.listen(PORT, () => {
-  console.log(`🚀 Trigger server running at http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Trigger server running on port ${PORT}`);
 });
