@@ -1,26 +1,26 @@
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
-import { google } from 'googleapis';
 import mime from 'mime-types';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
-import { readFileSync } from 'fs';
+import { createWriteStream, createReadStream } from 'fs';
 
 dotenv.config();
 
 const POSTS_JSON = path.resolve('./public/posts.json');
 const ARCHIVE_DIR = path.resolve('./archive');
 const IMAGE_FOLDER_NAME = 'AutoPostImages';
+const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
 const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64, 'base64');
 const credentials = JSON.parse(keyBuffer.toString());
 
+import { google } from 'googleapis';
 const auth = new google.auth.GoogleAuth({
   credentials,
   scopes: ['https://www.googleapis.com/auth/drive'],
 });
-
 const drive = google.drive({ version: 'v3', auth });
 
 async function getFolderIdByName(name) {
@@ -40,30 +40,29 @@ async function listImageFiles(folderId) {
   return res.data.files;
 }
 
-async function downloadFile(fileId, fileName) {
-  const dest = path.join('/tmp', fileName);
-  const stream = (await import('fs')).createWriteStream(dest);
+async function downloadFile(fileId, outputPath) {
+  const stream = createWriteStream(outputPath);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
       res.data.pipe(stream).on('finish', resolve).on('error', reject);
     });
   });
-  return dest;
+  return outputPath;
 }
 
-async function moveFileToDriveArchive(fileId, archiveId) {
+async function moveFileToFolder(fileId, folderId) {
   const file = await drive.files.get({ fileId, fields: 'parents' });
   const previousParents = file.data.parents.join(',');
   await drive.files.update({
     fileId,
-    addParents: archiveId,
+    addParents: folderId,
     removeParents: previousParents,
     fields: 'id, parents',
   });
 }
 
-async function updatePostsJson(imageUrl) {
+async function updatePostsJson(newEntry) {
   let posts = [];
   try {
     const data = await fs.readFile(POSTS_JSON, 'utf-8');
@@ -71,47 +70,50 @@ async function updatePostsJson(imageUrl) {
   } catch {
     posts = [];
   }
-  posts.push({ image_url: imageUrl });
+  posts.push({ image_url: newEntry });
 
   const updatedContent = JSON.stringify(posts, null, 2);
   await fs.writeFile(POSTS_JSON, updatedContent);
-  await commitToGitHub(updatedContent, 'public/posts.json');
+  await commitFileToGitHub('public/posts.json', updatedContent, '🤖 Update posts.json');
 }
 
-async function commitToGitHub(content, targetPath) {
+async function commitFileToGitHub(filePath, content, message) {
   const repo = 'auto_post_dashboard';
   const owner = 'WELCOMETOTHETRIBE';
   const branch = 'main';
   const token = process.env.GH_PAT;
+  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
 
-  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${targetPath}`;
-  const getRes = await fetch(getUrl, {
-    headers: { Authorization: `token ${token}` }
-  });
+  const getRes = await fetch(getUrl, { headers: { Authorization: `token ${token}` } });
   const getData = await getRes.json();
 
-  const updateRes = await fetch(getUrl, {
+  const res = await fetch(getUrl, {
     method: 'PUT',
     headers: {
       Authorization: `token ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      message: `🤖 Update ${targetPath}`,
+      message,
       content: Buffer.from(content).toString('base64'),
       sha: getData.sha,
       branch,
     })
   });
 
-  if (!updateRes.ok) {
-    throw new Error(`GitHub API error: ${updateRes.statusText}`);
+  if (!res.ok) {
+    throw new Error(`GitHub API error while committing ${filePath}: ${res.statusText}`);
   }
+}
+
+async function commitImageToGitHub(imagePath, imageName) {
+  const content = await fs.readFile(imagePath);
+  await commitFileToGitHub(`archive/${imageName}`, content.toString('base64'), `🖼️ Upload image ${imageName}`);
 }
 
 export async function runTriggerScript() {
   const folderId = await getFolderIdByName(IMAGE_FOLDER_NAME);
-  const archiveId = await getFolderIdByName('AutoPostArchive');
+  const archiveId = await getFolderIdByName(ARCHIVE_FOLDER_NAME);
 
   if (!folderId || !archiveId) {
     throw new Error('Image or Archive folder not found on Google Drive.');
@@ -121,21 +123,26 @@ export async function runTriggerScript() {
   if (files.length === 0) return 'No new images found.';
 
   for (const file of files) {
-    const ext = file.mimeType === 'image/heic' ? '.jpg' : path.extname(file.name);
-    const newFileName = file.name.replace(/\.[^/.]+$/, '') + ext;
-    const tempPath = await downloadFile(file.id, newFileName);
+    const rawPath = `/tmp/${file.name}`;
+    await downloadFile(file.id, rawPath);
 
-    const finalPath = path.join(ARCHIVE_DIR, newFileName);
+    let finalPath = rawPath;
+    let finalName = file.name;
     if (file.mimeType === 'image/heic') {
-      await sharp(tempPath).jpeg().toFile(finalPath);
-    } else {
-      await fs.copyFile(tempPath, finalPath);
+      finalName = file.name.replace(/\.[^/.]+$/, '.jpg');
+      const jpgPath = `/tmp/${finalName}`;
+      await sharp(rawPath).jpeg().toFile(jpgPath);
+      finalPath = jpgPath;
     }
 
-    const githubImageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${newFileName}`;
-    await updatePostsJson(githubImageUrl);
-    await moveFileToDriveArchive(file.id, archiveId);
+    const localArchivePath = path.join(ARCHIVE_DIR, finalName);
+    await fs.copyFile(finalPath, localArchivePath);
+    await commitImageToGitHub(localArchivePath, finalName);
+
+    const githubRawUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${finalName}`;
+    await updatePostsJson(githubRawUrl);
+    await moveFileToFolder(file.id, archiveId);
   }
 
-  return `✅ Processed ${files.length} images.`;
+  return `✅ Uploaded and committed ${files.length} image(s).`;
 }
