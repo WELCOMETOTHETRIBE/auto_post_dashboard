@@ -1,22 +1,19 @@
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
 import { google } from 'googleapis';
 import mime from 'mime-types';
+import simpleGit from 'simple-git';
 import dotenv from 'dotenv';
-import fetch from 'node-fetch';
 
 dotenv.config();
 
-const POSTS_JSON_PATH = path.resolve('./public/posts.json');
+const POSTS_JSON = path.resolve('./public/posts.json');
 const IMAGE_FOLDER_NAME = 'AutoPostImages';
 const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
-const GITHUB_REPO = 'WELCOMETOTHETRIBE/auto_post_dashboard';
-const POSTS_JSON_FILE_PATH = 'public/posts.json';
-const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/contents/${POSTS_JSON_FILE_PATH}`;
-const GITHUB_TOKEN = process.env.GH_PAT;
-
+const git = simpleGit();
 const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64, 'base64');
 const credentials = JSON.parse(keyBuffer.toString());
 
@@ -45,15 +42,17 @@ async function listImageFiles(folderId) {
 }
 
 async function downloadFile(fileId) {
-  const dest = `/tmp/${fileId}`;
-  const stream = (await fs.open(dest, 'w')).createWriteStream();
+  const destPath = `/tmp/${fileId}`;
+  const dest = fs.createWriteStream(destPath);
+
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
-      res.data.pipe(stream).on('finish', resolve).on('error', reject);
+      res.data.pipe(dest).on('finish', resolve).on('error', reject);
     });
   });
-  return dest;
+
+  return destPath;
 }
 
 async function moveFileToFolder(fileId, folderId) {
@@ -67,36 +66,23 @@ async function moveFileToFolder(fileId, folderId) {
   });
 }
 
-async function updatePostsJsonViaGitHub(newEntry) {
-  const res = await fetch(GITHUB_API_URL, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github.v3+json',
-    },
-  });
+async function updatePostsJson(imageUrl) {
+  let posts = [];
+  try {
+    const data = await fsp.readFile(POSTS_JSON, 'utf-8');
+    posts = JSON.parse(data);
+  } catch {
+    posts = [];
+  }
 
-  if (!res.ok) throw new Error(`Failed to fetch posts.json: ${res.status}`);
-  const fileData = await res.json();
-  const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
-  const posts = JSON.parse(content);
+  posts.push({ image_url: imageUrl });
+  await fsp.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
+}
 
-  posts.push(newEntry);
-  const updatedContent = Buffer.from(JSON.stringify(posts, null, 2)).toString('base64');
-
-  const updateRes = await fetch(GITHUB_API_URL, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github.v3+json',
-    },
-    body: JSON.stringify({
-      message: `Add image post: ${newEntry.image_url}`,
-      content: updatedContent,
-      sha: fileData.sha,
-    }),
-  });
-
-  if (!updateRes.ok) throw new Error(`Failed to update posts.json: ${updateRes.status}`);
+async function commitToGitHub() {
+  await git.add('./public/posts.json');
+  await git.commit('🤖 Updated posts.json with new image(s)');
+  await git.push(['--force']); // allow force push if needed
 }
 
 export async function runTriggerScript() {
@@ -104,27 +90,25 @@ export async function runTriggerScript() {
   const archiveId = await getFolderIdByName(ARCHIVE_FOLDER_NAME);
 
   if (!folderId || !archiveId) {
-    throw new Error('Image or Archive folder not found on Google Drive.');
+    throw new Error('❌ Image or Archive folder not found on Google Drive.');
   }
 
   const files = await listImageFiles(folderId);
-  if (files.length === 0) return 'No new images found.';
+  if (files.length === 0) return 'ℹ️ No new images found.';
 
   for (const file of files) {
     const filePath = await downloadFile(file.id);
 
-    // HEIC to JPG if needed
     let finalPath = filePath;
     let newFileName = file.name;
-    if (file.mimeType === 'image/heic') {
+
+    if (file.mimeType === 'image/heic' || newFileName.toLowerCase().endsWith('.heic')) {
       newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
       const jpgPath = `/tmp/${newFileName}`;
       await sharp(filePath).jpeg().toFile(jpgPath);
       finalPath = jpgPath;
     }
 
-    // Upload the converted image to archive
-    const bodyStream = await fs.readFile(finalPath);
     const uploaded = await drive.files.create({
       requestBody: {
         name: newFileName,
@@ -133,15 +117,17 @@ export async function runTriggerScript() {
       },
       media: {
         mimeType: mime.lookup(newFileName),
-        body: bodyStream,
+        body: fs.createReadStream(finalPath), // ✅ proper stream
       },
-      fields: 'id, webContentLink, webViewLink',
+      fields: 'id',
     });
 
     const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
-    await updatePostsJsonViaGitHub({ image_url: fileUrl });
+    await updatePostsJson(fileUrl);
     await moveFileToFolder(file.id, archiveId);
   }
 
-  return `✅ Processed ${files.length} images.`;
+  await commitToGitHub();
+
+  return `✅ Processed and committed ${files.length} image(s).`;
 }
