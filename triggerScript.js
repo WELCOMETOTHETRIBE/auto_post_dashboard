@@ -1,14 +1,13 @@
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 import { google } from 'googleapis';
 import mime from 'mime-types';
 import dotenv from 'dotenv';
-import fetch from 'node-fetch';
 
 dotenv.config();
 
-const POSTS_JSON_PATH = 'public/posts.json';
+const POSTS_JSON = path.resolve('./public/posts.json');
 const IMAGE_FOLDER_NAME = 'AutoPostImages';
 const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
@@ -41,7 +40,7 @@ async function listImageFiles(folderId) {
 
 async function downloadFile(fileId) {
   const dest = `/tmp/${fileId}`;
-  const stream = (await import('fs')).createWriteStream(dest);
+  const stream = fs.createWriteStream(dest);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
@@ -62,39 +61,16 @@ async function moveFileToFolder(fileId, folderId) {
   });
 }
 
-async function updatePostsJsonOnGitHub(newImageUrl) {
-  const owner = 'WELCOMETOTHETRIBE';
-  const repo = 'auto_post_dashboard';
-  const path = 'public/posts.json';
-  const token = process.env.GH_PAT;
-
-  const headers = {
-    Authorization: `token ${token}`,
-    'Content-Type': 'application/json',
-    'User-Agent': 'AutoPostBot'
-  };
-
-  // Get current content and SHA
-  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, { headers });
-  const data = await res.json();
-
-  const contentRaw = Buffer.from(data.content, 'base64').toString('utf8');
-  const posts = JSON.parse(contentRaw);
-
-  posts.push({ image_url: newImageUrl });
-  const newContent = Buffer.from(JSON.stringify(posts, null, 2)).toString('base64');
-
-  // Push update
-  await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify({
-      message: '🤖 Update posts.json with new image',
-      content: newContent,
-      sha: data.sha,
-      branch: 'main'
-    })
-  });
+async function updatePostsJson(imageUrl) {
+  let posts = [];
+  try {
+    const data = await fs.promises.readFile(POSTS_JSON, 'utf-8');
+    posts = JSON.parse(data);
+  } catch {
+    posts = [];
+  }
+  posts.push({ image_url: imageUrl });
+  await fs.promises.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
 }
 
 export async function runTriggerScript() {
@@ -111,6 +87,7 @@ export async function runTriggerScript() {
   for (const file of files) {
     const filePath = await downloadFile(file.id);
 
+    // HEIC to JPG if needed
     let finalPath = filePath;
     let newFileName = file.name;
     if (file.mimeType === 'image/heic') {
@@ -120,7 +97,8 @@ export async function runTriggerScript() {
       finalPath = jpgPath;
     }
 
-    const driveUpload = await drive.files.create({
+    // Upload the converted image back to Drive (into archive)
+    const uploaded = await drive.files.create({
       requestBody: {
         name: newFileName,
         parents: [archiveId],
@@ -128,13 +106,25 @@ export async function runTriggerScript() {
       },
       media: {
         mimeType: mime.lookup(newFileName),
-        body: (await import('fs')).createReadStream(finalPath),
+        body: fs.createReadStream(finalPath),
       },
       fields: 'id',
     });
 
-    const imageUrl = `https://drive.google.com/uc?id=${driveUpload.data.id}`;
-    await updatePostsJsonOnGitHub(imageUrl);
+    // 🔓 Make file public
+    await drive.permissions.create({
+      fileId: uploaded.data.id,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone',
+      },
+    });
+
+    // ✅ Use publicly accessible link
+    const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
+    await updatePostsJson(fileUrl);
+
+    // Clean up and move original file
     await moveFileToFolder(file.id, archiveId);
   }
 
