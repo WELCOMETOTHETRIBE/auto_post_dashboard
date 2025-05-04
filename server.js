@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
-import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -13,44 +12,13 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecret',
-  resave: false,
-  saveUninitialized: false
-}));
+// Serve dashboard (no login)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// =======================
-// 🔓 Public routes BEFORE auth wall
-// =======================
-
-// Serve login form
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'));
-});
-
-// Handle login form
-app.post('/login', (req, res) => {
-  const { password } = req.body;
-  if (password === process.env.DASHBOARD_PASSWORD) {
-    req.session.authenticated = true;
-    return res.redirect('/');
-  }
-  res.send('Incorrect password. <a href="/login">Try again</a>');
-});
-
-// Handle logout
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/login'));
-});
-
-// =======================
-// ✨ API routes (accessible even if not logged in)
-// =======================
-
+// === Caption Generation ===
 app.post('/api/generate-caption', async (req, res) => {
   try {
     const prompt = `You are a caption generator for FruTropics. Return only one engaging caption for this image description, no hashtags, no follow-up: ${req.body.prompt}`;
@@ -62,6 +30,7 @@ app.post('/api/generate-caption', async (req, res) => {
   }
 });
 
+// === Hashtag Generation ===
 app.post('/api/generate-hashtags', async (req, res) => {
   try {
     const prompt = `Generate relevant, concise, and viral hashtags for the following caption. Only return hashtags and nothing else: ${req.body.caption}`;
@@ -73,6 +42,7 @@ app.post('/api/generate-hashtags', async (req, res) => {
   }
 });
 
+// === Submit to Zapier ===
 app.post('/submit', async (req, res) => {
   try {
     const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
@@ -89,24 +59,7 @@ app.post('/submit', async (req, res) => {
   }
 });
 
-// =======================
-// 🔒 Auth middleware + dashboard
-// =======================
-
-function requireAuth(req, res, next) {
-  if (req.session && req.session.authenticated) {
-    return next();
-  }
-  return res.redirect('/login');
-}
-
-// Serve static dashboard if authenticated
-app.use('/', requireAuth, express.static('public'));
-
-// =======================
-// 🔁 OpenAI Assistant function
-// =======================
-
+// === OpenAI Assistant Runner ===
 async function runAssistant(userMessage) {
   const threadResponse = await fetch('https://api.openai.com/v1/threads', {
     method: 'POST',
@@ -120,6 +73,7 @@ async function runAssistant(userMessage) {
 
   const threadData = await threadResponse.json();
   if (!threadData.id) throw new Error("Failed to create thread");
+
   const threadId = threadData.id;
 
   await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
@@ -144,8 +98,8 @@ async function runAssistant(userMessage) {
 
   const runData = await runResponse.json();
   if (!runData.id) throw new Error("Failed to start run");
-  const runId = runData.id;
 
+  const runId = runData.id;
   let attempts = 0;
   let completed = false;
   let output = "";
@@ -177,7 +131,6 @@ async function runAssistant(userMessage) {
       const latestMessage = messages.find(msg => msg.role === 'assistant');
       output = latestMessage?.content?.[0]?.text?.value || "No response generated.";
     }
-
     attempts++;
   }
 
