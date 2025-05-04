@@ -40,11 +40,14 @@ async function listImageFiles(folderId) {
 
 async function downloadFile(fileId) {
   const dest = `/tmp/${fileId}`;
-  const stream = (await import('fs')).createWriteStream(dest);
+  const stream = await fs.open(dest, 'w');
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
-      res.data.pipe(stream).on('finish', resolve).on('error', reject);
+      res.data
+        .pipe(stream.createWriteStream())
+        .on('finish', resolve)
+        .on('error', reject);
     });
   });
   return dest;
@@ -87,17 +90,17 @@ export async function runTriggerScript() {
   for (const file of files) {
     const filePath = await downloadFile(file.id);
 
-    // HEIC to JPG conversion
+    // HEIC to JPG if needed
     let finalPath = filePath;
     let newFileName = file.name;
-    if (file.mimeType === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
-      newFileName = file.name.replace(/\.heic$/i, '.jpg');
+    if (file.mimeType === 'image/heic') {
+      newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
       const jpgPath = `/tmp/${newFileName}`;
       await sharp(filePath).jpeg().toFile(jpgPath);
       finalPath = jpgPath;
     }
 
-    // Upload to Archive folder
+    // Upload the converted image to archive
     const uploaded = await drive.files.create({
       requestBody: {
         name: newFileName,
@@ -108,15 +111,24 @@ export async function runTriggerScript() {
         mimeType: mime.lookup(newFileName),
         body: await fs.readFile(finalPath),
       },
-      fields: 'id',
+      fields: 'id, webContentLink, webViewLink',
+    });
+
+    // 🔓 Make file publicly viewable
+    await drive.permissions.create({
+      fileId: uploaded.data.id,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone',
+      },
     });
 
     const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
     await updatePostsJson(fileUrl);
 
-    // Move original to Archive folder
+    // Move original file to archive
     await moveFileToFolder(file.id, archiveId);
   }
 
-  return `✅ Processed ${files.length} image(s).`;
+  return `✅ Processed ${files.length} images.`;
 }
