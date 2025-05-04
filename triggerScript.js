@@ -132,7 +132,6 @@ export async function runTriggerScript() {
       finalPath = jpgPath;
     }
 
-    // Upload to Drive archive folder
     const uploaded = await drive.files.create({
       requestBody: {
         name: newFileName,
@@ -146,20 +145,9 @@ export async function runTriggerScript() {
       fields: 'id',
     });
 
-    // 🔓 Make it public
-    await drive.permissions.create({
-      fileId: uploaded.data.id,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone',
-      },
-    });
-
-    // ✅ Public viewable image URL
-    const fileUrl = `https://drive.google.com/uc?export=view&id=${uploaded.data.id}`;
+    // ✅ Use raw Googleusercontent image link
+    const fileUrl = `https://drive.usercontent.google.com/uc?id=${uploaded.data.id}`;
     await updatePostsJson(fileUrl);
-
-    // Move original file to archive
     await moveFileToFolder(file.id, archiveId);
   }
 
