@@ -1,3 +1,4 @@
+// triggerScript.js
 import fs from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
@@ -36,6 +37,13 @@ async function updateRepo() {
     await execAsync(`git init`, { cwd: WORK_DIR });
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
+
+  // 🧼 Clean local changes and remove untracked files to prevent pull conflicts
+  console.log('🧼 Cleaning working tree...');
+  await execAsync(`git reset --hard`, { cwd: WORK_DIR });
+  await execAsync(`git clean -fd`, { cwd: WORK_DIR });
+
+  console.log('🔄 Pulling from remote repo...');
   await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
 }
 
