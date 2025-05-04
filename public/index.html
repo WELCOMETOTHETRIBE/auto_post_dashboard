@@ -31,20 +31,15 @@
 
   <script>
     const TRIGGER_URL = 'https://autopostdashboard-production.up.railway.app/trigger-upload';
+    const POSTS_JSON_URL = 'https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json';
 
     function showTab(tab) {
       document.getElementById('posts-container').classList.remove('active');
       document.getElementById('finished-drafts-container').classList.remove('active');
       document.getElementById('tab-staging').classList.remove('active');
       document.getElementById('tab-drafts').classList.remove('active');
-
-      if (tab === 'staging') {
-        document.getElementById('posts-container').classList.add('active');
-        document.getElementById('tab-staging').classList.add('active');
-      } else {
-        document.getElementById('finished-drafts-container').classList.add('active');
-        document.getElementById('tab-drafts').classList.add('active');
-      }
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`${tab === 'staging' ? 'posts' : 'finished-drafts'}-container`).classList.add('active');
     }
 
     function generateTokenId() {
@@ -57,17 +52,21 @@
       input.value = platforms.join(' ');
     }
 
-    // 🔁 Load posts.json directly from GitHub raw
-    fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json')
-      .then(response => response.json())
-      .then(data => {
-        data.forEach((post, index) => {
-          const tokenId = generateTokenId();
-          const postElement = createPostElement(post, index, tokenId);
-          document.getElementById('posts-container').appendChild(postElement);
+    function loadPosts() {
+      fetch(POSTS_JSON_URL)
+        .then(res => res.json())
+        .then(data => {
+          data.forEach((post, index) => {
+            const tokenId = generateTokenId();
+            const postElement = createPostElement(post, index, tokenId);
+            document.getElementById('posts-container').appendChild(postElement);
+          });
+        })
+        .catch(err => {
+          console.error('❌ Failed to load posts.json:', err);
+          alert('Could not load posts from GitHub.');
         });
-      })
-      .catch(error => console.error('Error loading posts:', error));
+    }
 
     function createPostElement(post, index, tokenId) {
       const postElement = document.createElement('div');
@@ -211,13 +210,16 @@
         .then(data => {
           alert('🆕 Pull triggered!');
           console.log(data);
-          location.reload(); // 🔁 Refresh dashboard after update
+          location.reload(); // reload page to reflect new posts
         })
         .catch(error => {
           console.error('❌ Error triggering pull:', error);
           alert('❌ Failed to pull new images.');
         });
     }
+
+    // Load the posts when the page loads
+    window.onload = loadPosts;
   </script>
 </body>
 </html>
