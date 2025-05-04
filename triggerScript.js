@@ -1,4 +1,5 @@
-import fs from 'fs/promises';
+import fs from 'fs'; // For streams
+import fsp from 'fs/promises'; // For async read/write
 import path from 'path';
 import sharp from 'sharp';
 import { google } from 'googleapis';
@@ -40,14 +41,11 @@ async function listImageFiles(folderId) {
 
 async function downloadFile(fileId) {
   const dest = `/tmp/${fileId}`;
-  const stream = await fs.open(dest, 'w');
+  const stream = fs.createWriteStream(dest);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
-      res.data
-        .pipe(stream.createWriteStream())
-        .on('finish', resolve)
-        .on('error', reject);
+      res.data.pipe(stream).on('finish', resolve).on('error', reject);
     });
   });
   return dest;
@@ -67,13 +65,13 @@ async function moveFileToFolder(fileId, folderId) {
 async function updatePostsJson(imageUrl) {
   let posts = [];
   try {
-    const data = await fs.readFile(POSTS_JSON, 'utf-8');
+    const data = await fsp.readFile(POSTS_JSON, 'utf-8');
     posts = JSON.parse(data);
   } catch {
     posts = [];
   }
   posts.push({ image_url: imageUrl });
-  await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
+  await fsp.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
 }
 
 export async function runTriggerScript() {
@@ -100,7 +98,7 @@ export async function runTriggerScript() {
       finalPath = jpgPath;
     }
 
-    // Upload the converted image to archive
+    // Upload the image to Drive archive folder
     const uploaded = await drive.files.create({
       requestBody: {
         name: newFileName,
@@ -108,25 +106,14 @@ export async function runTriggerScript() {
         mimeType: mime.lookup(newFileName),
       },
       media: {
-  mimeType: mime.lookup(newFileName),
-  body: fs.createReadStream(finalPath),
+        mimeType: mime.lookup(newFileName),
+        body: fs.createReadStream(finalPath), // ✅ Fixed
       },
-      fields: 'id, webContentLink, webViewLink',
-    });
-
-    // 🔓 Make file publicly viewable
-    await drive.permissions.create({
-      fileId: uploaded.data.id,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone',
-      },
+      fields: 'id',
     });
 
     const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
     await updatePostsJson(fileUrl);
-
-    // Move original file to archive
     await moveFileToFolder(file.id, archiveId);
   }
 
