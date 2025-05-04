@@ -1,4 +1,4 @@
-// triggerScript.js
+// ✅ UPDATED triggerScript.js
 import fs from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
@@ -22,29 +22,39 @@ async function fileExists(filePath) {
 }
 
 async function updateRepo() {
-  try {
-    if (!(await fileExists(path.join(WORK_DIR, '.git')))) {
-      console.log('❌ Not a Git repo. Initializing...');
-      await execAsync(`git init`, { cwd: WORK_DIR });
-      await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
-    }
-    await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
-  } catch (err) {
-    console.error('❌ Git pull failed:', err);
-    throw err;
+  if (!(await fileExists(path.join(WORK_DIR, '.git')))) {
+    console.log('❌ Not a Git repo. Initializing...');
+    await execAsync(`git init`, { cwd: WORK_DIR });
+    await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
+  await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
 }
 
-async function processImages() {
+async function updatePostsJson(imageUrl) {
+  let posts = [];
+  try {
+    const raw = await fs.readFile(POSTS_JSON, 'utf-8');
+    posts = JSON.parse(raw);
+  } catch {
+    posts = [];
+  }
+  posts.push({ image_url: imageUrl });
+  await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
+  console.log('✔ posts.json updated');
+}
+
+export async function runTriggerScript() {
+  await updateRepo();
+
   const files = await fs.readdir(IMAGE_DIR);
   const imageFiles = files.filter(f => f.match(/\.(jpe?g|png|heic)$/i));
 
   if (imageFiles.length === 0) {
     console.log('No image files found.');
-    return;
+    return 'No new images to process.';
   }
 
-  for (let file of imageFiles) {
+  for (const file of imageFiles) {
     const fullPath = path.join(IMAGE_DIR, file);
     let finalPath = fullPath;
     let archiveName = file;
@@ -78,30 +88,6 @@ async function processImages() {
   await execAsync(`git add -A`, { cwd: WORK_DIR });
   await execAsync(`git commit -m "Automated commit: updates to posts.json and image files"`, { cwd: WORK_DIR });
   await execAsync(`git push origin main`, { cwd: WORK_DIR });
+
+  return '✅ All tasks completed successfully.';
 }
-
-async function updatePostsJson(imageUrl) {
-  let posts = [];
-
-  try {
-    const raw = await fs.readFile(POSTS_JSON, 'utf-8');
-    posts = JSON.parse(raw);
-  } catch {
-    posts = [];
-  }
-
-  posts.push({ image_url: imageUrl });
-  await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
-  console.log('✔ posts.json updated');
-}
-
-(async () => {
-  try {
-    await updateRepo();
-    await processImages();
-    console.log('✅ All tasks completed successfully.');
-  } catch (err) {
-    console.error('❌ Execution failed:', err);
-    process.exit(1);
-  }
-})();
