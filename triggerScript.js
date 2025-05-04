@@ -124,7 +124,9 @@ export async function runTriggerScript() {
 
     let finalPath = filePath;
     let newFileName = file.name;
-    if (file.mimeType === 'image/heic') {
+
+    // ✅ Robust .heic detection
+    if (file.mimeType === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
       newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
       const jpgPath = `/tmp/${newFileName}`;
       await sharp(filePath).jpeg().toFile(jpgPath);
