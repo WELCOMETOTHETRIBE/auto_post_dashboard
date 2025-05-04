@@ -38,25 +38,20 @@ async function updateRepo() {
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
 
-  // Clean and pull fresh
+  // ⛔ Clear lock file if exists
+  try {
+    await fs.unlink(path.join(gitFolder, 'index.lock'));
+  } catch {}
+
   console.log('🧼 Cleaning working tree...');
-  await execAsync(`rm -f .git/index.lock`, { cwd: WORK_DIR }); // unlock if stuck
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
 
-  console.log('🔄 Pulling from remote repo...');
-  await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
-}
-
-async function safeCommit(message) {
+  console.log('🔄 Pulling latest from remote...');
+  await execAsync(`git checkout -B main`, { cwd: WORK_DIR });
   await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
   await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
-
-  try {
-    await execAsync(`git diff --cached --quiet || git commit -m "${message}"`, { cwd: WORK_DIR });
-  } catch (err) {
-    console.warn(`⚠️ Skipping commit: ${message} — likely nothing to commit`);
-  }
+  await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
 }
 
 async function updatePostsJson(imageUrl) {
@@ -67,7 +62,6 @@ async function updatePostsJson(imageUrl) {
   } catch {
     posts = [];
   }
-
   posts.push({ image_url: imageUrl });
   await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
   console.log('✔ posts.json updated');
@@ -100,27 +94,24 @@ export async function runTriggerScript() {
         archiveName = jpgName;
       }
 
-      await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
-      await safeCommit(`Added new image: ${archiveName}`);
-
-      try {
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-        const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
-        await updatePostsJson(imageUrl);
-
-        const archivePath = path.join(ARCHIVE_DIR, archiveName);
-        await fs.rename(finalPath, archivePath);
-
-        await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
-        await safeCommit(`Archived image: ${archiveName}`);
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-      } catch (err) {
-        console.error(`❌ Push failed for ${archiveName}:`, err);
+      const archivePath = path.join(ARCHIVE_DIR, archiveName);
+      const alreadyArchived = await fileExists(archivePath);
+      if (alreadyArchived) {
+        console.log(`⚠️ Skipping ${archiveName} — already archived.`);
+        continue;
       }
+
+      await fs.rename(finalPath, archivePath);
+      await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
+      await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
+
+      await execAsync(`git push origin main`, { cwd: WORK_DIR });
+      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
+      await updatePostsJson(imageUrl);
     }
 
     await execAsync(`git add "${POSTS_JSON}"`, { cwd: WORK_DIR });
-    await safeCommit("Updated posts.json");
+    await execAsync(`git commit -m "Updated posts.json with new image URLs"`, { cwd: WORK_DIR });
     await execAsync(`git push origin main`, { cwd: WORK_DIR });
 
     return '✅ All tasks completed successfully.';
