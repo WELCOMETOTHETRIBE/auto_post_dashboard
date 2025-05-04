@@ -1,10 +1,17 @@
 // server_trigger.js
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { runTriggerScript } from './triggerScript.js';
 
 const app = express();
-const PORT = process.env.PORT || 9001; // ✅ Use Railway or fallback to 9001
+const PORT = process.env.PORT || 9001;
+
+// ✅ Required to resolve __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.join(__dirname, 'public');
 
 // ✅ CORS configuration for your frontend
 app.use(cors({
@@ -13,6 +20,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// ✅ Serve static frontend files (index.html, style.css, posts.json, etc.)
+app.use(express.static(PUBLIC_DIR));
 
 // === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
@@ -23,6 +33,11 @@ app.post('/trigger-upload', async (req, res) => {
     console.error('❌ Script execution error:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
+});
+
+// ✅ Fallback route to serve index.html for root or unknown GETs
+app.get('*', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 // === SERVER START ===
