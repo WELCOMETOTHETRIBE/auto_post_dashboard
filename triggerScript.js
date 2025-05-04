@@ -1,134 +1,122 @@
-// triggerScript.js
 import fs from 'fs/promises';
 import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import sharp from 'sharp';
+import { google } from 'googleapis';
+import mime from 'mime-types';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
-const execAsync = promisify(exec);
+const POSTS_JSON = path.resolve('./public/posts.json');
+const IMAGE_FOLDER_NAME = 'AutoPostImages';
+const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
-const WORK_DIR = path.resolve('./');
-const ARCHIVE_DIR = path.join(WORK_DIR, 'archive');
-const IMAGE_DIR = path.join(WORK_DIR, 'new_images');
-const POSTS_JSON = path.join(WORK_DIR, 'public/posts.json');
-const GITHUB_REMOTE_URL = process.env.GITHUB_REMOTE_URL || '';
+const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64, 'base64');
+const credentials = JSON.parse(keyBuffer.toString());
 
-async function fileExists(filePath) {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
+const auth = new google.auth.GoogleAuth({
+  credentials,
+  scopes: ['https://www.googleapis.com/auth/drive'],
+});
+
+const drive = google.drive({ version: 'v3', auth });
+
+async function getFolderIdByName(name) {
+  const res = await drive.files.list({
+    q: `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    fields: 'files(id, name)',
+  });
+  const folder = res.data.files.find(f => f.name === name);
+  return folder ? folder.id : null;
 }
 
-async function ensureDir(dirPath) {
-  try {
-    await fs.mkdir(dirPath, { recursive: true });
-  } catch (err) {
-    console.error(`❌ Failed to create directory ${dirPath}:`, err);
-  }
+async function listImageFiles(folderId) {
+  const res = await drive.files.list({
+    q: `'${folderId}' in parents and mimeType contains 'image/' and trashed=false`,
+    fields: 'files(id, name, mimeType)',
+  });
+  return res.data.files;
 }
 
-async function initGitIfNeeded() {
-  const gitFolder = path.join(WORK_DIR, '.git');
-  if (!(await fileExists(gitFolder))) {
-    console.log('❌ Not a Git repo. Initializing...');
-    await execAsync(`git init`, { cwd: WORK_DIR });
-    await execAsync(`git remote add origin ${GITHUB_REMOTE_URL}`, { cwd: WORK_DIR });
-  }
+async function downloadFile(fileId) {
+  const dest = `/tmp/${fileId}`;
+  const stream = fs.createWriteStream(dest);
+  await new Promise((resolve, reject) => {
+    drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
+      if (err) return reject(err);
+      res.data.pipe(stream).on('finish', resolve).on('error', reject);
+    });
+  });
+  return dest;
 }
 
-async function pullRepoSafe() {
-  try {
-    await execAsync(`git fetch origin`, { cwd: WORK_DIR });
-    await execAsync(`git checkout -B main`, { cwd: WORK_DIR });
-    await execAsync(`git reset --hard origin/main`, { cwd: WORK_DIR });
-  } catch (err) {
-    console.warn('⚠️ Git pull failed or skipped:', err.message);
-  }
+async function moveFileToFolder(fileId, folderId) {
+  const file = await drive.files.get({ fileId, fields: 'parents' });
+  const previousParents = file.data.parents.join(',');
+  await drive.files.update({
+    fileId,
+    addParents: folderId,
+    removeParents: previousParents,
+    fields: 'id, parents',
+  });
 }
 
 async function updatePostsJson(imageUrl) {
   let posts = [];
   try {
-    const raw = await fs.readFile(POSTS_JSON, 'utf-8');
-    posts = JSON.parse(raw);
+    const data = await fs.readFile(POSTS_JSON, 'utf-8');
+    posts = JSON.parse(data);
   } catch {
     posts = [];
   }
   posts.push({ image_url: imageUrl });
   await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
-  console.log('✔ posts.json updated');
 }
 
 export async function runTriggerScript() {
-  try {
-    await ensureDir(ARCHIVE_DIR);
-    await initGitIfNeeded();
-    await pullRepoSafe();
+  const folderId = await getFolderIdByName(IMAGE_FOLDER_NAME);
+  const archiveId = await getFolderIdByName(ARCHIVE_FOLDER_NAME);
 
-    const files = await fs.readdir(IMAGE_DIR);
-    const imageFiles = files.filter(f => f.match(/\.(jpe?g|png|heic)$/i));
-
-    if (imageFiles.length === 0) {
-      console.log('No image files found.');
-      return 'No new images to process.';
-    }
-
-    for (const file of imageFiles) {
-      const fullPath = path.join(IMAGE_DIR, file);
-      let finalPath = fullPath;
-      let archiveName = file;
-
-      if (file.toLowerCase().endsWith('.heic')) {
-        const jpgName = file.replace(/\.heic$/i, '.jpg');
-        const newPath = path.join(IMAGE_DIR, jpgName);
-        console.log(`🌀 Converting ${file} to ${jpgName} using sharp...`);
-        await sharp(fullPath).jpeg().toFile(newPath);
-        finalPath = newPath;
-        archiveName = jpgName;
-      }
-
-      await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
-      await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
-
-      await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
-      const { stdout: statusOut } = await execAsync(`git status --porcelain`, { cwd: WORK_DIR });
-      if (statusOut.trim().length > 0) {
-        await execAsync(`git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-      } else {
-        console.log(`ℹ️ No changes to commit for ${archiveName}`);
-      }
-
-      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
-      await updatePostsJson(imageUrl);
-      const archivePath = path.join(ARCHIVE_DIR, archiveName);
-      await fs.rename(finalPath, archivePath);
-
-      await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
-      const { stdout: secondStatus } = await execAsync(`git status --porcelain`, { cwd: WORK_DIR });
-      if (secondStatus.trim().length > 0) {
-        await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-      } else {
-        console.log(`ℹ️ No changes to commit after archiving ${archiveName}`);
-      }
-    }
-
-    await execAsync(`git add ${POSTS_JSON}`, { cwd: WORK_DIR });
-    const { stdout: finalStatus } = await execAsync(`git status --porcelain`, { cwd: WORK_DIR });
-    if (finalStatus.trim().length > 0) {
-      await execAsync(`git commit -m "Automated commit: posts.json update"`, { cwd: WORK_DIR });
-      await execAsync(`git push origin main`, { cwd: WORK_DIR });
-    }
-
-    return '✅ All tasks completed successfully.';
-  } catch (err) {
-    console.error('❌ runTriggerScript failed:', err);
-    throw err;
+  if (!folderId || !archiveId) {
+    throw new Error('Image or Archive folder not found on Google Drive.');
   }
+
+  const files = await listImageFiles(folderId);
+  if (files.length === 0) return 'No new images found.';
+
+  for (const file of files) {
+    const filePath = await downloadFile(file.id);
+
+    // HEIC to JPG if needed
+    let finalPath = filePath;
+    let newFileName = file.name;
+    if (file.mimeType === 'image/heic') {
+      newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
+      const jpgPath = `/tmp/${newFileName}`;
+      await sharp(filePath).jpeg().toFile(jpgPath);
+      finalPath = jpgPath;
+    }
+
+    // Upload the converted image back to Drive (into archive)
+    const uploaded = await drive.files.create({
+      requestBody: {
+        name: newFileName,
+        parents: [archiveId],
+        mimeType: mime.lookup(newFileName),
+      },
+      media: {
+        mimeType: mime.lookup(newFileName),
+        body: await fs.readFile(finalPath),
+      },
+      fields: 'id, webContentLink, webViewLink',
+    });
+
+    const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
+    await updatePostsJson(fileUrl);
+
+    // Clean up and move original file
+    await moveFileToFolder(file.id, archiveId);
+  }
+
+  return `✅ Processed ${files.length} images.`;
 }
