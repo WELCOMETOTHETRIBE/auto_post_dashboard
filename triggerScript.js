@@ -1,26 +1,25 @@
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
+import { google } from 'googleapis';
 import mime from 'mime-types';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
-import { createWriteStream, createReadStream } from 'fs';
 
 dotenv.config();
 
 const POSTS_JSON = path.resolve('./public/posts.json');
-const ARCHIVE_DIR = path.resolve('./archive');
 const IMAGE_FOLDER_NAME = 'AutoPostImages';
 const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
 const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64, 'base64');
 const credentials = JSON.parse(keyBuffer.toString());
 
-import { google } from 'googleapis';
 const auth = new google.auth.GoogleAuth({
   credentials,
   scopes: ['https://www.googleapis.com/auth/drive'],
 });
+
 const drive = google.drive({ version: 'v3', auth });
 
 async function getFolderIdByName(name) {
@@ -40,15 +39,16 @@ async function listImageFiles(folderId) {
   return res.data.files;
 }
 
-async function downloadFile(fileId, outputPath) {
-  const stream = createWriteStream(outputPath);
+async function downloadFile(fileId) {
+  const dest = `/tmp/${fileId}`;
+  const stream = (await import('fs')).createWriteStream(dest);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
       res.data.pipe(stream).on('finish', resolve).on('error', reject);
     });
   });
-  return outputPath;
+  return dest;
 }
 
 async function moveFileToFolder(fileId, folderId) {
@@ -62,7 +62,7 @@ async function moveFileToFolder(fileId, folderId) {
   });
 }
 
-async function updatePostsJson(newEntry) {
+async function updatePostsJson(imageUrl) {
   let posts = [];
   try {
     const data = await fs.readFile(POSTS_JSON, 'utf-8');
@@ -70,24 +70,26 @@ async function updatePostsJson(newEntry) {
   } catch {
     posts = [];
   }
-  posts.push({ image_url: newEntry });
+  posts.push({ image_url: imageUrl });
 
   const updatedContent = JSON.stringify(posts, null, 2);
   await fs.writeFile(POSTS_JSON, updatedContent);
-  await commitFileToGitHub('public/posts.json', updatedContent, '🤖 Update posts.json');
+  await commitToGitHubFile('public/posts.json', updatedContent, '🤖 Auto update posts.json');
 }
 
-async function commitFileToGitHub(filePath, content, message) {
+async function commitToGitHubFile(filepath, content, message) {
   const repo = 'auto_post_dashboard';
   const owner = 'WELCOMETOTHETRIBE';
   const branch = 'main';
   const token = process.env.GH_PAT;
-  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
 
-  const getRes = await fetch(getUrl, { headers: { Authorization: `token ${token}` } });
+  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filepath}`;
+  const getRes = await fetch(getUrl, {
+    headers: { Authorization: `token ${token}` }
+  });
   const getData = await getRes.json();
 
-  const res = await fetch(getUrl, {
+  const updateRes = await fetch(getUrl, {
     method: 'PUT',
     headers: {
       Authorization: `token ${token}`,
@@ -97,18 +99,13 @@ async function commitFileToGitHub(filePath, content, message) {
       message,
       content: Buffer.from(content).toString('base64'),
       sha: getData.sha,
-      branch,
+      branch
     })
   });
 
-  if (!res.ok) {
-    throw new Error(`GitHub API error while committing ${filePath}: ${res.statusText}`);
+  if (!updateRes.ok) {
+    throw new Error(`GitHub API error: ${updateRes.statusText}`);
   }
-}
-
-async function commitImageToGitHub(imagePath, imageName) {
-  const content = await fs.readFile(imagePath);
-  await commitFileToGitHub(`archive/${imageName}`, content.toString('base64'), `🖼️ Upload image ${imageName}`);
 }
 
 export async function runTriggerScript() {
@@ -123,26 +120,25 @@ export async function runTriggerScript() {
   if (files.length === 0) return 'No new images found.';
 
   for (const file of files) {
-    const rawPath = `/tmp/${file.name}`;
-    await downloadFile(file.id, rawPath);
+    const filePath = await downloadFile(file.id);
 
-    let finalPath = rawPath;
-    let finalName = file.name;
+    let finalPath = filePath;
+    let newFileName = file.name;
     if (file.mimeType === 'image/heic') {
-      finalName = file.name.replace(/\.[^/.]+$/, '.jpg');
-      const jpgPath = `/tmp/${finalName}`;
-      await sharp(rawPath).jpeg().toFile(jpgPath);
+      newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
+      const jpgPath = `/tmp/${newFileName}`;
+      await sharp(filePath).jpeg().toFile(jpgPath);
       finalPath = jpgPath;
     }
 
-    const localArchivePath = path.join(ARCHIVE_DIR, finalName);
-    await fs.copyFile(finalPath, localArchivePath);
-    await commitImageToGitHub(localArchivePath, finalName);
+    const fileBuffer = await fs.readFile(finalPath);
+    const githubImagePath = `archive/${newFileName}`;
+    const githubImageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/${githubImagePath}`;
 
-    const githubRawUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${finalName}`;
-    await updatePostsJson(githubRawUrl);
+    await commitToGitHubFile(githubImagePath, fileBuffer, `📸 Add image ${newFileName}`);
+    await updatePostsJson(githubImageUrl);
     await moveFileToFolder(file.id, archiveId);
   }
 
-  return `✅ Uploaded and committed ${files.length} image(s).`;
+  return `✅ Processed ${files.length} images.`;
 }
