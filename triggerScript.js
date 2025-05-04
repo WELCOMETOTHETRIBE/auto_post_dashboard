@@ -1,119 +1,124 @@
-// triggerScript.js
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
 import { google } from 'googleapis';
 import mime from 'mime-types';
 import dotenv from 'dotenv';
+import simpleGit from 'simple-git';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const WORK_DIR = path.resolve(__dirname);
+const POSTS_JSON = path.join(WORK_DIR, 'public/posts.json');
 
 dotenv.config();
-
-const POSTS_JSON = path.resolve('./public/posts.json');
-const IMAGE_FOLDER_NAME = 'AutoPostImages';
-const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
 const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64, 'base64');
 const credentials = JSON.parse(keyBuffer.toString());
 
 const auth = new google.auth.GoogleAuth({
   credentials,
-  scopes: ['https://www.googleapis.com/auth/drive'],
+  scopes: ['https://www.googleapis.com/auth/drive']
 });
-
 const drive = google.drive({ version: 'v3', auth });
+const IMAGE_FOLDER_NAME = 'AutoPostImages';
+const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
 async function getFolderIdByName(name) {
   const res = await drive.files.list({
     q: `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-    fields: 'files(id, name)',
+    fields: 'files(id, name)'
   });
-  const folder = res.data.files.find(f => f.name === name);
-  return folder ? folder.id : null;
+  return res.data.files?.[0]?.id || null;
 }
 
 async function listImageFiles(folderId) {
   const res = await drive.files.list({
     q: `'${folderId}' in parents and mimeType contains 'image/' and trashed=false`,
-    fields: 'files(id, name, mimeType)',
+    fields: 'files(id, name, mimeType)'
   });
-  return res.data.files;
+  return res.data.files || [];
 }
 
-async function downloadFile(fileId) {
-  const dest = `/tmp/${fileId}`;
-  const stream = (await import('node:fs')).createWriteStream(dest);
+async function downloadFile(fileId, fileName) {
+  const dest = `/tmp/${fileName}`;
+  const destStream = fs.createWriteStream(dest);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
-      res.data.pipe(stream).on('finish', resolve).on('error', reject);
+      res.data.pipe(destStream).on('finish', resolve).on('error', reject);
     });
   });
   return dest;
 }
 
-async function moveFileToFolder(fileId, folderId) {
+async function moveFileToFolder(fileId, newParentId) {
   const file = await drive.files.get({ fileId, fields: 'parents' });
   const previousParents = file.data.parents.join(',');
   await drive.files.update({
     fileId,
-    addParents: folderId,
+    addParents: newParentId,
     removeParents: previousParents,
-    fields: 'id, parents',
+    fields: 'id, parents'
   });
 }
 
 async function updatePostsJson(imageUrl) {
   let posts = [];
   try {
-    const data = await fs.readFile(POSTS_JSON, 'utf-8');
+    const data = await fsp.readFile(POSTS_JSON, 'utf-8');
     posts = JSON.parse(data);
-  } catch {
+  } catch (err) {
     posts = [];
   }
   posts.push({ image_url: imageUrl });
-  await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
+  await fsp.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
 }
 
 export async function runTriggerScript() {
-  const folderId = await getFolderIdByName(IMAGE_FOLDER_NAME);
-  const archiveId = await getFolderIdByName(ARCHIVE_FOLDER_NAME);
+  const imageFolderId = await getFolderIdByName(IMAGE_FOLDER_NAME);
+  const archiveFolderId = await getFolderIdByName(ARCHIVE_FOLDER_NAME);
+  if (!imageFolderId || !archiveFolderId) throw new Error('Drive folders not found.');
 
-  if (!folderId || !archiveId) {
-    throw new Error('Image or Archive folder not found on Google Drive.');
-  }
-
-  const files = await listImageFiles(folderId);
+  const files = await listImageFiles(imageFolderId);
   if (files.length === 0) return 'No new images found.';
 
   for (const file of files) {
-    const filePath = await downloadFile(file.id);
-
+    let filePath = await downloadFile(file.id, file.name);
     let finalPath = filePath;
-    let newFileName = file.name;
+    let finalName = file.name;
+
     if (file.mimeType === 'image/heic') {
-      newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
-      const jpgPath = `/tmp/${newFileName}`;
-      await sharp(filePath).jpeg().toFile(jpgPath);
-      finalPath = jpgPath;
+      finalName = file.name.replace(/\.[^/.]+$/, '.jpg');
+      finalPath = `/tmp/${finalName}`;
+      await sharp(filePath).jpeg().toFile(finalPath);
     }
 
+    const media = fs.createReadStream(finalPath);
     const uploaded = await drive.files.create({
       requestBody: {
-        name: newFileName,
-        parents: [archiveId],
-        mimeType: mime.lookup(newFileName) || 'image/jpeg',
+        name: finalName,
+        parents: [archiveFolderId],
+        mimeType: mime.lookup(finalName) || 'image/jpeg'
       },
       media: {
-        mimeType: mime.lookup(newFileName) || 'image/jpeg',
-        body: (await import('node:fs')).createReadStream(finalPath),
+        mimeType: mime.lookup(finalName),
+        body: media
       },
-      fields: 'id',
+      fields: 'id'
     });
 
-    const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
-    await updatePostsJson(fileUrl);
-    await moveFileToFolder(file.id, archiveId);
+    const imageUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
+    await updatePostsJson(imageUrl);
+    await moveFileToFolder(file.id, archiveFolderId);
   }
 
-  return `✅ Processed ${files.length} image(s).`;
+  const git = simpleGit(WORK_DIR);
+  await git.add('./public/posts.json');
+  await git.commit('✅ Auto-update: new images pushed');
+  await git.push(['--repo', process.env.GITHUB_REMOTE_URL]);
+
+  return `✅ Processed and pushed ${files.length} image(s).`;
 }
