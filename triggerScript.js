@@ -40,7 +40,7 @@ async function listImageFiles(folderId) {
 
 async function downloadFile(fileId) {
   const dest = `/tmp/${fileId}`;
-  const stream = fs.createWriteStream(dest);
+  const stream = (await import('fs')).createWriteStream(dest);
   await new Promise((resolve, reject) => {
     drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' }, (err, res) => {
       if (err) return reject(err);
@@ -87,17 +87,17 @@ export async function runTriggerScript() {
   for (const file of files) {
     const filePath = await downloadFile(file.id);
 
-    // HEIC to JPG if needed
+    // HEIC to JPG conversion
     let finalPath = filePath;
     let newFileName = file.name;
-    if (file.mimeType === 'image/heic') {
-      newFileName = file.name.replace(/\.[^/.]+$/, '.jpg');
+    if (file.mimeType === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+      newFileName = file.name.replace(/\.heic$/i, '.jpg');
       const jpgPath = `/tmp/${newFileName}`;
       await sharp(filePath).jpeg().toFile(jpgPath);
       finalPath = jpgPath;
     }
 
-    // Upload the converted image back to Drive (into archive)
+    // Upload to Archive folder
     const uploaded = await drive.files.create({
       requestBody: {
         name: newFileName,
@@ -108,15 +108,15 @@ export async function runTriggerScript() {
         mimeType: mime.lookup(newFileName),
         body: await fs.readFile(finalPath),
       },
-      fields: 'id, webContentLink, webViewLink',
+      fields: 'id',
     });
 
     const fileUrl = `https://drive.google.com/uc?id=${uploaded.data.id}`;
     await updatePostsJson(fileUrl);
 
-    // Clean up and move original file
+    // Move original to Archive folder
     await moveFileToFolder(file.id, archiveId);
   }
 
-  return `✅ Processed ${files.length} images.`;
+  return `✅ Processed ${files.length} image(s).`;
 }
