@@ -8,12 +8,12 @@ import { runTriggerScript } from './triggerScript.js';
 const app = express();
 const PORT = process.env.PORT || 9001;
 
-// ✅ Required to resolve __dirname in ES modules
+// ✅ Resolve __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// ✅ CORS configuration for your frontend
+// ✅ CORS config
 app.use(cors({
   origin: 'https://autopostdashboard-production.up.railway.app',
   optionsSuccessStatus: 200
@@ -21,15 +21,15 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ Serve static frontend files (index.html, style.css, posts.json, etc.)
+// ✅ Static frontend
 app.use(express.static(PUBLIC_DIR));
 
-// === HEALTH CHECK ROUTE (optional for Railway status) ===
+// === HEALTH CHECK ===
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// === SCRIPT TRIGGER ROUTE ===
+// === TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
     const result = await runTriggerScript();
@@ -40,9 +40,13 @@ app.post('/trigger-upload', async (req, res) => {
   }
 });
 
-// ✅ Fallback route to serve index.html for root or unknown GETs
-app.get('*', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+// ✅ Fallback: serve index.html (handles unknown paths for SPA)
+app.get('*', async (req, res) => {
+  try {
+    res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  } catch (err) {
+    res.status(500).send('⚠️ Could not serve index.html');
+  }
 });
 
 // === SERVER START ===
