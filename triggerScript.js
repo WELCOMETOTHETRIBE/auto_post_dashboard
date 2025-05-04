@@ -38,19 +38,25 @@ async function updateRepo() {
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
 
-  // 🧹 Remove stale lock file if exists
-  const lockFile = path.join(gitFolder, 'index.lock');
-  try {
-    await fs.unlink(lockFile);
-    console.log('🧹 Removed stale Git lock file');
-  } catch {}
-
-  // 🧼 Clean up local state
+  // Clean and pull fresh
+  console.log('🧼 Cleaning working tree...');
+  await execAsync(`rm -f .git/index.lock`, { cwd: WORK_DIR }); // unlock if stuck
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
 
-  // 🔄 Pull from remote
+  console.log('🔄 Pulling from remote repo...');
   await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
+}
+
+async function safeCommit(message) {
+  await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
+  await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
+
+  try {
+    await execAsync(`git diff --cached --quiet || git commit -m "${message}"`, { cwd: WORK_DIR });
+  } catch (err) {
+    console.warn(`⚠️ Skipping commit: ${message} — likely nothing to commit`);
+  }
 }
 
 async function updatePostsJson(imageUrl) {
@@ -61,15 +67,10 @@ async function updatePostsJson(imageUrl) {
   } catch {
     posts = [];
   }
+
   posts.push({ image_url: imageUrl });
   await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
   console.log('✔ posts.json updated');
-}
-
-async function safeCommit(message) {
-  await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
-  await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
-  await execAsync(`git commit -m "${message}"`, { cwd: WORK_DIR });
 }
 
 export async function runTriggerScript() {
@@ -99,13 +100,6 @@ export async function runTriggerScript() {
         archiveName = jpgName;
       }
 
-      const archivePath = path.join(ARCHIVE_DIR, archiveName);
-      const alreadyArchived = await fileExists(archivePath);
-      if (alreadyArchived) {
-        console.warn(`⚠️ Skipping ${archiveName}, already exists in archive`);
-        continue;
-      }
-
       await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
       await safeCommit(`Added new image: ${archiveName}`);
 
@@ -113,6 +107,8 @@ export async function runTriggerScript() {
         await execAsync(`git push origin main`, { cwd: WORK_DIR });
         const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
         await updatePostsJson(imageUrl);
+
+        const archivePath = path.join(ARCHIVE_DIR, archiveName);
         await fs.rename(finalPath, archivePath);
 
         await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
@@ -123,8 +119,8 @@ export async function runTriggerScript() {
       }
     }
 
-    await execAsync(`git add -A`, { cwd: WORK_DIR });
-    await safeCommit("Automated commit: updates to posts.json and image files");
+    await execAsync(`git add "${POSTS_JSON}"`, { cwd: WORK_DIR });
+    await safeCommit("Updated posts.json");
     await execAsync(`git push origin main`, { cwd: WORK_DIR });
 
     return '✅ All tasks completed successfully.';
