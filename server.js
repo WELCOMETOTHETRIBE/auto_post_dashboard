@@ -1,10 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
-import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
-import { runTriggerScript } from "./triggerScript.js"; // ✅ Import trigger script
+import { runTriggerScript } from "./triggerScript.js";
 
 dotenv.config();
 
@@ -17,8 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// === Remove Auth Middleware ===
-// Serve dashboard directly without requiring login
+// Serve public folder directly (no auth)
 app.use('/', express.static('public'));
 
 // === Trigger Upload Endpoint ===
