@@ -145,7 +145,15 @@ export async function runTriggerScript() {
       fields: 'id',
     });
 
-    // ✅ Use raw Googleusercontent image link
+    // Make the uploaded file public
+    await drive.permissions.create({
+      fileId: uploaded.data.id,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone'
+      }
+    });
+
     const fileUrl = `https://drive.usercontent.google.com/uc?id=${uploaded.data.id}`;
     await updatePostsJson(fileUrl);
     await moveFileToFolder(file.id, archiveId);
