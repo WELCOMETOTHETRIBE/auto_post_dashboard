@@ -1,8 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
+import { runTriggerScript } from "./triggerScript.js"; // ✅ Import trigger script
 
 dotenv.config();
 
@@ -14,6 +16,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// === Remove Auth Middleware ===
+// Serve dashboard directly without requiring login
+app.use('/', express.static('public'));
+
+// === Trigger Upload Endpoint ===
+app.post('/trigger-upload', async (req, res) => {
+  try {
+    const result = await runTriggerScript();
+    res.status(200).json({ message: result });
+  } catch (err) {
+    console.error('Trigger Script Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // === Caption Generation ===
 app.post('/api/generate-caption', async (req, res) => {
@@ -134,9 +151,6 @@ async function runAssistant(userMessage) {
   if (!completed) throw new Error("Assistant did not complete in time");
   return output;
 }
-
-// Serve static dashboard last (after API routes)
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
