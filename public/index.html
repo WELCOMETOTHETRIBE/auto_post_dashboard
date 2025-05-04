@@ -57,7 +57,8 @@
       input.value = platforms.join(' ');
     }
 
-    fetch('posts.json')
+    // 🔁 Load posts.json directly from GitHub raw
+    fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json')
       .then(response => response.json())
       .then(data => {
         data.forEach((post, index) => {
@@ -210,6 +211,7 @@
         .then(data => {
           alert('🆕 Pull triggered!');
           console.log(data);
+          location.reload(); // 🔁 Refresh dashboard after update
         })
         .catch(error => {
           console.error('❌ Error triggering pull:', error);
