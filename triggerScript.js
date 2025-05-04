@@ -108,8 +108,8 @@ export async function runTriggerScript() {
         mimeType: mime.lookup(newFileName),
       },
       media: {
-        mimeType: mime.lookup(newFileName),
-        body: await fs.readFile(finalPath),
+  mimeType: mime.lookup(newFileName),
+  body: fs.createReadStream(finalPath),
       },
       fields: 'id, webContentLink, webViewLink',
     });
