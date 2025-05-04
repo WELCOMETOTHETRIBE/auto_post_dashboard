@@ -15,7 +15,7 @@
     <a href="https://www.reddit.com/r/wttt_official/" target="_blank" class="social-link">Reddit</a>
     <a href="https://www.instagram.com/wttt_official/" target="_blank" class="social-link">Instagram</a>
     <a href="https://www.facebook.com/wttt_official/" target="_blank" class="social-link">Facebook</a>
-    <a href="https://twitter.com/wttt_official" target="_blank" class="social-link">Twitter</a>
+    <a href="https://twitter.com/wttt_official/" target="_blank" class="social-link">Twitter</a>
     <a href="https://www.tiktok.com/@wttt_official/" target="_blank" class="social-link">TikTok</a>
     <a href="https://www.youtube.com/@wttt_official/" target="_blank" class="social-link">YouTube</a>
     <button onclick="triggerUpload()" class="fix-caption-btn">🔁 Pull New Images</button>
@@ -30,7 +30,8 @@
   <div id="finished-drafts-container" class="tab-content"></div>
 
   <script>
-    const TRIGGER_URL = 'https://autopostdashboard-production.up.railway.app/trigger-upload';
+    const API_BASE = 'https://autopostdashboard-production.up.railway.app';
+    const TRIGGER_URL = `${API_BASE}/trigger-upload`;
     const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
 
     function showTab(tab) {
@@ -145,7 +146,7 @@
         product
       };
 
-      fetch('/submit', {
+      fetch(`${API_BASE}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -167,7 +168,7 @@
       const captionField = document.getElementById(`caption-${index}`);
       captionField.placeholder = "⏳ Generating...";
 
-      fetch('/api/generate-caption', {
+      fetch(`${API_BASE}/api/generate-caption`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
@@ -187,7 +188,7 @@
       const hashtagsField = document.getElementById(`hashtags-${index}`);
       hashtagsField.placeholder = "⏳ Generating...";
 
-      fetch('/api/generate-hashtags', {
+      fetch(`${API_BASE}/api/generate-hashtags`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ caption })
