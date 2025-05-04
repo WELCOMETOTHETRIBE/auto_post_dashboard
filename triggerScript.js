@@ -38,11 +38,7 @@ async function updateRepo() {
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
 
-  // Set Git identity for container environments
-  await execAsync(`git config user.name "AutoPoster"`, { cwd: WORK_DIR });
-  await execAsync(`git config user.email "autopost@wttt.com"`, { cwd: WORK_DIR });
-
-  // Clean untracked files and reset working state
+  // 🧼 Clean local changes and remove untracked files to prevent pull conflicts
   console.log('🧼 Cleaning working tree...');
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
@@ -68,6 +64,10 @@ export async function runTriggerScript() {
   try {
     await ensureDir(ARCHIVE_DIR);
     await updateRepo();
+
+    // ✅ Ensure Git identity is configured
+    await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
+    await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
 
     const files = await fs.readdir(IMAGE_DIR);
     const imageFiles = files.filter(f => f.match(/\.(jpe?g|png|heic)$/i));
