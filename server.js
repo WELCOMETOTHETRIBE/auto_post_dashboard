@@ -4,7 +4,6 @@ import fetch from "node-fetch";
 import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
-import { runTriggerScript } from "./triggerScript.js";
 
 dotenv.config();
 
@@ -17,27 +16,28 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Enable sessions
 app.use(session({
   secret: process.env.SESSION_SECRET || 'supersecret',
   resave: false,
   saveUninitialized: false
 }));
 
-// Middleware to protect dashboard
-function requireAuth(req, res, next) {
-  if (req.session && req.session.authenticated) {
-    return next();
-  }
-  return res.redirect('/login');
-}
+// Auth Middleware with exemptions
+app.use((req, res, next) => {
+  const openRoutes = ['/login', '/logout'];
+  const isApi = req.path.startsWith('/api/');
+  const isOpen = openRoutes.includes(req.path);
 
-// Serve login page
+  if (isApi || isOpen) return next();
+  if (req.session && req.session.authenticated) return next();
+  return res.redirect('/login');
+});
+
+// Login Page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-// Handle login form
 app.post('/login', (req, res) => {
   const { password } = req.body;
   if (password === process.env.DASHBOARD_PASSWORD) {
@@ -47,24 +47,12 @@ app.post('/login', (req, res) => {
   res.send('Incorrect password. <a href="/login">Try again</a>');
 });
 
-// Logout route
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
-// Serve dashboard only if authenticated
-app.use('/', requireAuth, express.static('public'));
-
-// === Trigger image pull from Google Drive and update GitHub ===
-app.post('/trigger-upload', async (req, res) => {
-  try {
-    const result = await runTriggerScript();
-    res.json({ success: true, result });
-  } catch (error) {
-    console.error('Trigger Upload Error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// Public Files
+app.use(express.static('public'));
 
 // === Caption Generation ===
 app.post('/api/generate-caption', async (req, res) => {
@@ -90,7 +78,7 @@ app.post('/api/generate-hashtags', async (req, res) => {
   }
 });
 
-// === Forward to Zapier ===
+// === Submit to Zapier ===
 app.post('/submit', async (req, res) => {
   try {
     const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
