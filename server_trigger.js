@@ -1,7 +1,7 @@
 // server_trigger.js
 import express from 'express';
 import cors from 'cors';
-import { runTriggerScript } from './triggerScript.js'; // ✅ Import the new JS version
+import { runTriggerScript } from './triggerScript.js'; // ✅ Import named function
 
 const app = express();
 const PORT = 9001;
@@ -16,7 +16,7 @@ app.use(express.json());
 // === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
-    const result = await runTriggerScript(); // ✅ Trigger image discovery + processing
+    const result = await runTriggerScript();
     res.status(200).json({ status: 'success', result });
   } catch (error) {
     console.error('❌ Script execution error:', error);
@@ -24,7 +24,6 @@ app.post('/trigger-upload', async (req, res) => {
   }
 });
 
-// === SERVER START ===
 app.listen(PORT, () => {
   console.log(`🚀 Trigger server running at http://localhost:${PORT}`);
 });
