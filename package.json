@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server_trigger.js",
+    "start": "node server.js",
+    "trigger": "node server_trigger.js",
     "build": "echo 'No build step needed'",
     "postinstall": "npm rebuild sharp"
   },
