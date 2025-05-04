@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import session from "express-session";
 import path from "path";
 import { fileURLToPath } from "url";
+import { runTriggerScript } from "./triggerScript.js";
 
 dotenv.config();
 
@@ -53,6 +54,17 @@ app.get('/logout', (req, res) => {
 
 // Serve dashboard only if authenticated
 app.use('/', requireAuth, express.static('public'));
+
+// === Trigger image pull from Google Drive and update GitHub ===
+app.post('/trigger-upload', async (req, res) => {
+  try {
+    const result = await runTriggerScript();
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error('Trigger Upload Error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // === Caption Generation ===
 app.post('/api/generate-caption', async (req, res) => {
