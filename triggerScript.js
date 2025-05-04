@@ -11,9 +11,7 @@ const WORK_DIR = path.resolve('./');
 const ARCHIVE_DIR = path.join(WORK_DIR, 'archive');
 const IMAGE_DIR = path.join(WORK_DIR, 'new_images');
 const POSTS_JSON = path.join(WORK_DIR, 'public/posts.json');
-
-// 🔐 GitHub with token auth
-const GITHUB_REPO_URL = `https://${process.env.GH_USER}:${process.env.GH_PAT}@github.com/WELCOMETOTHETRIBE/auto_post_dashboard.git`;
+const GITHUB_REMOTE_URL = process.env.GITHUB_REMOTE_URL;
 
 async function fileExists(filePath) {
   try {
@@ -35,19 +33,17 @@ async function ensureDir(dirPath) {
 async function updateRepo() {
   const gitFolder = path.join(WORK_DIR, '.git');
   if (!(await fileExists(gitFolder))) {
-    console.log('❌ Not a Git repo. Initializing...');
+    console.log('📦 Initializing Git repo...');
     await execAsync(`git init`, { cwd: WORK_DIR });
-    await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
-    await execAsync(`git fetch`, { cwd: WORK_DIR });
+    await execAsync(`git remote add origin ${GITHUB_REMOTE_URL}`, { cwd: WORK_DIR });
     await execAsync(`git checkout -b main`, { cwd: WORK_DIR });
   }
 
   console.log('🧼 Cleaning working tree...');
-  await execAsync(`rm -f .git/index.lock`, { cwd: WORK_DIR }).catch(() => {});
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
 
-  console.log('🔄 Pulling from remote repo...');
+  console.log('🔄 Pulling from remote...');
   await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
 }
 
@@ -61,7 +57,7 @@ async function updatePostsJson(imageUrl) {
   }
   posts.push({ image_url: imageUrl });
   await fs.writeFile(POSTS_JSON, JSON.stringify(posts, null, 2));
-  console.log('✔ posts.json updated');
+  console.log('✅ posts.json updated');
 }
 
 export async function runTriggerScript() {
@@ -73,7 +69,7 @@ export async function runTriggerScript() {
     const imageFiles = files.filter(f => f.match(/\.(jpe?g|png|heic)$/i));
 
     if (imageFiles.length === 0) {
-      console.log('No image files found.');
+      console.log('📭 No image files found.');
       return 'No new images to process.';
     }
 
@@ -85,37 +81,35 @@ export async function runTriggerScript() {
       if (file.toLowerCase().endsWith('.heic')) {
         const jpgName = file.replace(/\.heic$/i, '.jpg');
         const newPath = path.join(IMAGE_DIR, jpgName);
-        console.log(`🌀 Converting ${file} to ${jpgName} using sharp...`);
+        console.log(`🌀 Converting ${file} to ${jpgName}...`);
         await sharp(fullPath).jpeg().toFile(newPath);
         finalPath = newPath;
         archiveName = jpgName;
       }
 
-      // Configure git identity for Railway
+      // Configure Git identity before every commit
       await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
       await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
 
+      // Add and commit the new image file
       await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
       await execAsync(`git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
+      await execAsync(`git push origin main`, { cwd: WORK_DIR });
 
-      try {
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-        const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
-        await updatePostsJson(imageUrl);
+      const archivePath = path.join(ARCHIVE_DIR, archiveName);
+      await fs.rename(finalPath, archivePath);
+      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
+      await updatePostsJson(imageUrl);
 
-        const archivePath = path.join(ARCHIVE_DIR, archiveName);
-        await fs.rename(finalPath, archivePath);
-
-        await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
-        await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-      } catch (err) {
-        console.error(`❌ Push failed for ${archiveName}:`, err);
-      }
+      // Re-add and archive commit
+      await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
+      await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
+      await execAsync(`git push origin main`, { cwd: WORK_DIR });
     }
 
-    await execAsync(`git add "${POSTS_JSON}"`, { cwd: WORK_DIR });
-    await execAsync(`git commit -m "Updated posts.json with new image URLs"`, { cwd: WORK_DIR });
+    // Final commit for any remaining changes
+    await execAsync(`git add -A`, { cwd: WORK_DIR });
+    await execAsync(`git commit -m "Automated commit: posts.json and image files"`, { cwd: WORK_DIR });
     await execAsync(`git push origin main`, { cwd: WORK_DIR });
 
     return '✅ All tasks completed successfully.';
