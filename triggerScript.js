@@ -38,7 +38,11 @@ async function updateRepo() {
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
 
-  // 🧼 Clean local changes and remove untracked files to prevent pull conflicts
+  // Set Git identity for container environments
+  await execAsync(`git config user.name "AutoPoster"`, { cwd: WORK_DIR });
+  await execAsync(`git config user.email "autopost@wttt.com"`, { cwd: WORK_DIR });
+
+  // Clean untracked files and reset working state
   console.log('🧼 Cleaning working tree...');
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
