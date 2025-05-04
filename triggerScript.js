@@ -38,7 +38,6 @@ async function updateRepo() {
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
   }
 
-  // 🧼 Clean local changes and remove untracked files to prevent pull conflicts
   console.log('🧼 Cleaning working tree...');
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
@@ -65,10 +64,6 @@ export async function runTriggerScript() {
     await ensureDir(ARCHIVE_DIR);
     await updateRepo();
 
-    // ✅ Ensure Git identity is configured
-    await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
-    await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
-
     const files = await fs.readdir(IMAGE_DIR);
     const imageFiles = files.filter(f => f.match(/\.(jpe?g|png|heic)$/i));
 
@@ -91,6 +86,8 @@ export async function runTriggerScript() {
         archiveName = jpgName;
       }
 
+      await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
+      await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
       await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
       await execAsync(`git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
 
@@ -100,6 +97,9 @@ export async function runTriggerScript() {
         await updatePostsJson(imageUrl);
         const archivePath = path.join(ARCHIVE_DIR, archiveName);
         await fs.rename(finalPath, archivePath);
+
+        await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
+        await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
         await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
         await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
         await execAsync(`git push origin main`, { cwd: WORK_DIR });
@@ -108,6 +108,8 @@ export async function runTriggerScript() {
       }
     }
 
+    await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
+    await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
     await execAsync(`git add -A`, { cwd: WORK_DIR });
     await execAsync(`git commit -m "Automated commit: updates to posts.json and image files"`, { cwd: WORK_DIR });
     await execAsync(`git push origin main`, { cwd: WORK_DIR });
