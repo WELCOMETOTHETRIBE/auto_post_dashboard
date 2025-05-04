@@ -5,7 +5,6 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import sharp from 'sharp';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const execAsync = promisify(exec);
@@ -14,7 +13,7 @@ const WORK_DIR = path.resolve('./');
 const ARCHIVE_DIR = path.join(WORK_DIR, 'archive');
 const IMAGE_DIR = path.join(WORK_DIR, 'new_images');
 const POSTS_JSON = path.join(WORK_DIR, 'public/posts.json');
-const GITHUB_REMOTE_URL = process.env.GITHUB_REMOTE_URL;
+const GITHUB_REMOTE_URL = process.env.GITHUB_REMOTE_URL || '';
 
 async function fileExists(filePath) {
   try {
@@ -33,20 +32,23 @@ async function ensureDir(dirPath) {
   }
 }
 
-async function updateRepo() {
+async function initGitIfNeeded() {
   const gitFolder = path.join(WORK_DIR, '.git');
   if (!(await fileExists(gitFolder))) {
     console.log('❌ Not a Git repo. Initializing...');
     await execAsync(`git init`, { cwd: WORK_DIR });
     await execAsync(`git remote add origin ${GITHUB_REMOTE_URL}`, { cwd: WORK_DIR });
   }
+}
 
-  console.log('🧼 Cleaning working tree...');
-  await execAsync(`git reset --hard`, { cwd: WORK_DIR });
-  await execAsync(`git clean -fd`, { cwd: WORK_DIR });
-
-  console.log('🔄 Pulling from remote repo...');
-  await execAsync(`git pull origin main --allow-unrelated-histories || true`, { cwd: WORK_DIR });
+async function pullRepoSafe() {
+  try {
+    await execAsync(`git fetch origin`, { cwd: WORK_DIR });
+    await execAsync(`git checkout -B main`, { cwd: WORK_DIR });
+    await execAsync(`git reset --hard origin/main`, { cwd: WORK_DIR });
+  } catch (err) {
+    console.warn('⚠️ Git pull failed or skipped:', err.message);
+  }
 }
 
 async function updatePostsJson(imageUrl) {
@@ -65,7 +67,8 @@ async function updatePostsJson(imageUrl) {
 export async function runTriggerScript() {
   try {
     await ensureDir(ARCHIVE_DIR);
-    await updateRepo();
+    await initGitIfNeeded();
+    await pullRepoSafe();
 
     const files = await fs.readdir(IMAGE_DIR);
     const imageFiles = files.filter(f => f.match(/\.(jpe?g|png|heic)$/i));
@@ -80,7 +83,6 @@ export async function runTriggerScript() {
       let finalPath = fullPath;
       let archiveName = file;
 
-      // Convert HEIC to JPG if needed
       if (file.toLowerCase().endsWith('.heic')) {
         const jpgName = file.replace(/\.heic$/i, '.jpg');
         const newPath = path.join(IMAGE_DIR, jpgName);
@@ -90,30 +92,39 @@ export async function runTriggerScript() {
         archiveName = jpgName;
       }
 
-      const archivePath = path.join(ARCHIVE_DIR, archiveName);
-      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
-
-      // Add & commit original or converted image
       await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
       await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
+
       await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
-      await execAsync(`git diff --cached --quiet || git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
-      await execAsync(`git push origin main`, { cwd: WORK_DIR });
+      const { stdout: statusOut } = await execAsync(`git status --porcelain`, { cwd: WORK_DIR });
+      if (statusOut.trim().length > 0) {
+        await execAsync(`git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
+        await execAsync(`git push origin main`, { cwd: WORK_DIR });
+      } else {
+        console.log(`ℹ️ No changes to commit for ${archiveName}`);
+      }
 
-      // Move to archive, add post JSON entry
-      await fs.rename(finalPath, archivePath);
+      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
       await updatePostsJson(imageUrl);
+      const archivePath = path.join(ARCHIVE_DIR, archiveName);
+      await fs.rename(finalPath, archivePath);
 
-      // Add & commit archive
       await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
-      await execAsync(`git diff --cached --quiet || git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
-      await execAsync(`git push origin main`, { cwd: WORK_DIR });
+      const { stdout: secondStatus } = await execAsync(`git status --porcelain`, { cwd: WORK_DIR });
+      if (secondStatus.trim().length > 0) {
+        await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
+        await execAsync(`git push origin main`, { cwd: WORK_DIR });
+      } else {
+        console.log(`ℹ️ No changes to commit after archiving ${archiveName}`);
+      }
     }
 
-    // Commit and push posts.json if updated
     await execAsync(`git add ${POSTS_JSON}`, { cwd: WORK_DIR });
-    await execAsync(`git diff --cached --quiet || git commit -m "Updated posts.json"`, { cwd: WORK_DIR });
-    await execAsync(`git push origin main`, { cwd: WORK_DIR });
+    const { stdout: finalStatus } = await execAsync(`git status --porcelain`, { cwd: WORK_DIR });
+    if (finalStatus.trim().length > 0) {
+      await execAsync(`git commit -m "Automated commit: posts.json update"`, { cwd: WORK_DIR });
+      await execAsync(`git push origin main`, { cwd: WORK_DIR });
+    }
 
     return '✅ All tasks completed successfully.';
   } catch (err) {
