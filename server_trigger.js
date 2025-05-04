@@ -6,30 +6,28 @@ import { fileURLToPath } from 'url';
 import { runTriggerScript } from './triggerScript.js';
 
 const app = express();
-const PORT = process.env.PORT || 9001;
+const PORT = process.env.PORT || 8080;
 
 // ✅ Resolve __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// ✅ CORS config (adjust origin if frontend domain changes)
+// ✅ CORS config
 app.use(cors({
-  origin: 'https://autopostdashboard-production.up.railway.app',
+  origin: '*',
   optionsSuccessStatus: 200
 }));
 
 app.use(express.json());
-
-// ✅ Serve static frontend files
 app.use(express.static(PUBLIC_DIR));
 
-// === HEALTH CHECK ROUTE (for Railway or uptime monitoring) ===
+// === HEALTH CHECK ===
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// === IMAGE TRIGGER ROUTE ===
+// === TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
     const result = await runTriggerScript();
@@ -40,7 +38,7 @@ app.post('/trigger-upload', async (req, res) => {
   }
 });
 
-// ✅ Fallback for all other routes — serve SPA entry point
+// === Fallback: serve index.html
 app.get('*', async (req, res) => {
   try {
     res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
