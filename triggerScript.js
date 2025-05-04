@@ -11,7 +11,9 @@ const WORK_DIR = path.resolve('./');
 const ARCHIVE_DIR = path.join(WORK_DIR, 'archive');
 const IMAGE_DIR = path.join(WORK_DIR, 'new_images');
 const POSTS_JSON = path.join(WORK_DIR, 'public/posts.json');
-const GITHUB_REPO_URL = 'https://github.com/WELCOMETOTHETRIBE/auto_post_dashboard.git';
+
+// 🔐 GitHub with token auth
+const GITHUB_REPO_URL = `https://${process.env.GH_USER}:${process.env.GH_PAT}@github.com/WELCOMETOTHETRIBE/auto_post_dashboard.git`;
 
 async function fileExists(filePath) {
   try {
@@ -36,21 +38,16 @@ async function updateRepo() {
     console.log('❌ Not a Git repo. Initializing...');
     await execAsync(`git init`, { cwd: WORK_DIR });
     await execAsync(`git remote add origin ${GITHUB_REPO_URL}`, { cwd: WORK_DIR });
+    await execAsync(`git fetch`, { cwd: WORK_DIR });
+    await execAsync(`git checkout -b main`, { cwd: WORK_DIR });
   }
 
-  // ⛔ Clear lock file if exists
-  try {
-    await fs.unlink(path.join(gitFolder, 'index.lock'));
-  } catch {}
-
   console.log('🧼 Cleaning working tree...');
+  await execAsync(`rm -f .git/index.lock`, { cwd: WORK_DIR }).catch(() => {});
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
 
-  console.log('🔄 Pulling latest from remote...');
-  await execAsync(`git checkout -B main`, { cwd: WORK_DIR });
-  await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
-  await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
+  console.log('🔄 Pulling from remote repo...');
   await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
 }
 
@@ -94,20 +91,27 @@ export async function runTriggerScript() {
         archiveName = jpgName;
       }
 
-      const archivePath = path.join(ARCHIVE_DIR, archiveName);
-      const alreadyArchived = await fileExists(archivePath);
-      if (alreadyArchived) {
-        console.log(`⚠️ Skipping ${archiveName} — already archived.`);
-        continue;
+      // Configure git identity for Railway
+      await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
+      await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
+
+      await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
+      await execAsync(`git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
+
+      try {
+        await execAsync(`git push origin main`, { cwd: WORK_DIR });
+        const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
+        await updatePostsJson(imageUrl);
+
+        const archivePath = path.join(ARCHIVE_DIR, archiveName);
+        await fs.rename(finalPath, archivePath);
+
+        await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
+        await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
+        await execAsync(`git push origin main`, { cwd: WORK_DIR });
+      } catch (err) {
+        console.error(`❌ Push failed for ${archiveName}:`, err);
       }
-
-      await fs.rename(finalPath, archivePath);
-      await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
-      await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
-
-      await execAsync(`git push origin main`, { cwd: WORK_DIR });
-      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
-      await updatePostsJson(imageUrl);
     }
 
     await execAsync(`git add "${POSTS_JSON}"`, { cwd: WORK_DIR });
