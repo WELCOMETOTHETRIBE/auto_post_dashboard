@@ -1,19 +1,17 @@
 // server_trigger.js
 import express from 'express';
 import cors from 'cors';
-import { runTriggerScript } from './triggerScript.js'; // ✅ Import named function
+import { runTriggerScript } from './triggerScript.js';
 
 const app = express();
-const PORT = 9001;
+const PORT = process.env.PORT || 9001; // ✅ Use Railway's assigned port
 
-// ✅ Enable CORS for your deployed frontend
 app.use(cors({
   origin: 'https://autopostdashboard-production.up.railway.app'
 }));
 
 app.use(express.json());
 
-// === SCRIPT TRIGGER ROUTE ===
 app.post('/trigger-upload', async (req, res) => {
   try {
     const result = await runTriggerScript();
@@ -25,5 +23,5 @@ app.post('/trigger-upload', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Trigger server running at http://localhost:${PORT}`);
+  console.log(`🚀 Trigger server running on port ${PORT}`);
 });
