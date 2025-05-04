@@ -4,6 +4,9 @@ import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import sharp from 'sharp';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const execAsync = promisify(exec);
 
@@ -38,20 +41,12 @@ async function updateRepo() {
     await execAsync(`git remote add origin ${GITHUB_REMOTE_URL}`, { cwd: WORK_DIR });
   }
 
-  // Try to ensure 'main' branch exists
-  try {
-    await execAsync(`git checkout -b main`, { cwd: WORK_DIR });
-  } catch (e) {
-    await execAsync(`git checkout main`, { cwd: WORK_DIR });
-  }
-
-  // Clean and sync
   console.log('🧼 Cleaning working tree...');
   await execAsync(`git reset --hard`, { cwd: WORK_DIR });
   await execAsync(`git clean -fd`, { cwd: WORK_DIR });
 
   console.log('🔄 Pulling from remote repo...');
-  await execAsync(`git pull origin main --allow-unrelated-histories`, { cwd: WORK_DIR });
+  await execAsync(`git pull origin main --allow-unrelated-histories || true`, { cwd: WORK_DIR });
 }
 
 async function updatePostsJson(imageUrl) {
@@ -85,6 +80,7 @@ export async function runTriggerScript() {
       let finalPath = fullPath;
       let archiveName = file;
 
+      // Convert HEIC to JPG if needed
       if (file.toLowerCase().endsWith('.heic')) {
         const jpgName = file.replace(/\.heic$/i, '.jpg');
         const newPath = path.join(IMAGE_DIR, jpgName);
@@ -94,28 +90,29 @@ export async function runTriggerScript() {
         archiveName = jpgName;
       }
 
+      const archivePath = path.join(ARCHIVE_DIR, archiveName);
+      const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
+
+      // Add & commit original or converted image
       await execAsync(`git config user.name "AutoPostBot"`, { cwd: WORK_DIR });
       await execAsync(`git config user.email "autopost@wttt.app"`, { cwd: WORK_DIR });
       await execAsync(`git add "${finalPath}"`, { cwd: WORK_DIR });
-      await execAsync(`git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
+      await execAsync(`git diff --cached --quiet || git commit -m "Added new image: ${archiveName}"`, { cwd: WORK_DIR });
+      await execAsync(`git push origin main`, { cwd: WORK_DIR });
 
-      try {
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-        const imageUrl = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/${archiveName}`;
-        await updatePostsJson(imageUrl);
-        const archivePath = path.join(ARCHIVE_DIR, archiveName);
-        await fs.rename(finalPath, archivePath);
+      // Move to archive, add post JSON entry
+      await fs.rename(finalPath, archivePath);
+      await updatePostsJson(imageUrl);
 
-        await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
-        await execAsync(`git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
-        await execAsync(`git push origin main`, { cwd: WORK_DIR });
-      } catch (err) {
-        console.error(`❌ Push failed for ${archiveName}:`, err);
-      }
+      // Add & commit archive
+      await execAsync(`git add "${archivePath}"`, { cwd: WORK_DIR });
+      await execAsync(`git diff --cached --quiet || git commit -m "Archived image: ${archiveName}"`, { cwd: WORK_DIR });
+      await execAsync(`git push origin main`, { cwd: WORK_DIR });
     }
 
-    await execAsync(`git add -A`, { cwd: WORK_DIR });
-    await execAsync(`git commit -m "Automated commit: updates to posts.json and image files"`, { cwd: WORK_DIR });
+    // Commit and push posts.json if updated
+    await execAsync(`git add ${POSTS_JSON}`, { cwd: WORK_DIR });
+    await execAsync(`git diff --cached --quiet || git commit -m "Updated posts.json"`, { cwd: WORK_DIR });
     await execAsync(`git push origin main`, { cwd: WORK_DIR });
 
     return '✅ All tasks completed successfully.';
