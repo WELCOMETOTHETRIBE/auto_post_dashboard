@@ -137,13 +137,6 @@
         body: JSON.stringify(payload)
       })
         .then(res => res.json())
-        .then(data => {
-          return fetch(`${API_BASE}/hide-post`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image_url })
-          });
-        })
         .then(() => {
           alert('✅ Post submitted and hidden.');
           button.closest('.post').remove();
