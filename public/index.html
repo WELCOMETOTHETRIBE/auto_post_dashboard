@@ -21,27 +21,12 @@
     <button onclick="triggerUpload()" class="fix-caption-btn">🔁 Pull New Images</button>
   </div>
 
-  <div class="tab-nav">
-    <button id="tab-staging" class="active" onclick="showTab('staging')">Staging Area</button>
-    <button id="tab-drafts" onclick="showTab('drafts')">Finished Drafts</button>
-  </div>
-
   <div id="posts-container" class="tab-content active"></div>
-  <div id="finished-drafts-container" class="tab-content"></div>
 
   <script>
     const API_BASE = 'https://autopostdashboard-production.up.railway.app';
     const TRIGGER_URL = `${API_BASE}/trigger-upload`;
     const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
-
-    function showTab(tab) {
-      document.getElementById('posts-container').classList.remove('active');
-      document.getElementById('finished-drafts-container').classList.remove('active');
-      document.getElementById('tab-staging').classList.remove('active');
-      document.getElementById('tab-drafts').classList.remove('active');
-      document.getElementById(`tab-${tab}`).classList.add('active');
-      document.getElementById(`${tab === 'staging' ? 'posts' : 'finished-drafts'}-container`).classList.add('active');
-    }
 
     function generateTokenId() {
       return 'token_' + Math.random().toString(36).substring(2, 10);
@@ -57,7 +42,7 @@
       fetch(POSTS_JSON_URL)
         .then(res => res.json())
         .then(data => {
-          data.forEach((post, index) => {
+          data.filter(post => post.status !== 'hidden').forEach((post, index) => {
             const tokenId = generateTokenId();
             const postElement = createPostElement(post, index, tokenId);
             document.getElementById('posts-container').appendChild(postElement);
@@ -93,12 +78,12 @@
         <div>
           <label for="caption-${index}">Generated Caption</label>
           <textarea id="caption-${index}"></textarea>
-          <button class="fix-caption-btn" onclick="generateCaption(${index})">🪄 Generate Caption</button>
+          <button class="fix-caption-btn" onclick="generateCaption(${index})">🧤 Generate Caption</button>
         </div>
         <div>
           <label for="hashtags-${index}">Generated Hashtags</label>
           <input type="text" id="hashtags-${index}" />
-          <button class="fix-caption-btn" onclick="generateHashtags(${index})">#️⃣ Generate Hashtags</button>
+          <button class="fix-caption-btn" onclick="generateHashtags(${index})">#️ Generate Hashtags</button>
         </div>
         <div>
           <label for="link-${index}">Link</label>
@@ -121,7 +106,7 @@
           <label for="publish-${index}">Publish Now</label>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">Submit to Sheet</button>
+          <button onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">POST NOW</button>
         </div>
       `;
       return postElement;
@@ -153,13 +138,19 @@
       })
         .then(res => res.json())
         .then(data => {
-          alert('✅ Submitted to Zapier successfully!');
-          console.log(data);
-          button.disabled = true;
+          return fetch(`${API_BASE}/hide-post`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_url })
+          });
+        })
+        .then(() => {
+          alert('✅ Post submitted and hidden.');
+          button.closest('.post').remove();
         })
         .catch(error => {
-          console.error('Error submitting to Zapier:', error);
-          alert('❌ Error submitting to Zapier.');
+          console.error('Error submitting to Zapier or hiding post:', error);
+          alert('❌ Error submitting or hiding post.');
         });
     }
 
@@ -204,9 +195,7 @@
     }
 
     function triggerUpload() {
-      fetch(TRIGGER_URL, {
-        method: 'POST'
-      })
+      fetch(TRIGGER_URL, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
           alert('🆕 Pull triggered!');
