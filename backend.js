@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 import fs from "fs";
-import { Octokit } from "@octokit/rest";
+import path from "path";
 
 dotenv.config();
 
@@ -11,8 +11,6 @@ const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 const GH_PAT = process.env.GH_PAT;
-
-const octokit = new Octokit({ auth: GH_PAT });
 const GITHUB_OWNER = 'WELCOMETOTHETRIBE';
 const GITHUB_REPO = 'auto_post_dashboard';
 const POSTS_JSON_PATH = 'public/posts.json';
@@ -42,7 +40,7 @@ app.post('/api/generate-hashtags', async (req, res) => {
   }
 });
 
-// === Submit post to Zapier and hide it ===
+// === Submit to Zapier & push update to GitHub ===
 app.post('/submit', async (req, res) => {
   try {
     // 1. Submit to Zapier
@@ -54,52 +52,65 @@ app.post('/submit', async (req, res) => {
     const zapierText = await zapierRes.text();
 
     // 2. Update local posts.json
-    const postsPath = './public/posts.json';
+    const postsPath = path.resolve('./public/posts.json');
     const postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
     const index = postsData.findIndex(p => p.image_url === req.body.image_url);
     if (index !== -1) {
       postsData[index].status = 'hidden';
     } else {
-      throw new Error(`Post not found in posts.json for image_url: ${req.body.image_url}`);
+      throw new Error(`Post not found for image_url: ${req.body.image_url}`);
     }
-    fs.writeFileSync(postsPath, JSON.stringify(postsData, null, 2));
 
-    // 3. Push updated file to GitHub
-    const { data: file } = await octokit.repos.getContent({
-      owner: GITHUB_OWNER,
-      repo: GITHUB_REPO,
-      path: POSTS_JSON_PATH
-    });
+    const updatedContent = JSON.stringify(postsData, null, 2);
+    fs.writeFileSync(postsPath, updatedContent);
 
-    await octokit.repos.createOrUpdateFileContents({
-      owner: GITHUB_OWNER,
-      repo: GITHUB_REPO,
-      path: POSTS_JSON_PATH,
-      message: `Hide submitted post for ${req.body.image_url}`,
-      content: Buffer.from(JSON.stringify(postsData, null, 2)).toString('base64'),
-      sha: file.sha,
-      committer: {
-        name: "Auto Poster",
-        email: "auto@poster.com"
-      },
-      author: {
-        name: "Auto Poster",
-        email: "auto@poster.com"
-      }
-    });
+    // 3. Push update to GitHub using REST API
+    await commitToGitHubFile('public/posts.json', updatedContent, `🚫 Hide post ${req.body.image_url}`);
 
     console.log(`✅ Post hidden and pushed to GitHub: ${req.body.image_url}`);
     res.status(200).json({ status: 'ok', zapier_response: zapierText });
-
   } catch (error) {
-    console.error('❌ Submit/Post Error:', error);
+    console.error('❌ Submit Error:', error.message);
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
-// === Shared function to run OpenAI Assistant ===
+// === GitHub Commit Utility ===
+async function commitToGitHubFile(filepath, content, message) {
+  const repo = GITHUB_REPO;
+  const owner = GITHUB_OWNER;
+  const branch = 'main';
+  const token = GH_PAT;
+
+  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filepath}`;
+  const getRes = await fetch(getUrl, {
+    headers: { Authorization: `token ${token}` }
+  });
+  const getData = await getRes.json();
+
+  const updateRes = await fetch(getUrl, {
+    method: 'PUT',
+    headers: {
+      Authorization: `token ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      content: Buffer.from(content).toString('base64'),
+      sha: getData.sha,
+      branch
+    })
+  });
+
+  if (!updateRes.ok) {
+    const errorBody = await updateRes.text();
+    throw new Error(`GitHub API error: ${updateRes.statusText} — ${errorBody}`);
+  }
+}
+
+// === OpenAI Assistant ===
 async function runAssistant(userMessage) {
-  const threadResponse = await fetch('https://api.openai.com/v1/threads', {
+  const threadRes = await fetch('https://api.openai.com/v1/threads', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -108,7 +119,8 @@ async function runAssistant(userMessage) {
     },
     body: JSON.stringify({})
   });
-  const threadData = await threadResponse.json();
+
+  const threadData = await threadRes.json();
   const threadId = threadData.id;
 
   await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
@@ -121,7 +133,7 @@ async function runAssistant(userMessage) {
     body: JSON.stringify({ role: "user", content: userMessage })
   });
 
-  const runResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+  const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -130,7 +142,8 @@ async function runAssistant(userMessage) {
     },
     body: JSON.stringify({ assistant_id: ASSISTANT_ID })
   });
-  const runData = await runResponse.json();
+
+  const runData = await runRes.json();
   const runId = runData.id;
 
   let output = "";
@@ -139,7 +152,7 @@ async function runAssistant(userMessage) {
 
   while (!completed && attempts < 10) {
     await new Promise(resolve => setTimeout(resolve, 1500));
-    const statusResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+    const statusRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -147,10 +160,10 @@ async function runAssistant(userMessage) {
         'OpenAI-Beta': 'assistants=v2'
       }
     });
-    const statusData = await statusResponse.json();
+    const statusData = await statusRes.json();
 
     if (statusData.status === 'completed') {
-      const messagesResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      const messagesRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -158,7 +171,7 @@ async function runAssistant(userMessage) {
           'OpenAI-Beta': 'assistants=v2'
         }
       });
-      const messagesData = await messagesResponse.json();
+      const messagesData = await messagesRes.json();
       const assistantReply = messagesData.data?.find(msg => msg.role === 'assistant');
       output = assistantReply?.content?.[0]?.text?.value || "No response generated.";
       completed = true;
