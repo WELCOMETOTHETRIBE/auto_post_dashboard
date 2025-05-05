@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { runTriggerScript } from "./triggerScript.js";
 
@@ -15,8 +16,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve public folder directly (no auth)
 app.use('/', express.static('public'));
 
 // === Trigger Upload Endpoint ===
@@ -68,6 +67,25 @@ app.post('/submit', async (req, res) => {
   } catch (error) {
     console.error('Zapier Error:', error);
     res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// === Mark Post as Hidden ===
+app.post('/api/mark-hidden', (req, res) => {
+  const { image_url } = req.body;
+  const postsPath = path.join(__dirname, 'posts.json');
+
+  try {
+    const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
+    const updatedPosts = posts.map(post =>
+      post.image_url === image_url ? { ...post, status: 'hidden' } : post
+    );
+
+    fs.writeFileSync(postsPath, JSON.stringify(updatedPosts, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating post status:', error);
+    res.status(500).json({ error: 'Failed to update post status.' });
   }
 });
 
