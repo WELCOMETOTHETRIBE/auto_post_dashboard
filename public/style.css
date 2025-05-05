@@ -5,7 +5,6 @@ body {
   padding: 0;
   background-color: #f9fafb;
   color: #1f2937;
-  padding-top: 70px; /* Prevents content from being hidden under header */
 }
 
 h1 {
@@ -56,19 +55,6 @@ h1 {
   box-shadow: none;
 }
 
-@media (max-width: 600px) {
-  .header-links {
-    flex-wrap: wrap;
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .header-links a {
-    font-size: 14px;
-    padding: 8px;
-  }
-}
-
 /* === Tab Navigation === */
 .tab-nav {
   display: flex;
@@ -103,8 +89,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
-  padding: 20px;
-  box-sizing: border-box;
+  padding: 30px;
 }
 
 /* === Post Cards === */
@@ -118,8 +103,6 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin: 0 10px;
-  box-sizing: border-box;
 }
 
 .post:hover {
@@ -134,7 +117,6 @@ h1 {
   border-radius: 8px;
   background: #f1f5f9;
   padding: 8px;
-  box-sizing: border-box;
 }
 
 .post label {
@@ -148,7 +130,6 @@ h1 {
 .post input[type="text"],
 .post select {
   width: 100%;
-  max-width: 100%;
   padding: 10px;
   font-size: 14px;
   border: 1px solid #d1d5db;
@@ -156,7 +137,6 @@ h1 {
   background-color: #f9fafb;
   transition: border 0.2s;
   resize: vertical;
-  box-sizing: border-box;
 }
 
 .post textarea:focus,
@@ -233,4 +213,44 @@ button:last-of-type {
 
 button:last-of-type:hover {
   background-color: #059669;
+}
+
+/* === POST NOW Button Style === */
+.post-now-btn {
+  background-color: #10b981;
+  color: white;
+  font-weight: bold;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.post-now-btn:hover {
+  background-color: #059669;
+}
+
+/* === Fade Out Animation === */
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+
+/* === Mobile Tweaks === */
+@media (max-width: 500px) {
+  .post {
+    margin: 0;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .post img {
+    max-height: 180px;
+  }
+}
+
+/* === Success Border Indicator (Optional) === */
+.success-border {
+  border: 2px solid #10b981;
 }
