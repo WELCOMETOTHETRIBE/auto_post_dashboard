@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import fs from "fs";
+import { Octokit } from "@octokit/rest";
 
 dotenv.config();
 
@@ -8,6 +10,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
+const GH_PAT = process.env.GH_PAT;
+
+const octokit = new Octokit({ auth: GH_PAT });
+const GITHUB_OWNER = 'WELCOMETOTHETRIBE';
+const GITHUB_REPO = 'auto_post_dashboard';
+const POSTS_JSON_PATH = 'public/posts.json';
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -115,13 +123,46 @@ app.post('/api/generate-hashtags', async (req, res) => {
   }
 });
 
-// === Forward to Zapier ===
+// === Forward to Zapier and hide post ===
 app.post('/submit', async (req, res) => {
   try {
     const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
+    });
+
+    // Update posts.json locally
+    const postsPath = `./public/posts.json`;
+    const postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
+    const index = postsData.findIndex(p => p.image_url === req.body.image_url);
+    if (index !== -1) {
+      postsData[index].status = "hidden";
+    }
+    fs.writeFileSync(postsPath, JSON.stringify(postsData, null, 2));
+
+    // Push to GitHub
+    const { data: file } = await octokit.repos.getContent({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      path: POSTS_JSON_PATH
+    });
+
+    await octokit.repos.createOrUpdateFileContents({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      path: POSTS_JSON_PATH,
+      message: `hide submitted post for ${req.body.image_url}`,
+      content: Buffer.from(JSON.stringify(postsData, null, 2)).toString('base64'),
+      sha: file.sha,
+      committer: {
+        name: "Auto Poster",
+        email: "auto@poster.com"
+      },
+      author: {
+        name: "Auto Poster",
+        email: "auto@poster.com"
+      }
     });
 
     const data = await zapierRes.text();
