@@ -86,6 +86,12 @@ async function commitToGitHubFile(filepath, content, message) {
   const getRes = await fetch(getUrl, {
     headers: { Authorization: `token ${token}` }
   });
+
+  if (!getRes.ok) {
+    const errorText = await getRes.text();
+    throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
+  }
+
   const getData = await getRes.json();
 
   const updateRes = await fetch(getUrl, {
