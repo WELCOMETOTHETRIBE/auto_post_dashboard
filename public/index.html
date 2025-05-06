@@ -22,8 +22,7 @@
   </div>
 
   <!-- 📸 Image Upload Form -->
-
-  <form id="upload-form" enctype="multipart/form-data" method="POST" action="/upload-image" style="margin: 1em; padding: 1em; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+  <form id="upload-form" enctype="multipart/form-data" style="margin: 1em; padding: 1em; display: flex; flex-direction: column; gap: 10px; align-items: center;">
     <label for="file-upload" style="font-weight: bold; font-size: 16px;">📷 Upload from iPhone or Gallery:</label>
     <input id="file-upload" type="file" name="image" accept="image/*" required style="font-size: 14px;" />
     <button type="submit" class="fix-caption-btn" style="margin-top: 0.5em;">⬆️ Upload</button>
@@ -37,6 +36,23 @@
     const API_BASE = 'https://autopostdashboard-production.up.railway.app';
     const TRIGGER_URL = `${API_BASE}/trigger-upload`;
     const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
+
+    document.getElementById('upload-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      try {
+        const res = await fetch('/upload-image', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        alert('✅ Image uploaded!');
+        location.reload();
+      } catch (err) {
+        console.error('Upload failed:', err);
+        alert('❌ Upload failed.');
+      }
+    });
 
     function generateTokenId() {
       return 'token_' + Math.random().toString(36).substring(2, 10);
