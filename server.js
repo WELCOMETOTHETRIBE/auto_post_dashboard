@@ -36,7 +36,7 @@ app.post('/trigger-upload', async (req, res) => {
   }
 });
 
-// === Upload Image (iPhone form compatible) ===
+// === Upload Image ===
 app.post('/upload-image', upload.single('image'), async (req, res) => {
   try {
     const file = req.file;
@@ -50,12 +50,20 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
 
     const postsPath = path.resolve('./public/posts.json');
     const posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
-    posts.push({ image_url: imageUrl });
+    posts.push({
+      image_url: imageUrl,
+      caption: '',
+      hashtags: '',
+      platform: '',
+      status: 'visible',
+      product: '',
+      token_id: `token_${Math.random().toString(36).substring(2, 10)}`
+    });
     fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
 
     await commitToGitHubFile('public/posts.json', JSON.stringify(posts, null, 2), `➕ Add post for ${newFileName}`);
 
-    res.redirect('/');
+    res.json({ image_url: imageUrl });
   } catch (err) {
     console.error('Upload Error:', err);
     res.status(500).send('Upload failed');
