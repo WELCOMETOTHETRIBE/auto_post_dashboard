@@ -1,6 +1,40 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const container = document.getElementById('post-container');
 
+  // Add upload UI
+  const uploadDiv = document.createElement('div');
+  uploadDiv.innerHTML = `
+    <h3>📤 Upload New Image</h3>
+    <input type="file" id="imageUploadInput" accept="image/*" />
+    <button id="uploadBtn">Upload</button>
+    <hr/>
+  `;
+  container.appendChild(uploadDiv);
+
+  document.getElementById('uploadBtn').addEventListener('click', async () => {
+    const input = document.getElementById('imageUploadInput');
+    if (!input.files.length) return alert('Please select an image.');
+
+    const formData = new FormData();
+    formData.append('image', input.files[0]);
+
+    try {
+      const res = await fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Upload failed.');
+
+      const result = await res.json();
+      alert(`✅ Image uploaded: ${result.image_url}`);
+      location.reload(); // Refresh to show new post
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('❌ Failed to upload image.');
+    }
+  });
+
   // Load visible posts
   const res = await fetch('/posts.json');
   const posts = await res.json();
