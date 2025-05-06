@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   visiblePosts.forEach(post => {
     const card = document.createElement('div');
     card.className = 'post-card';
+    card.setAttribute('data-image-url', post.image_url);
 
     const captionText = post.caption || '';
     const hashtagsText = post.hashtags || '';
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const captionInput = card.querySelector('.caption-input');
     const hashtagInput = card.querySelector('.hashtag-input');
 
-    // Generate button logic
+    // === GENERATE button ===
     card.querySelector('.generate-btn').addEventListener('click', async () => {
       try {
         const captionRes = await fetch('/api/generate-caption', {
@@ -43,16 +44,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { hashtags } = await hashtagRes.json();
         hashtagInput.value = hashtags;
       } catch (err) {
-        alert('Error generating content. Try again.');
+        alert('⚠️ Error generating content.');
         console.error(err);
       }
     });
 
-    // POST NOW button logic
+    // === POST NOW button ===
     card.querySelector('.post-now-btn').addEventListener('click', async () => {
       try {
-        // 1. Submit to Zapier
-        await fetch('/submit', {
+        const response = await fetch('/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -65,17 +65,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           })
         });
 
-        // 2. Mark post as hidden
-        await fetch('/api/mark-hidden', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image_url: post.image_url })
-        });
+        const data = await response.json();
 
-        // 3. Remove card from UI
-        card.remove();
+        if (data.status === 'ok') {
+          console.log(`✅ Submitted post for ${post.image_url}`);
+          card.remove(); // Remove card from view
+        } else {
+          alert(`❌ Submission failed: ${data.message}`);
+          console.error(data.message);
+        }
       } catch (err) {
-        alert('Error submitting post.');
+        alert('❌ Error submitting post.');
         console.error(err);
       }
     });
