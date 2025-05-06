@@ -21,6 +21,13 @@
     <button onclick="triggerUpload()" class="fix-caption-btn">🔁 Pull New Images</button>
   </div>
 
+  <!-- 📸 Image Upload Form -->
+  <form id="upload-form" enctype="multipart/form-data" method="POST" action="/upload-image" style="margin: 1em 0;">
+    <label for="file-upload" style="font-weight: bold;">📷 Upload from iPhone or Gallery:</label><br/>
+    <input id="file-upload" type="file" name="image" accept="image/*" capture="environment" required />
+    <button type="submit" class="fix-caption-btn">⬆️ Upload</button>
+  </form>
+
   <div id="posts-container" class="tab-content active"></div>
 
   <script>
