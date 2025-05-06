@@ -22,10 +22,10 @@
   </div>
 
   <!-- 📸 Image Upload Form -->
-  <form id="upload-form" enctype="multipart/form-data" method="POST" action="/upload-image" style="margin: 1em 0;">
-    <label for="file-upload" style="font-weight: bold;">📷 Upload from iPhone or Gallery:</label><br/>
-    <input id="file-upload" type="file" name="image" accept="image/*" capture="environment" required />
-    <button type="submit" class="fix-caption-btn">⬆️ Upload</button>
+  <form id="upload-form" enctype="multipart/form-data" method="POST" action="/upload-image" style="margin: 1em; padding: 1em; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+    <label for="file-upload" style="font-weight: bold; font-size: 16px;">📷 Upload from iPhone or Gallery:</label>
+    <input id="file-upload" type="file" name="image" accept="image/*" required style="font-size: 14px;" />
+    <button type="submit" class="fix-caption-btn" style="margin-top: 0.5em;">⬆️ Upload</button>
   </form>
 
   <div id="posts-container" class="tab-content active"></div>
