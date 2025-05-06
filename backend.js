@@ -57,18 +57,18 @@ app.post('/submit', async (req, res) => {
     const postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
     const index = postsData.findIndex(p => p.image_url === req.body.image_url);
 
-    if (index !== -1) {
-      postsData[index].status = 'hidden';
-      const updatedContent = JSON.stringify(postsData, null, 2);
-      fs.writeFileSync(postsPath, updatedContent);
-      console.log("✅ posts.json updated locally");
-
-      console.log("📦 Pushing update to GitHub...");
-      await commitToGitHubFile(POSTS_JSON_PATH, updatedContent, `🚫 Hide post ${req.body.image_url}`);
-      console.log("✅ GitHub commit successful");
-    } else {
+    if (index === -1) {
       throw new Error(`❌ Post not found in posts.json for image_url: ${req.body.image_url}`);
     }
+
+    postsData[index].status = 'hidden';
+    const updatedContent = JSON.stringify(postsData, null, 2);
+    fs.writeFileSync(postsPath, updatedContent);
+    console.log("✅ posts.json updated locally");
+
+    console.log("📦 Pushing update to GitHub...");
+    await commitToGitHubFile(POSTS_JSON_PATH, updatedContent, `🚫 Hide post ${req.body.image_url}`);
+    console.log("✅ GitHub commit successful");
 
     res.status(200).json({ status: 'ok', zapier_response: zapierText });
   } catch (error) {
@@ -80,23 +80,21 @@ app.post('/submit', async (req, res) => {
 // === GitHub Commit Utility ===
 async function commitToGitHubFile(filepath, content, message) {
   const getUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filepath}`;
-  const getRes = await fetch(getUrl, {
-    headers: { Authorization: `token ${GH_PAT}` }
-  });
+  const headers = {
+    Authorization: `token ${GH_PAT}`,
+    'Content-Type': 'application/json'
+  };
 
+  const getRes = await fetch(getUrl, { headers });
   if (!getRes.ok) {
     const errorText = await getRes.text();
-    throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
+    throw new Error(`❌ Failed to fetch SHA: ${getRes.statusText} — ${errorText}`);
   }
 
   const getData = await getRes.json();
-
   const updateRes = await fetch(getUrl, {
     method: 'PUT',
-    headers: {
-      Authorization: `token ${GH_PAT}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       message,
       content: Buffer.from(content).toString('base64'),
@@ -107,7 +105,7 @@ async function commitToGitHubFile(filepath, content, message) {
 
   if (!updateRes.ok) {
     const errorBody = await updateRes.text();
-    throw new Error(`GitHub API error: ${updateRes.statusText} — ${errorBody}`);
+    throw new Error(`❌ GitHub API error: ${updateRes.statusText} — ${errorBody}`);
   }
 }
 
