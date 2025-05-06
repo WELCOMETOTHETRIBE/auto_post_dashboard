@@ -43,31 +43,34 @@ app.post('/api/generate-hashtags', async (req, res) => {
 // === Submit to Zapier & push update to GitHub ===
 app.post('/submit', async (req, res) => {
   try {
-    // 1. Submit to Zapier
+    console.log("📤 Submitting to Zapier...");
     const zapierRes = await fetch('https://hooks.zapier.com/hooks/catch/17370933/2p0k85d/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
     });
     const zapierText = await zapierRes.text();
+    console.log("✅ Zapier submission complete");
 
-    // 2. Update local posts.json
+    console.log("🛠 Reading and updating posts.json...");
     const postsPath = path.resolve('./public/posts.json');
     const postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
     const index = postsData.findIndex(p => p.image_url === req.body.image_url);
+
     if (index !== -1) {
       postsData[index].status = 'hidden';
+      const updatedContent = JSON.stringify(postsData, null, 2);
+      fs.writeFileSync(postsPath, updatedContent);
+      console.log("✅ posts.json updated locally");
+
+      console.log("📦 Pushing update to GitHub...");
+      await commitToGitHubFile('public/posts.json', updatedContent, `🚫 Hide post ${req.body.image_url}`);
+      console.log("✅ GitHub commit successful");
     } else {
+      console.error("❌ Post not found in posts.json");
       throw new Error(`Post not found for image_url: ${req.body.image_url}`);
     }
 
-    const updatedContent = JSON.stringify(postsData, null, 2);
-    fs.writeFileSync(postsPath, updatedContent);
-
-    // 3. Push update to GitHub using REST API
-    await commitToGitHubFile('public/posts.json', updatedContent, `🚫 Hide post ${req.body.image_url}`);
-
-    console.log(`✅ Post hidden and pushed to GitHub: ${req.body.image_url}`);
     res.status(200).json({ status: 'ok', zapier_response: zapierText });
   } catch (error) {
     console.error('❌ Submit Error:', error.message);
