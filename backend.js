@@ -52,7 +52,7 @@ app.post('/submit', async (req, res) => {
     const zapierText = await zapierRes.text();
     console.log("✅ Zapier submission complete");
 
-    console.log("🛠 Reading and updating posts.json...");
+    console.log("🛠 Updating posts.json...");
     const postsPath = path.resolve('./public/posts.json');
     const postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
     const index = postsData.findIndex(p => p.image_url === req.body.image_url);
@@ -64,11 +64,10 @@ app.post('/submit', async (req, res) => {
       console.log("✅ posts.json updated locally");
 
       console.log("📦 Pushing update to GitHub...");
-      await commitToGitHubFile('public/posts.json', updatedContent, `🚫 Hide post ${req.body.image_url}`);
+      await commitToGitHubFile(POSTS_JSON_PATH, updatedContent, `🚫 Hide post ${req.body.image_url}`);
       console.log("✅ GitHub commit successful");
     } else {
-      console.error("❌ Post not found in posts.json");
-      throw new Error(`Post not found for image_url: ${req.body.image_url}`);
+      throw new Error(`❌ Post not found in posts.json for image_url: ${req.body.image_url}`);
     }
 
     res.status(200).json({ status: 'ok', zapier_response: zapierText });
@@ -80,14 +79,9 @@ app.post('/submit', async (req, res) => {
 
 // === GitHub Commit Utility ===
 async function commitToGitHubFile(filepath, content, message) {
-  const repo = GITHUB_REPO;
-  const owner = GITHUB_OWNER;
-  const branch = 'main';
-  const token = GH_PAT;
-
-  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filepath}`;
+  const getUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filepath}`;
   const getRes = await fetch(getUrl, {
-    headers: { Authorization: `token ${token}` }
+    headers: { Authorization: `token ${GH_PAT}` }
   });
 
   if (!getRes.ok) {
@@ -100,14 +94,14 @@ async function commitToGitHubFile(filepath, content, message) {
   const updateRes = await fetch(getUrl, {
     method: 'PUT',
     headers: {
-      Authorization: `token ${token}`,
+      Authorization: `token ${GH_PAT}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       message,
       content: Buffer.from(content).toString('base64'),
       sha: getData.sha,
-      branch
+      branch: 'main'
     })
   });
 
