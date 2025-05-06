@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import fetch from "node-fetch";
 import path from "path";
 import fs from "fs";
+import multer from "multer";
+import mime from "mime-types";
 import { fileURLToPath } from "url";
 import { runTriggerScript } from "./triggerScript.js";
 
@@ -17,6 +19,8 @@ const GITHUB_OWNER = 'WELCOMETOTHETRIBE';
 const GITHUB_REPO = 'auto_post_dashboard';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const upload = multer({ dest: '/tmp' });
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/', express.static('public'));
@@ -29,6 +33,32 @@ app.post('/trigger-upload', async (req, res) => {
   } catch (err) {
     console.error('Trigger Script Error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// === Upload Image (iPhone form compatible) ===
+app.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    const file = req.file;
+    const ext = mime.extension(file.mimetype);
+    const newFileName = `${Date.now()}.${ext}`;
+    const githubPath = `archive/${newFileName}`;
+    const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`;
+
+    const imageBuffer = fs.readFileSync(file.path);
+    await commitToGitHubFile(githubPath, imageBuffer, `📤 Uploaded image ${newFileName}`);
+
+    const postsPath = path.resolve('./public/posts.json');
+    const posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
+    posts.push({ image_url: imageUrl });
+    fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
+
+    await commitToGitHubFile('public/posts.json', JSON.stringify(posts, null, 2), `➕ Add post for ${newFileName}`);
+
+    res.redirect('/');
+  } catch (err) {
+    console.error('Upload Error:', err);
+    res.status(500).send('Upload failed');
   }
 });
 
