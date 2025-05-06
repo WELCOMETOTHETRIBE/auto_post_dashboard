@@ -49,7 +49,13 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     await commitToGitHubFile(githubPath, imageBuffer, `📤 Uploaded image ${newFileName}`);
 
     const postsPath = path.resolve('./public/posts.json');
-    const posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
+    let posts = [];
+    try {
+      posts = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
+    } catch (e) {
+      console.warn("posts.json not found or invalid. Creating a new one.");
+    }
+
     posts.push({
       image_url: imageUrl,
       caption: '',
@@ -122,29 +128,33 @@ app.post('/submit', async (req, res) => {
 
 async function commitToGitHubFile(filepath, content, message) {
   const getUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filepath}`;
-  const getRes = await fetch(getUrl, {
-    headers: { Authorization: `token ${GH_PAT}` }
-  });
+  const headers = {
+    Authorization: `token ${GH_PAT}`,
+    'Content-Type': 'application/json'
+  };
 
-  if (!getRes.ok) {
+  const getRes = await fetch(getUrl, { headers });
+
+  let sha = undefined;
+  if (getRes.status === 200) {
+    const getData = await getRes.json();
+    sha = getData.sha;
+  } else if (getRes.status !== 404) {
     const errorText = await getRes.text();
     throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
   }
 
-  const getData = await getRes.json();
+  const body = {
+    message,
+    content: Buffer.from(content).toString('base64'),
+    branch: 'main',
+    ...(sha && { sha })
+  };
 
   const updateRes = await fetch(getUrl, {
     method: 'PUT',
-    headers: {
-      Authorization: `token ${GH_PAT}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message,
-      content: Buffer.from(content).toString('base64'),
-      sha: getData.sha,
-      branch: 'main'
-    })
+    headers,
+    body: JSON.stringify(body)
   });
 
   if (!updateRes.ok) {
