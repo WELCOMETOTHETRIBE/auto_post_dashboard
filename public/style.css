@@ -15,36 +15,38 @@ h1 {
 }
 
 #post-container {
-  max-width: 1100px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 32px 8px;
+  padding: 24px 8px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
 }
 
 .post {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
-  padding: 18px 12px 14px 12px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.08);
+  padding: 14px 10px 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   transition: box-shadow 0.2s, transform 0.2s;
   position: relative;
+  max-width: 340px;
+  margin: 0 auto;
 }
 
 .post:hover {
-  box-shadow: 0 8px 32px rgba(44, 62, 80, 0.16);
-  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 6px 24px rgba(44, 62, 80, 0.13);
+  transform: translateY(-2px) scale(1.01);
 }
 
 .image-wrapper {
   width: 100%;
-  height: 160px;
+  height: 140px;
   background: #e9eef6;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,32 +56,32 @@ h1 {
 .post-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Show the full image */
-  border-radius: 10px;
+  object-fit: contain; /* Show the full image, not cropped */
+  border-radius: 8px;
   background: #e9eef6;
 }
 
 .post label {
   font-weight: 600;
   color: #2d3a4a;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   display: block;
-  font-size: 1rem;
+  font-size: 0.98rem;
 }
 
 .post textarea,
 .post input[type="text"],
 .post select {
   width: 100%;
-  padding: 8px 10px;
-  font-size: 1rem;
-  border: 1.5px solid #e0e6ed;
-  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.98rem;
+  border: 1.2px solid #e0e6ed;
+  border-radius: 7px;
   background-color: #f7f9fb;
   transition: border-color 0.2s;
   resize: vertical;
-  min-height: 36px;
-  margin-top: 4px;
+  min-height: 32px;
+  margin-top: 2px;
 }
 
 .post textarea:focus,
@@ -92,13 +94,13 @@ h1 {
 .platform-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0;
+  gap: 6px;
+  margin: 6px 0;
 }
 
 .platform-button {
-  padding: 6px 14px;
-  font-size: 0.95rem;
+  padding: 5px 10px;
+  font-size: 0.93rem;
   border: 2px solid #d1d5db;
   border-radius: 9999px;
   background: #f7f9fb;
@@ -108,7 +110,7 @@ h1 {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .platform-button.active {
@@ -134,8 +136,8 @@ h1 {
 .checkbox-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1rem;
+  gap: 8px;
+  font-size: 0.98rem;
 }
 
 .fix-caption-btn {
@@ -144,10 +146,11 @@ h1 {
   font-weight: 600;
   border: none;
   border-radius: 9999px;
-  padding: 8px 14px;
+  padding: 7px 12px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 6px;
   transition: background 0.2s;
+  font-size: 0.98rem;
 }
 
 .fix-caption-btn:hover {
@@ -158,13 +161,13 @@ h1 {
   background-color: #10b981;
   color: white;
   font-weight: 700;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border: none;
   border-radius: 9999px;
   cursor: pointer;
-  font-size: 1.05rem;
+  font-size: 1rem;
   transition: background-color 0.2s;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .post-now-btn:hover {
@@ -174,12 +177,12 @@ h1 {
 @media (max-width: 700px) {
   #post-container {
     grid-template-columns: 1fr;
-    padding: 10px;
+    padding: 6px;
   }
   .post {
-    padding: 10px 4px;
+    padding: 8px 2px;
   }
   .image-wrapper {
-    height: 120px;
+    height: 90px;
   }
 }
