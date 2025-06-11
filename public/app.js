@@ -108,6 +108,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const promptInput = card.querySelectorAll('textarea')[0];
     const generatedCaption = card.querySelectorAll('textarea')[1];
 
+    // --- Platform Button Active State Logic ---
+    const platformButtons = card.querySelectorAll('.platform-button');
+    // Set initial active state if post.platform is set
+    if (platformInput.value) {
+      platformButtons.forEach(btn => {
+        if (btn.dataset.platform === platformInput.value) {
+          btn.classList.add('active');
+        }
+      });
+    }
+    // Add click event to toggle active state
+    platformButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        platformButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        platformInput.value = btn.dataset.platform;
+      });
+    });
+    // --- End Platform Button Logic ---
+
     card.querySelector('.fix-caption-btn').addEventListener('click', async () => {
       try {
         generatedCaption.placeholder = '⏳ Generating...';
