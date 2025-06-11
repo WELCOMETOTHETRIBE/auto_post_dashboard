@@ -203,15 +203,6 @@ button {
   background: #4338ca;
 }
 
-button:last-of-type {
-  background-color: #10b981;
-  color: white;
-}
-
-button:last-of-type:hover {
-  background-color: #059669;
-}
-
 .post-now-btn {
   background-color: #10b981;
   color: white;
