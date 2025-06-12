@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const visiblePosts = posts.filter(post => post.status !== 'hidden');
 
   function isVideo(url) {
-    return url.match(/\.(mp4|webm|ogg|mov|m4v)$/i);
+    return url.match(/\.(mp4|webm|ogg|mov|m4v|qt)$/i);
   }
 
   visiblePosts.forEach(post => {
