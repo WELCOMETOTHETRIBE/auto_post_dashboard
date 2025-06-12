@@ -1,188 +1,236 @@
+/* === Base Styles === */
 body {
-  font-family: 'Inter', 'Roboto', Arial, sans-serif;
-  background: #f4f6fb;
+  font-family: 'Inter', sans-serif;
   margin: 0;
   padding: 0;
-  color: #222;
+  background-color: #f9fafb;
+  color: #1f2937;
+  padding-top: 70px; /* Prevents content from being hidden under header */
 }
 
 h1 {
   text-align: center;
-  font-size: 2.2rem;
-  margin: 32px 0 16px 0;
-  color: #2d3a4a;
-  letter-spacing: 1px;
+  padding: 20px;
+  background-color: #1e3a8a;
+  color: white;
+  font-size: 28px;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
-#post-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 8px;
+/* === Header Link Bar === */
+.header-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  background-color: #1e3a8a;
+  padding: 10px 0;
+}
+
+.header-links a {
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  outline: none;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.header-links a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  opacity: 0.9;
+}
+
+.header-links a:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .header-links {
+    flex-wrap: wrap;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .header-links a {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+/* === Tab Navigation === */
+.tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.tab-nav button {
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #e0e7ff;
+  color: #1e3a8a;
+  transition: background 0.3s;
+}
+
+.tab-nav button.active {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+/* === Content Display === */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
+/* === Post Cards === */
 .post {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.08);
-  padding: 14px 10px 10px 10px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: box-shadow 0.2s, transform 0.2s;
-  position: relative;
-  max-width: 340px;
-  margin: 0 auto;
+  gap: 14px;
+  margin: 0 10px;
+  box-sizing: border-box;
 }
 
 .post:hover {
-  box-shadow: 0 6px 24px rgba(44, 62, 80, 0.13);
-  transform: translateY(-2px) scale(1.01);
+  transform: translateY(-6px);
 }
 
-.image-wrapper {
+.post img {
   width: 100%;
-  height: 140px;
-  background: #e9eef6;
+  height: auto;
+  max-height: 280px;
+  object-fit: contain;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.post-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* Show the full image, not cropped */
-  border-radius: 8px;
-  background: #e9eef6;
+  background: #f1f5f9;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .post label {
   font-weight: 600;
-  color: #2d3a4a;
-  margin-bottom: 2px;
   display: block;
-  font-size: 0.98rem;
+  margin-bottom: 6px;
+  color: #1f2937;
 }
 
 .post textarea,
 .post input[type="text"],
 .post select {
   width: 100%;
-  padding: 6px 8px;
-  font-size: 0.98rem;
-  border: 1.2px solid #e0e6ed;
-  border-radius: 7px;
-  background-color: #f7f9fb;
-  transition: border-color 0.2s;
+  max-width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  transition: border 0.2s;
   resize: vertical;
-  min-height: 32px;
-  margin-top: 2px;
+  box-sizing: border-box;
 }
 
 .post textarea:focus,
 .post input[type="text"]:focus,
 .post select:focus {
-  border-color: #4f8cff;
+  border-color: #2563eb;
   outline: none;
 }
 
+/* === Platform Buttons === */
 .platform-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 6px 0;
+  gap: 10px;
+  margin: 10px 0;
 }
 
 .platform-button {
-  padding: 5px 10px;
-  font-size: 0.93rem;
-  border: 2px solid #d1d5db;
-  border-radius: 9999px;
-  background: #f7f9fb;
-  color: #2d3a4a;
-  font-weight: 500;
-  transition: all 0.2s;
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 2px solid #1e3a8a;
+  border-radius: 20px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  background: white !important;
+  color: #1e3a8a !important;
+  transition: all 0.2s ease;
 }
 
 .platform-button.active {
-  background: #4f8cff;
-  color: #fff;
-  border-color: #4f8cff;
-  box-shadow: 0 2px 8px rgba(79, 140, 255, 0.08);
+  background: #1e3a8a !important;
+  color: white !important;
 }
 
-.platform-button[data-platform="Instagram"] { border-color: #e1306c; }
-.platform-button[data-platform="Instagram"].active { background: #e1306c; border-color: #e1306c; }
-.platform-button[data-platform="Facebook"] { border-color: #1877f3; }
-.platform-button[data-platform="Facebook"].active { background: #1877f3; border-color: #1877f3; }
-.platform-button[data-platform="LinkedIn"] { border-color: #0077b5; }
-.platform-button[data-platform="LinkedIn"].active { background: #0077b5; border-color: #0077b5; }
-.platform-button[data-platform="X"] { border-color: #14171a; }
-.platform-button[data-platform="X"].active { background: #14171a; border-color: #14171a; }
-.platform-button[data-platform="Pinterest"] { border-color: #e60023; }
-.platform-button[data-platform="Pinterest"].active { background: #e60023; border-color: #e60023; }
-.platform-button[data-platform="Reddit"] { border-color: #ff4500; }
-.platform-button[data-platform="Reddit"].active { background: #ff4500; border-color: #ff4500; }
+/* Remove browser styling that could affect specific buttons like Reddit */
+.platform-button:focus,
+.platform-button:visited {
+  outline: none;
+  box-shadow: none;
+}
 
+/* === Checkbox === */
 .checkbox-container {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.98rem;
+  gap: 10px;
+  font-size: 14px;
+}
+
+/* === Buttons === */
+.fix-caption-btn,
+button {
+  padding: 10px 16px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .fix-caption-btn {
-  background: linear-gradient(90deg, #4f8cff 0%, #6a82fb 100%);
-  color: #fff;
-  font-weight: 600;
-  border: none;
-  border-radius: 9999px;
-  padding: 7px 12px;
-  cursor: pointer;
-  margin-top: 6px;
-  transition: background 0.2s;
-  font-size: 0.98rem;
+  background-color: #6366f1;
+  color: white;
 }
 
 .fix-caption-btn:hover {
-  background: linear-gradient(90deg, #3b6fd8 0%, #4f8cff 100%);
+  background-color: #4f46e5;
 }
 
-.post-now-btn {
+button:last-of-type {
   background-color: #10b981;
   color: white;
-  font-weight: 700;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-  margin-top: 8px;
 }
 
-.post-now-btn:hover {
+button:last-of-type:hover {
   background-color: #059669;
-}
-
-@media (max-width: 700px) {
-  #post-container {
-    grid-template-columns: 1fr;
-    padding: 6px;
-  }
-  .post {
-    padding: 8px 2px;
-  }
-  .image-wrapper {
-    height: 90px;
-  }
 }
