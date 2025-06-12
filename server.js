@@ -136,43 +136,59 @@ app.post('/submit', async (req, res) => {
   }
 });
 
-async function commitToGitHubFile(filepath, content, message) {
+async function commitToGitHubFile(filepath, content, message, maxRetries = 3) {
   const getUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filepath}`;
   const headers = {
     Authorization: `token ${GH_PAT}`,
     'Content-Type': 'application/json'
   };
 
-  const getRes = await fetch(getUrl, { headers });
+  let attempt = 0;
 
-  let sha = undefined;
-  if (getRes.status === 200) {
-    const getData = await getRes.json();
-    sha = getData.sha;
-  } else if (getRes.status !== 404) {
-    const errorText = await getRes.text();
-    throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
+  while (attempt < maxRetries) {
+    // Always fetch the latest SHA before each attempt
+    let sha = undefined;
+    const getRes = await fetch(getUrl, { headers });
+
+    if (getRes.status === 200) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    } else if (getRes.status !== 404) {
+      const errorText = await getRes.text();
+      throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
+    }
+
+    const body = {
+      message,
+      content: Buffer.isBuffer(content) ? content.toString('base64') : Buffer.from(content).toString('base64'),
+      branch: 'main',
+      ...(sha && { sha })
+    };
+
+    const updateRes = await fetch(getUrl, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (updateRes.ok) {
+      // Success!
+      return;
+    } else if (updateRes.status === 409) {
+      // Conflict: refetch and retry
+      attempt++;
+      if (attempt >= maxRetries) {
+        const errorBody = await updateRes.text();
+        throw new Error(`GitHub API error: Conflict after ${maxRetries} attempts — ${errorBody}`);
+      }
+      continue;
+    } else {
+      const errorBody = await updateRes.text();
+      throw new Error(`GitHub API error: ${updateRes.statusText} — ${errorBody}`);
+    }
   }
-
-  const body = {
-    message,
-    content: Buffer.from(content).toString('base64'),
-    branch: 'main',
-    ...(sha && { sha })
-  };
-
-  const updateRes = await fetch(getUrl, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify(body)
-  });
-
-  if (!updateRes.ok) {
-    const errorBody = await updateRes.text();
-    throw new Error(`GitHub API error: ${updateRes.statusText} — ${errorBody}`);
-  }
+  throw new Error('Failed to update file on GitHub after multiple attempts due to repeated conflicts.');
 }
-
 // === OpenAI Assistant Runner ===
 async function runAssistant(userMessage) {
   const threadResponse = await fetch('https://api.openai.com/v1/threads', {
