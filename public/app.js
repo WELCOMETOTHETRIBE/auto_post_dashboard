@@ -2,43 +2,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   const container = document.getElementById('post-container');
 
   // Add upload UI
-  const uploadDiv = document.createElement('div');
-  uploadDiv.innerHTML = `
-    <h3>📤 Upload New Image</h3>
-    <input type="file" id="imageUploadInput" accept="image/*" />
-    <button id="uploadBtn">Upload</button>
-    <hr/>
-  `;
-  container.appendChild(uploadDiv);
+  // (Handled by index.html form, so no need to duplicate here)
 
-  document.getElementById('uploadBtn').addEventListener('click', async () => {
-    const input = document.getElementById('imageUploadInput');
-    if (!input.files.length) return alert('Please select an image.');
+  // Handle upload form submission
+  const uploadForm = document.getElementById('upload-form');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const input = document.getElementById('file-upload');
+      if (!input.files.length) return alert('Please select file(s).');
 
-    const formData = new FormData();
-    formData.append('image', input.files[0]);
+      const formData = new FormData();
+      for (const file of input.files) {
+        formData.append('image', file);
+      }
 
-    try {
-      const res = await fetch('/upload-image', {
-        method: 'POST',
-        body: formData
-      });
+      try {
+        const res = await fetch('/upload-image', {
+          method: 'POST',
+          body: formData
+        });
 
-      if (!res.ok) throw new Error('Upload failed.');
+        if (!res.ok) throw new Error('Upload failed.');
 
-      const result = await res.json();
-      alert(`✅ Image uploaded: ${result.image_url}`);
-      location.reload(); // Refresh to show new post
-    } catch (err) {
-      console.error('Upload error:', err);
-      alert('❌ Failed to upload image.');
-    }
-  });
+        const result = await res.json();
+        alert(`✅ Uploaded ${result.image_urls.length} file(s)!`);
+        location.reload(); // Refresh to show new posts
+      } catch (err) {
+        console.error('Upload error:', err);
+        alert('❌ Failed to upload file(s).');
+      }
+    });
+  }
 
   // Load visible posts
   const res = await fetch('/posts.json');
   const posts = await res.json();
   const visiblePosts = posts.filter(post => post.status !== 'hidden');
+
+  function isVideo(url) {
+    return url.match(/\.(mp4|webm|ogg|mov|m4v)$/i);
+  }
 
   visiblePosts.forEach(post => {
     const card = document.createElement('div');
@@ -48,9 +52,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const captionText = post.caption || '';
     const hashtagsText = post.hashtags || '';
 
+    // Use <video> for videos, <img> for images
+    const mediaHtml = isVideo(post.image_url)
+      ? `<video src="${post.image_url}" controls class="post-media" style="width:100%;height:100%;border-radius:8px;background:#e9eef6;"></video>`
+      : `<img src="${post.image_url}" class="post-image" />`;
+
     card.innerHTML = `
       <div class="image-wrapper">
-        <img src="${post.image_url}" class="post-image" />
+        ${mediaHtml}
       </div>
       <div>
         <label>Product</label>
@@ -110,7 +119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Platform Button Active State Logic ---
     const platformButtons = card.querySelectorAll('.platform-button');
-    // Set initial active state if post.platform is set
     if (platformInput.value) {
       platformButtons.forEach(btn => {
         if (btn.dataset.platform === platformInput.value) {
@@ -118,7 +126,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
     }
-    // Add click event to toggle active state
     platformButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         platformButtons.forEach(b => b.classList.remove('active'));
