@@ -54,7 +54,8 @@ app.post('/upload-image', upload.array('image', 10), async (req, res) => {
     }
 
     for (const file of files) {
-      const ext = mime.extension(file.mimetype);
+      let ext = mime.extension(file.mimetype);
+      if (ext === 'qt') ext = 'mov';
       const newFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
       const githubPath = `archive/${newFileName}`;
       const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`;
