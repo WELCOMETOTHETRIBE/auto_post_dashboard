@@ -36,18 +36,15 @@ app.post('/trigger-upload', async (req, res) => {
   }
 });
 
-// === Upload Image ===
-app.post('/upload-image', upload.single('image'), async (req, res) => {
+// === Upload Image/Video ===
+app.post('/upload-image', upload.array('image', 10), async (req, res) => {
   try {
-    const file = req.file;
-    const ext = mime.extension(file.mimetype);
-    const newFileName = `${Date.now()}.${ext}`;
-    const githubPath = `archive/${newFileName}`;
-    const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`;
+    const files = req.files;
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
 
-    const imageBuffer = fs.readFileSync(file.path);
-    await commitToGitHubFile(githubPath, imageBuffer, `📤 Uploaded image ${newFileName}`);
-
+    const imageUrls = [];
     const postsPath = path.resolve('./public/posts.json');
     let posts = [];
     try {
@@ -56,20 +53,32 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
       console.warn("posts.json not found or invalid. Creating a new one.");
     }
 
-    posts.push({
-      image_url: imageUrl,
-      caption: '',
-      hashtags: '',
-      platform: '',
-      status: 'visible',
-      product: '',
-      token_id: `token_${Math.random().toString(36).substring(2, 10)}`
-    });
+    for (const file of files) {
+      const ext = mime.extension(file.mimetype);
+      const newFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const githubPath = `archive/${newFileName}`;
+      const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`;
+
+      const imageBuffer = fs.readFileSync(file.path);
+      await commitToGitHubFile(githubPath, imageBuffer, `📤 Uploaded media ${newFileName}`);
+
+      posts.push({
+        image_url: imageUrl,
+        caption: '',
+        hashtags: '',
+        platform: '',
+        status: 'visible',
+        product: '',
+        token_id: `token_${Math.random().toString(36).substring(2, 10)}`
+      });
+
+      imageUrls.push(imageUrl);
+    }
+
     fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
+    await commitToGitHubFile('public/posts.json', JSON.stringify(posts, null, 2), `➕ Add post(s) for uploaded media`);
 
-    await commitToGitHubFile('public/posts.json', JSON.stringify(posts, null, 2), `➕ Add post for ${newFileName}`);
-
-    res.json({ image_url: imageUrl });
+    res.json({ image_urls: imageUrls });
   } catch (err) {
     console.error('Upload Error:', err);
     res.status(500).send('Upload failed');
