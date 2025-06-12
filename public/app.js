@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const container = document.getElementById('post-container');
+  const container = document.getElementById('posts-container');
 
   // Add upload UI
   // (Handled by index.html form, so no need to duplicate here)
