@@ -57,10 +57,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? `<video src="${post.image_url}" controls class="post-media" style="width:100%;height:100%;border-radius:8px;background:#e9eef6;"></video>`
       : `<img src="${post.image_url}" class="post-image" />`;
 
-    card.innerHTML = `
-      <div class="image-wrapper">
-        ${mediaHtml}
-      </div>
+    function isVideo(url) {
+  return url.match(/\.(mp4|webm|ogg|mov|m4v|qt)$/i);
+}
+
+const mediaHtml = isVideo(post.image_url)
+  ? `<video src="${post.image_url}" controls class="post-media" style="width:100%;height:100%;border-radius:8px;background:#e9eef6;"></video>`
+  : `<img src="${post.image_url}" class="post-image" />`;
+
+card.innerHTML = `
+  <div class="image-wrapper">
+    ${mediaHtml}
+  </div>
       <div>
         <label>Product</label>
         <select>
