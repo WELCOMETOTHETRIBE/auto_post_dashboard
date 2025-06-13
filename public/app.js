@@ -115,20 +115,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const promptInput = card.querySelectorAll('textarea')[0];
     const generatedCaption = card.querySelectorAll('textarea')[1];
 
-    // --- Platform Button Active State Logic ---
+    // --- Platform Button Active State Logic (Multi-Select) ---
     const platformButtons = card.querySelectorAll('.platform-button');
     if (platformInput.value) {
+      const selectedPlatforms = platformInput.value.split(',').map(p => p.trim());
       platformButtons.forEach(btn => {
-        if (btn.dataset.platform === platformInput.value) {
+        if (selectedPlatforms.includes(btn.dataset.platform)) {
           btn.classList.add('active');
         }
       });
     }
     platformButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        platformButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        platformInput.value = btn.dataset.platform;
+        btn.classList.toggle('active');
+        const selected = Array.from(platformButtons)
+          .filter(b => b.classList.contains('active'))
+          .map(b => b.dataset.platform);
+        platformInput.value = selected.join(',');
       });
     });
     // --- End Platform Button Logic ---
