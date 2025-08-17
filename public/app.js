@@ -1,44 +1,46 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const container = document.getElementById('post-container');
+  const container = document.getElementById('posts-container');
 
-  // Add upload UI
-  const uploadDiv = document.createElement('div');
-  uploadDiv.innerHTML = `
-    <h3>📤 Upload New Image</h3>
-    <input type="file" id="imageUploadInput" accept="image/*" />
-    <button id="uploadBtn">Upload</button>
-    <hr/>
-  `;
-  container.appendChild(uploadDiv);
+  // Handle upload form submission
+  const uploadForm = document.getElementById('upload-form');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const input = document.getElementById('file-upload');
+      if (!input.files.length) return alert('Please select file(s).');
 
-  document.getElementById('uploadBtn').addEventListener('click', async () => {
-    const input = document.getElementById('imageUploadInput');
-    if (!input.files.length) return alert('Please select an image.');
+      const formData = new FormData();
+      for (const file of input.files) {
+        formData.append('image', file);
+      }
 
-    const formData = new FormData();
-    formData.append('image', input.files[0]);
+      try {
+        const res = await fetch('/upload-image', {
+          method: 'POST',
+          body: formData
+        });
 
-    try {
-      const res = await fetch('/upload-image', {
-        method: 'POST',
-        body: formData
-      });
+        if (!res.ok) throw new Error('Upload failed.');
 
-      if (!res.ok) throw new Error('Upload failed.');
-
-      const result = await res.json();
-      alert(`✅ Image uploaded: ${result.image_url}`);
-      location.reload(); // Refresh to show new post
-    } catch (err) {
-      console.error('Upload error:', err);
-      alert('❌ Failed to upload image.');
-    }
-  });
+        const result = await res.json();
+        alert(`✅ Uploaded ${result.image_urls.length} file(s)!`);
+        location.reload(); // Refresh to show new posts
+      } catch (err) {
+        console.error('Upload error:', err);
+        alert('❌ Failed to upload file(s).');
+      }
+    });
+  }
 
   // Load visible posts
   const res = await fetch('/posts.json');
   const posts = await res.json();
   const visiblePosts = posts.filter(post => post.status !== 'hidden');
+
+  // Helper to detect video files
+  function isVideo(url) {
+    return url.match(/\.(mp4|webm|ogg|mov|m4v|qt)$/i);
+  }
 
   visiblePosts.forEach(post => {
     const card = document.createElement('div');
@@ -48,9 +50,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const captionText = post.caption || '';
     const hashtagsText = post.hashtags || '';
 
+    // Use <video> for videos, <img> for images
+    const mediaHtml = isVideo(post.image_url)
+      ? `<video src="${post.image_url}" controls class="post-media" style="width:100%;height:100%;border-radius:8px;background:#e9eef6;"></video>`
+      : `<img src="${post.image_url}" class="post-image" />`;
+
     card.innerHTML = `
       <div class="image-wrapper">
-        <img src="${post.image_url}" class="post-image" />
+        ${mediaHtml}
       </div>
       <div>
         <label>Product</label>
@@ -107,6 +114,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const publishCheckbox = card.querySelector('input[type="checkbox"]');
     const promptInput = card.querySelectorAll('textarea')[0];
     const generatedCaption = card.querySelectorAll('textarea')[1];
+
+    // --- Platform Button Active State Logic (Multi-Select) ---
+    const platformButtons = card.querySelectorAll('.platform-button');
+    if (platformInput.value) {
+      const selectedPlatforms = platformInput.value.split(',').map(p => p.trim());
+      platformButtons.forEach(btn => {
+        if (selectedPlatforms.includes(btn.dataset.platform)) {
+          btn.classList.add('active');
+        }
+      });
+    }
+    platformButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const selected = Array.from(platformButtons)
+          .filter(b => b.classList.contains('active'))
+          .map(b => b.dataset.platform);
+        platformInput.value = selected.join(',');
+      });
+    });
+    // --- End Platform Button Logic ---
 
     card.querySelector('.fix-caption-btn').addEventListener('click', async () => {
       try {

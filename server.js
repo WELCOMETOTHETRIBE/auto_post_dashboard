@@ -36,18 +36,15 @@ app.post('/trigger-upload', async (req, res) => {
   }
 });
 
-// === Upload Image ===
-app.post('/upload-image', upload.single('image'), async (req, res) => {
+// === Upload Image/Video ===
+app.post('/upload-image', upload.array('image', 10), async (req, res) => {
   try {
-    const file = req.file;
-    const ext = mime.extension(file.mimetype);
-    const newFileName = `${Date.now()}.${ext}`;
-    const githubPath = `archive/${newFileName}`;
-    const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`;
+    const files = req.files;
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
 
-    const imageBuffer = fs.readFileSync(file.path);
-    await commitToGitHubFile(githubPath, imageBuffer, `📤 Uploaded image ${newFileName}`);
-
+    const imageUrls = [];
     const postsPath = path.resolve('./public/posts.json');
     let posts = [];
     try {
@@ -56,20 +53,33 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
       console.warn("posts.json not found or invalid. Creating a new one.");
     }
 
-    posts.push({
-      image_url: imageUrl,
-      caption: '',
-      hashtags: '',
-      platform: '',
-      status: 'visible',
-      product: '',
-      token_id: `token_${Math.random().toString(36).substring(2, 10)}`
-    });
+    for (const file of files) {
+      let ext = mime.extension(file.mimetype);
+      if (ext === 'qt') ext = 'mov';
+      const newFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const githubPath = `archive/${newFileName}`;
+      const imageUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${githubPath}`;
+
+      const imageBuffer = fs.readFileSync(file.path);
+      await commitToGitHubFile(githubPath, imageBuffer, `📤 Uploaded media ${newFileName}`);
+
+      posts.push({
+        image_url: imageUrl,
+        caption: '',
+        hashtags: '',
+        platform: '',
+        status: 'visible',
+        product: '',
+        token_id: `token_${Math.random().toString(36).substring(2, 10)}`
+      });
+
+      imageUrls.push(imageUrl);
+    }
+
     fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
+    await commitToGitHubFile('public/posts.json', JSON.stringify(posts, null, 2), `➕ Add post(s) for uploaded media`);
 
-    await commitToGitHubFile('public/posts.json', JSON.stringify(posts, null, 2), `➕ Add post for ${newFileName}`);
-
-    res.json({ image_url: imageUrl });
+    res.json({ image_urls: imageUrls });
   } catch (err) {
     console.error('Upload Error:', err);
     res.status(500).send('Upload failed');
@@ -126,43 +136,59 @@ app.post('/submit', async (req, res) => {
   }
 });
 
-async function commitToGitHubFile(filepath, content, message) {
+async function commitToGitHubFile(filepath, content, message, maxRetries = 3) {
   const getUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filepath}`;
   const headers = {
     Authorization: `token ${GH_PAT}`,
     'Content-Type': 'application/json'
   };
 
-  const getRes = await fetch(getUrl, { headers });
+  let attempt = 0;
 
-  let sha = undefined;
-  if (getRes.status === 200) {
-    const getData = await getRes.json();
-    sha = getData.sha;
-  } else if (getRes.status !== 404) {
-    const errorText = await getRes.text();
-    throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
+  while (attempt < maxRetries) {
+    // Always fetch the latest SHA before each attempt
+    let sha = undefined;
+    const getRes = await fetch(getUrl, { headers });
+
+    if (getRes.status === 200) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    } else if (getRes.status !== 404) {
+      const errorText = await getRes.text();
+      throw new Error(`Failed to fetch file info: ${getRes.statusText} — ${errorText}`);
+    }
+
+    const body = {
+      message,
+      content: Buffer.isBuffer(content) ? content.toString('base64') : Buffer.from(content).toString('base64'),
+      branch: 'main',
+      ...(sha && { sha })
+    };
+
+    const updateRes = await fetch(getUrl, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (updateRes.ok) {
+      // Success!
+      return;
+    } else if (updateRes.status === 409) {
+      // Conflict: refetch and retry
+      attempt++;
+      if (attempt >= maxRetries) {
+        const errorBody = await updateRes.text();
+        throw new Error(`GitHub API error: Conflict after ${maxRetries} attempts — ${errorBody}`);
+      }
+      continue;
+    } else {
+      const errorBody = await updateRes.text();
+      throw new Error(`GitHub API error: ${updateRes.statusText} — ${errorBody}`);
+    }
   }
-
-  const body = {
-    message,
-    content: Buffer.from(content).toString('base64'),
-    branch: 'main',
-    ...(sha && { sha })
-  };
-
-  const updateRes = await fetch(getUrl, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify(body)
-  });
-
-  if (!updateRes.ok) {
-    const errorBody = await updateRes.text();
-    throw new Error(`GitHub API error: ${updateRes.statusText} — ${errorBody}`);
-  }
+  throw new Error('Failed to update file on GitHub after multiple attempts due to repeated conflicts.');
 }
-
 // === OpenAI Assistant Runner ===
 async function runAssistant(userMessage) {
   const threadResponse = await fetch('https://api.openai.com/v1/threads', {
