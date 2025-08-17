@@ -133,6 +133,20 @@
       </div>
     </header>
 
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn active" onclick="switchTab('active')" id="active-tab">
+        <i class="fas fa-clock"></i>
+        <span>Active Posts</span>
+        <span class="tab-count" id="active-count">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('posted')" id="posted-tab">
+        <i class="fas fa-check-circle"></i>
+        <span>Posted</span>
+        <span class="tab-count" id="posted-count">0</span>
+      </button>
+    </div>
+
     <!-- Content Grid -->
     <div class="content-area">
       <div id="posts-container" class="posts-grid"></div>
@@ -304,6 +318,10 @@
       icon: 'fas fa-leaf'
     };
     let viewMode = 'grid';
+    let currentTab = 'active';
+    let allPosts = [];
+    let activePosts = [];
+    let postedPosts = [];
 
     // Profile management
     function selectProfile(id, name, type, icon) {
@@ -352,7 +370,24 @@
       event.currentTarget.classList.add('active');
       
       container.className = `posts-${mode}`;
-      loadPosts(); // Reload posts with new layout
+      displayPosts(); // Reload posts with new layout
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const activeTab = document.getElementById('active-tab');
+      const postedTab = document.getElementById('posted-tab');
+      
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      
+      if (tab === 'active') {
+        activeTab.classList.add('active');
+      } else {
+        postedTab.classList.add('active');
+      }
+      
+      displayPosts();
     }
 
     // Toast notification system
@@ -529,25 +564,20 @@
       fetch(POSTS_JSON_URL)
         .then(res => res.json())
         .then(data => {
-          const visiblePosts = data.filter(post => post.status !== 'hidden');
+          allPosts = data;
+          activePosts = data.filter(post => post.status !== 'hidden');
+          postedPosts = data.filter(post => post.status === 'hidden');
+          
+          // Update tab counts
+          document.getElementById('active-count').textContent = activePosts.length;
+          document.getElementById('posted-count').textContent = postedPosts.length;
           
           // Update analytics
-          document.getElementById('total-posts').textContent = visiblePosts.length;
-          document.getElementById('scheduled-posts').textContent = Math.floor(visiblePosts.length * 0.3);
+          document.getElementById('total-posts').textContent = allPosts.length;
+          document.getElementById('scheduled-posts').textContent = Math.floor(activePosts.length * 0.3);
           document.getElementById('engagement-rate').textContent = '4.2%';
           
-          if (visiblePosts.length === 0) {
-            emptyState.style.display = 'flex';
-            loadingIndicator.style.display = 'none';
-            return;
-          }
-          
-          visiblePosts.forEach((post, index) => {
-            const tokenId = generateTokenId();
-            const postElement = createPostElement(post, index, tokenId);
-            container.appendChild(postElement);
-          });
-          
+          displayPosts();
           loadingIndicator.style.display = 'none';
         })
         .catch(err => {
@@ -558,6 +588,30 @@
         });
     }
 
+    function displayPosts() {
+      const container = document.getElementById('posts-container');
+      const emptyState = document.getElementById('empty-state');
+      
+      container.innerHTML = '';
+      
+      const postsToShow = currentTab === 'active' ? activePosts : postedPosts;
+      
+      if (postsToShow.length === 0) {
+        emptyState.style.display = 'flex';
+        emptyState.querySelector('h3').textContent = currentTab === 'active' ? 'No active content' : 'No posted content';
+        emptyState.querySelector('p').textContent = currentTab === 'active' ? 'Upload new media or pull content to get started' : 'No posts have been published yet';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      postsToShow.forEach((post, index) => {
+        const tokenId = generateTokenId();
+        const postElement = createPostElement(post, index, tokenId);
+        container.appendChild(postElement);
+      });
+    }
+
     function createPostElement(post, index, tokenId) {
       const postElement = document.createElement('div');
       postElement.className = 'post';
@@ -565,6 +619,9 @@
       postElement.dataset.index = index;
       postElement.dataset.imageUrl = post.image_url;
       postElement.dataset.tokenId = tokenId;
+      
+      const isPosted = post.status === 'hidden';
+      const postedDate = post.posted_date || new Date().toLocaleDateString();
       
       postElement.innerHTML = `
         <div class="post-header">
@@ -575,15 +632,39 @@
                 <i class="fas fa-expand"></i>
               </button>
             </div>
+            ${isPosted ? `<div class="posted-badge">
+              <i class="fas fa-check-circle"></i>
+              <span>Posted</span>
+            </div>` : ''}
           </div>
-          <div class="post-actions">
+          ${!isPosted ? `<div class="post-actions">
             <button class="btn btn-sm btn-outline" onclick="togglePostDetails(this)">
               <i class="fas fa-edit"></i>
               <span>Edit</span>
             </button>
-          </div>
+          </div>` : ''}
         </div>
         
+        ${isPosted ? `
+        <div class="post-info">
+          <div class="post-meta">
+            <span class="posted-date">
+              <i class="fas fa-calendar"></i>
+              Posted on ${postedDate}
+            </span>
+            ${post.platform ? `<span class="posted-platform">
+              <i class="fas fa-share"></i>
+              ${post.platform}
+            </span>` : ''}
+          </div>
+          ${post.caption ? `<div class="posted-caption">
+            <strong>Caption:</strong> ${post.caption}
+          </div>` : ''}
+          ${post.hashtags ? `<div class="posted-hashtags">
+            <strong>Hashtags:</strong> ${post.hashtags}
+          </div>` : ''}
+        </div>
+        ` : `
         <div class="post-details" style="display: none;">
           <div class="form-row">
             <div class="form-group">
@@ -676,6 +757,7 @@
             <span>Post Now</span>
           </button>
         </div>
+        `}
       `;
       
       return postElement;
