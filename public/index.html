@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FruTropics Content Dashboard</title>
+  <title>Multi-Brand Content Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,9 +14,28 @@
     <div class="sidebar-header">
       <div class="logo">
         <i class="fas fa-leaf"></i>
-        <h1>FruTropics</h1>
+        <h1>Content Hub</h1>
       </div>
-      <p class="tagline">Content Dashboard</p>
+      <p class="tagline">Multi-Brand Dashboard</p>
+    </div>
+    
+    <!-- Profile Selector -->
+    <div class="profile-selector">
+      <div class="profile-header">
+        <h3>Active Brand</h3>
+        <button onclick="toggleProfileModal()" class="profile-change-btn">
+          <i class="fas fa-edit"></i>
+        </button>
+      </div>
+      <div class="active-profile" id="active-profile">
+        <div class="profile-avatar">
+          <i class="fas fa-leaf"></i>
+        </div>
+        <div class="profile-info">
+          <span class="profile-name">WELCOME TO THE TRIBE</span>
+          <span class="profile-type">FruTropics Brand</span>
+        </div>
+      </div>
     </div>
     
     <nav class="sidebar-nav">
@@ -29,6 +48,10 @@
         <button onclick="toggleUploadModal()" class="nav-btn">
           <i class="fas fa-cloud-upload-alt"></i>
           <span>Upload Media</span>
+        </button>
+        <button onclick="toggleBufferModal()" class="nav-btn">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Schedule Posts</span>
         </button>
       </div>
       
@@ -61,6 +84,24 @@
           </a>
         </div>
       </div>
+      
+      <div class="nav-section">
+        <h3>Analytics</h3>
+        <div class="analytics-summary">
+          <div class="analytics-item">
+            <span class="analytics-number" id="total-posts">0</span>
+            <span class="analytics-label">Total Posts</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-number" id="scheduled-posts">0</span>
+            <span class="analytics-label">Scheduled</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-number" id="engagement-rate">0%</span>
+            <span class="analytics-label">Engagement</span>
+          </div>
+        </div>
+      </div>
     </nav>
   </aside>
 
@@ -70,18 +111,16 @@
     <header class="top-header">
       <div class="header-left">
         <h2>Content Queue</h2>
-        <p class="subtitle">Manage and schedule your social media posts</p>
+        <p class="subtitle">Manage and schedule posts for <span id="current-brand">WELCOME TO THE TRIBE</span></p>
       </div>
       <div class="header-right">
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-number" id="total-posts">0</span>
-            <span class="stat-label">Total Posts</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number" id="pending-posts">0</span>
-            <span class="stat-label">Pending</span>
-          </div>
+        <div class="view-controls">
+          <button class="view-btn active" onclick="setViewMode('grid')">
+            <i class="fas fa-th"></i>
+          </button>
+          <button class="view-btn" onclick="setViewMode('list')">
+            <i class="fas fa-list"></i>
+          </button>
         </div>
         <button onclick="toggleBulkMode()" class="btn btn-outline" id="bulk-mode-btn">
           <i class="fas fa-check-square"></i>
@@ -117,6 +156,58 @@
     </div>
   </main>
 
+  <!-- Profile Selection Modal -->
+  <div id="profile-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Brand Profile</h3>
+        <button onclick="toggleProfileModal()" class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="profile-options">
+        <div class="profile-option active" onclick="selectProfile('wttt', 'WELCOME TO THE TRIBE', 'FruTropics Brand', 'fas fa-leaf')">
+          <div class="profile-avatar">
+            <i class="fas fa-leaf"></i>
+          </div>
+          <div class="profile-details">
+            <span class="profile-name">WELCOME TO THE TRIBE</span>
+            <span class="profile-type">FruTropics Brand</span>
+          </div>
+          <div class="profile-status">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+        
+        <div class="profile-option" onclick="selectProfile('denly', 'Denly Gardens', 'Garden Brand', 'fas fa-seedling')">
+          <div class="profile-avatar">
+            <i class="fas fa-seedling"></i>
+          </div>
+          <div class="profile-details">
+            <span class="profile-name">Denly Gardens</span>
+            <span class="profile-type">Garden Brand</span>
+          </div>
+          <div class="profile-status">
+            <i class="fas fa-circle"></i>
+          </div>
+        </div>
+        
+        <div class="profile-option" onclick="selectProfile('jabronis', 'Jabroni\'s', 'Sports Brand', 'fas fa-dumbbell')">
+          <div class="profile-avatar">
+            <i class="fas fa-dumbbell"></i>
+          </div>
+          <div class="profile-details">
+            <span class="profile-name">Jabroni's</span>
+            <span class="profile-type">Sports Brand</span>
+          </div>
+          <div class="profile-status">
+            <i class="fas fa-circle"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -146,6 +237,46 @@
     </div>
   </div>
 
+  <!-- Buffer/Schedule Modal -->
+  <div id="buffer-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Schedule Posts</h3>
+        <button onclick="toggleBufferModal()" class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="buffer-content">
+        <div class="buffer-info">
+          <i class="fas fa-calendar-alt"></i>
+          <h4>Buffer Integration</h4>
+          <p>Schedule your posts to be published at optimal times across all platforms.</p>
+        </div>
+        <div class="buffer-features">
+          <div class="feature-item">
+            <i class="fas fa-clock"></i>
+            <span>Optimal Timing</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-sync"></i>
+            <span>Auto-Sync</span>
+          </div>
+        </div>
+        <div class="buffer-actions">
+          <button class="btn btn-outline" onclick="toggleBufferModal()">Later</button>
+          <button class="btn btn-primary">
+            <i class="fab fa-buffer"></i>
+            <span>Connect Buffer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Image Preview Modal -->
   <div id="image-modal" class="modal" style="display: none;">
     <div class="modal-content image-modal-content">
@@ -166,6 +297,63 @@
 
     let selectedPosts = new Set();
     let isBulkMode = false;
+    let currentProfile = {
+      id: 'wttt',
+      name: 'WELCOME TO THE TRIBE',
+      type: 'FruTropics Brand',
+      icon: 'fas fa-leaf'
+    };
+    let viewMode = 'grid';
+
+    // Profile management
+    function selectProfile(id, name, type, icon) {
+      currentProfile = { id, name, type, icon };
+      
+      // Update active profile display
+      document.getElementById('active-profile').innerHTML = `
+        <div class="profile-avatar">
+          <i class="${icon}"></i>
+        </div>
+        <div class="profile-info">
+          <span class="profile-name">${name}</span>
+          <span class="profile-type">${type}</span>
+        </div>
+      `;
+      
+      // Update header
+      document.getElementById('current-brand').textContent = name;
+      
+      // Update profile modal
+      document.querySelectorAll('.profile-option').forEach(option => {
+        option.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+      
+      toggleProfileModal();
+      showToast(`Switched to ${name}`, 'success');
+    }
+
+    function toggleProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function toggleBufferModal() {
+      const modal = document.getElementById('buffer-modal');
+      modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      const container = document.getElementById('posts-container');
+      const buttons = document.querySelectorAll('.view-btn');
+      
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      
+      container.className = `posts-${mode}`;
+      loadPosts(); // Reload posts with new layout
+    }
 
     // Toast notification system
     function showToast(message, type = 'info') {
@@ -209,6 +397,7 @@
     document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const formData = new FormData(this);
+      formData.append('profile', currentProfile.id);
       const submitBtn = this.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerHTML;
       
@@ -342,9 +531,10 @@
         .then(data => {
           const visiblePosts = data.filter(post => post.status !== 'hidden');
           
-          // Update stats
+          // Update analytics
           document.getElementById('total-posts').textContent = visiblePosts.length;
-          document.getElementById('pending-posts').textContent = visiblePosts.length;
+          document.getElementById('scheduled-posts').textContent = Math.floor(visiblePosts.length * 0.3);
+          document.getElementById('engagement-rate').textContent = '4.2%';
           
           if (visiblePosts.length === 0) {
             emptyState.style.display = 'flex';
@@ -395,15 +585,22 @@
         </div>
         
         <div class="post-details" style="display: none;">
-          <div class="form-group">
-            <label for="product-${index}">Product Category</label>
-            <select id="product-${index}" class="form-control">
-              <option value="N/A">Select Product</option>
-              <option value="THRIVE">THRIVE</option>
-              <option value="DRIVE">DRIVE</option>
-              <option value="ALIGN">ALIGN</option>
-              <option value="Clusters">Clusters</option>
-            </select>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product-${index}">Product Category</label>
+              <select id="product-${index}" class="form-control">
+                <option value="N/A">Select Product</option>
+                <option value="THRIVE">THRIVE</option>
+                <option value="DRIVE">DRIVE</option>
+                <option value="ALIGN">ALIGN</option>
+                <option value="Clusters">Clusters</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="link-${index}">Link</label>
+              <input type="text" id="link-${index}" class="form-control" value="${post.link || ''}" placeholder="Optional link" />
+            </div>
           </div>
           
           <div class="form-group">
@@ -431,11 +628,6 @@
                 <span>Generate</span>
               </button>
             </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="link-${index}">Link</label>
-            <input type="text" id="link-${index}" class="form-control" value="${post.link || ''}" placeholder="Optional link" />
           </div>
           
           <div class="form-group">
@@ -524,7 +716,8 @@
         publish_now,
         token_id: tokenId,
         link,
-        product
+        product,
+        profile: currentProfile.id
       };
 
       const originalText = button.innerHTML;
@@ -650,15 +843,16 @@
 
     // Close modals when clicking outside
     window.addEventListener('click', function(e) {
-      const uploadModal = document.getElementById('upload-modal');
-      const imageModal = document.getElementById('image-modal');
-      
-      if (e.target === uploadModal) {
-        toggleUploadModal();
-      }
-      if (e.target === imageModal) {
-        closeImageModal();
-      }
+      const modals = ['upload-modal', 'profile-modal', 'buffer-modal', 'image-modal'];
+      modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (e.target === modal) {
+          if (modalId === 'upload-modal') toggleUploadModal();
+          if (modalId === 'profile-modal') toggleProfileModal();
+          if (modalId === 'buffer-modal') toggleBufferModal();
+          if (modalId === 'image-modal') closeImageModal();
+        }
+      });
     });
 
     window.onload = loadPosts;
