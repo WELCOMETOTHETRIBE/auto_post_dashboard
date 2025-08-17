@@ -634,6 +634,13 @@ body {
   color: #9ca3af;
 }
 
+.form-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  display: block;
+}
+
 .input-group {
   display: flex;
   gap: 0.5rem;
@@ -985,65 +992,7 @@ body {
   color: #cbd5e1;
 }
 
-/* === Buffer Modal === */
-.buffer-content {
-  padding: 2rem;
-  text-align: center;
-}
 
-.buffer-info {
-  margin-bottom: 2rem;
-}
-
-.buffer-info i {
-  font-size: 3rem;
-  color: #3b82f6;
-  margin-bottom: 1rem;
-}
-
-.buffer-info h4 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.buffer-info p {
-  color: #64748b;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.buffer-features {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.feature-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.feature-item i {
-  font-size: 1.5rem;
-  color: #10b981;
-}
-
-.feature-item span {
-  font-size: 0.875rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.buffer-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
 
 /* === Upload Modal === */
 .upload-form {
@@ -1267,10 +1216,7 @@ body {
     min-width: auto;
   }
   
-  .buffer-features {
-    flex-direction: column;
-    gap: 1rem;
-  }
+
   
   .post-meta {
     flex-direction: column;
