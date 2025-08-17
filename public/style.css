@@ -48,9 +48,11 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.logo i {
-  font-size: 2rem;
-  color: #10b981;
+.logo-image {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .logo h1 {
