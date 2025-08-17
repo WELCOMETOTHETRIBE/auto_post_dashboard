@@ -24,13 +24,13 @@
     <nav class="sidebar-nav">
       <div class="nav-section">
         <h3>Quick Actions</h3>
-        <button onclick="triggerUpload()" class="nav-btn primary">
-          <i class="fas fa-sync-alt"></i>
-          <span>Pull New Content</span>
-        </button>
-        <button onclick="toggleUploadModal()" class="nav-btn">
+        <button onclick="toggleUploadModal()" class="nav-btn primary">
           <i class="fas fa-cloud-upload-alt"></i>
           <span>Upload Media</span>
+        </button>
+        <button onclick="toggleProductModal()" class="nav-btn">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Product Catalog</span>
         </button>
       </div>
       
@@ -126,6 +126,35 @@
       </button>
     </div>
 
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="brand-filter">Filter by Brand:</label>
+          <select id="brand-filter" class="filter-select" onchange="filterPosts()">
+            <option value="">All Brands</option>
+            <option value="wttt">WELCOME TO THE TRIBE</option>
+            <option value="denlys">Denly Gardens</option>
+            <option value="jabronis">Jabroni's</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="product-filter">Filter by Product:</label>
+          <select id="product-filter" class="filter-select" onchange="filterPosts()">
+            <option value="">All Products</option>
+            <option value="THRIVE">THRIVE</option>
+            <option value="DRIVE">DRIVE</option>
+            <option value="ALIGN">ALIGN</option>
+            <option value="Clusters">Clusters</option>
+          </select>
+        </div>
+        <button onclick="clearFilters()" class="btn btn-outline btn-sm">
+          <i class="fas fa-times"></i>
+          <span>Clear Filters</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Content Grid -->
     <div class="content-area">
       <div id="posts-container" class="posts-grid"></div>
@@ -140,7 +169,7 @@
           <i class="fas fa-images"></i>
         </div>
         <h3>No content available</h3>
-        <p>Upload new media or pull content to get started</p>
+        <p>Upload new media to get started</p>
         <button onclick="toggleUploadModal()" class="btn btn-primary">
           <i class="fas fa-plus"></i>
           <span>Add Content</span>
@@ -161,6 +190,16 @@
         </button>
       </div>
       <form id="upload-form" enctype="multipart/form-data" class="upload-form">
+        <div class="form-group">
+          <label for="upload-brand">Select Brand</label>
+          <select id="upload-brand" name="brand" class="form-control" required>
+            <option value="">Choose a brand...</option>
+            <option value="wttt">WELCOME TO THE TRIBE</option>
+            <option value="denlys">Denly Gardens</option>
+            <option value="jabronis">Jabroni's</option>
+          </select>
+          <small class="form-help">Select which brand this media is for</small>
+        </div>
         <div class="file-upload-area">
           <input id="file-upload" type="file" name="image" accept="image/*,video/*" multiple required />
           <label for="file-upload" class="file-upload-label">
@@ -197,7 +236,6 @@
 
   <script>
     const API_BASE = 'https://autopostdashboard-production.up.railway.app';
-    const TRIGGER_URL = `${API_BASE}/trigger-upload`;
     let selectedPosts = new Set();
     let isBulkMode = false;
     let viewMode = 'grid';
@@ -205,6 +243,7 @@
     let allPosts = [];
     let activePosts = [];
     let postedPosts = [];
+    let filteredPosts = [];
 
 
 
@@ -447,7 +486,10 @@
       
       const postsToShow = currentTab === 'active' ? activePosts : postedPosts;
       
-      if (postsToShow.length === 0) {
+      // Apply filters
+      filteredPosts = applyFilters(postsToShow);
+      
+      if (filteredPosts.length === 0) {
         emptyState.style.display = 'flex';
         emptyState.querySelector('h3').textContent = currentTab === 'active' ? 'No active content' : 'No posted content';
         emptyState.querySelector('p').textContent = currentTab === 'active' ? 'Upload new media or pull content to get started' : 'No posts have been published yet';
@@ -456,11 +498,41 @@
       
       emptyState.style.display = 'none';
       
-      postsToShow.forEach((post, index) => {
+      filteredPosts.forEach((post, index) => {
         const tokenId = generateTokenId();
         const postElement = createPostElement(post, index, tokenId);
         container.appendChild(postElement);
       });
+    }
+
+    function applyFilters(posts) {
+      const brandFilter = document.getElementById('brand-filter').value;
+      const productFilter = document.getElementById('product-filter').value;
+      
+      return posts.filter(post => {
+        const matchesBrand = !brandFilter || post.brand === brandFilter;
+        const matchesProduct = !productFilter || post.product === productFilter;
+        return matchesBrand && matchesProduct;
+      });
+    }
+
+    function filterPosts() {
+      displayPosts();
+    }
+
+    function clearFilters() {
+      document.getElementById('brand-filter').value = '';
+      document.getElementById('product-filter').value = '';
+      filterPosts();
+    }
+
+    function getBrandDisplayName(brandCode) {
+      const brandNames = {
+        'wttt': 'WTTT',
+        'denlys': 'Denly',
+        'jabronis': 'Jabroni'
+      };
+      return brandNames[brandCode] || brandCode;
     }
 
     function createPostElement(post, index, tokenId) {
@@ -486,6 +558,10 @@
             ${isPosted ? `<div class="posted-badge">
               <i class="fas fa-check-circle"></i>
               <span>Posted</span>
+            </div>` : ''}
+            ${post.brand ? `<div class="brand-badge brand-${post.brand}">
+              <i class="fas fa-tag"></i>
+              <span>${getBrandDisplayName(post.brand)}</span>
             </div>` : ''}
           </div>
           ${!isPosted ? `<div class="post-actions">
@@ -772,28 +848,7 @@
       }
     }
 
-    async function triggerUpload() {
-      const btn = document.querySelector('.nav-btn.primary');
-      const originalText = btn.innerHTML;
-      
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Pulling...</span>';
-      btn.disabled = true;
 
-      try {
-        const res = await fetch(TRIGGER_URL, { method: 'POST' });
-        if (!res.ok) throw new Error('Pull failed');
-        
-        const data = await res.json();
-        showToast('🆕 New content pulled successfully!', 'success');
-        setTimeout(() => location.reload(), 1000);
-      } catch (error) {
-        console.error('❌ Error triggering pull:', error);
-        showToast('❌ Failed to pull new content.', 'error');
-      } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
-    }
 
     // Close modals when clicking outside
     window.addEventListener('click', function(e) {

@@ -40,8 +40,14 @@ app.post('/trigger-upload', async (req, res) => {
 app.post('/upload-image', upload.array('image', 10), async (req, res) => {
   try {
     const files = req.files;
+    const brand = req.body.brand;
+    
     if (!files || files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    if (!brand) {
+      return res.status(400).json({ error: 'Brand selection is required' });
     }
 
     const imageUrls = [];
@@ -70,6 +76,7 @@ app.post('/upload-image', upload.array('image', 10), async (req, res) => {
         platform: '',
         status: 'visible',
         product: '',
+        brand: brand,
         token_id: `token_${Math.random().toString(36).substring(2, 10)}`
       });
 

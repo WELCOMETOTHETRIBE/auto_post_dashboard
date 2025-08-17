@@ -12,15 +12,15 @@ const POSTS_JSON = path.resolve('./public/posts.json');
 const IMAGE_FOLDER_NAME = 'AutoPostImages';
 const ARCHIVE_FOLDER_NAME = 'AutoPostArchive';
 
-const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64, 'base64');
-const credentials = JSON.parse(keyBuffer.toString());
+const keyBuffer = Buffer.from(process.env.GOOGLE_DRIVE_KEY_BASE64 || '', 'base64');
+const credentials = keyBuffer.length > 0 ? JSON.parse(keyBuffer.toString()) : null;
 
-const auth = new google.auth.GoogleAuth({
+const auth = credentials ? new google.auth.GoogleAuth({
   credentials,
   scopes: ['https://www.googleapis.com/auth/drive'],
-});
+}) : null;
 
-const drive = google.drive({ version: 'v3', auth });
+const drive = auth ? google.drive({ version: 'v3', auth }) : null;
 
 async function getFolderIdByName(name) {
   const res = await drive.files.list({
@@ -109,6 +109,10 @@ async function commitToGitHubFile(filepath, content, message) {
 }
 
 export async function runTriggerScript() {
+  if (!drive) {
+    return 'Google Drive integration not configured. Please set GOOGLE_DRIVE_KEY_BASE64 environment variable.';
+  }
+
   const folderId = await getFolderIdByName(IMAGE_FOLDER_NAME);
   const archiveId = await getFolderIdByName(ARCHIVE_FOLDER_NAME);
 
