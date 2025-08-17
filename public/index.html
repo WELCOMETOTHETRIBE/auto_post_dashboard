@@ -19,22 +19,24 @@
       <p class="tagline">Multi-Brand Dashboard</p>
     </div>
     
-    <!-- Profile Selector -->
-    <div class="profile-selector">
-      <div class="profile-header">
-        <h3>Active Brand</h3>
-        <button onclick="toggleProfileModal()" class="profile-change-btn">
-          <i class="fas fa-edit"></i>
-        </button>
+    <!-- Brand Navigation -->
+    <div class="brand-nav">
+      <div class="brand-header">
+        <h3>Brands</h3>
       </div>
-      <div class="active-profile" id="active-profile">
-        <div class="profile-avatar">
-          <i class="fas fa-leaf"></i>
-        </div>
-        <div class="profile-info">
-          <span class="profile-name">WELCOME TO THE TRIBE</span>
-          <span class="profile-type">FruTropics Brand</span>
-        </div>
+      <div class="brand-tabs">
+        <button class="brand-tab active" data-brand="wttt" onclick="changeBrand('wttt')">
+          <i class="fas fa-fire"></i>
+          <span>WTTT</span>
+        </button>
+        <button class="brand-tab" data-brand="denlys" onclick="changeBrand('denlys')">
+          <i class="fas fa-seedling"></i>
+          <span>Denly's</span>
+        </button>
+        <button class="brand-tab" data-brand="jabronis" onclick="changeBrand('jabronis')">
+          <i class="fas fa-dumbbell"></i>
+          <span>Jabroni's</span>
+        </button>
       </div>
     </div>
     
@@ -166,57 +168,7 @@
     </div>
   </main>
 
-  <!-- Profile Selection Modal -->
-  <div id="profile-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Select Brand Profile</h3>
-        <button onclick="toggleProfileModal()" class="modal-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="profile-options">
-        <div class="profile-option active" onclick="selectProfile('wttt', 'WELCOME TO THE TRIBE', 'FruTropics Brand', 'fas fa-leaf')">
-          <div class="profile-avatar">
-            <i class="fas fa-leaf"></i>
-          </div>
-          <div class="profile-details">
-            <span class="profile-name">WELCOME TO THE TRIBE</span>
-            <span class="profile-type">FruTropics Brand</span>
-          </div>
-          <div class="profile-status">
-            <i class="fas fa-check-circle"></i>
-          </div>
-        </div>
-        
-        <div class="profile-option" onclick="selectProfile('denly', 'Denly Gardens', 'Garden Brand', 'fas fa-seedling')">
-          <div class="profile-avatar">
-            <i class="fas fa-seedling"></i>
-          </div>
-          <div class="profile-details">
-            <span class="profile-name">Denly Gardens</span>
-            <span class="profile-type">Garden Brand</span>
-          </div>
-          <div class="profile-status">
-            <i class="fas fa-circle"></i>
-          </div>
-        </div>
-        
-        <div class="profile-option" onclick="selectProfile('jabronis', 'Jabroni\'s', 'Sports Brand', 'fas fa-dumbbell')">
-          <div class="profile-avatar">
-            <i class="fas fa-dumbbell"></i>
-          </div>
-          <div class="profile-details">
-            <span class="profile-name">Jabroni's</span>
-            <span class="profile-type">Sports Brand</span>
-          </div>
-          <div class="profile-status">
-            <i class="fas fa-circle"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal" style="display: none;">
@@ -265,53 +217,58 @@
   <script>
     const API_BASE = 'https://autopostdashboard-production.up.railway.app';
     const TRIGGER_URL = `${API_BASE}/trigger-upload`;
-    const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
+    // Brand configuration
+    const brands = {
+      wttt: {
+        id: 'wttt',
+        name: 'WELCOME TO THE TRIBE',
+        type: 'FruTropics Brand',
+        icon: 'fas fa-fire',
+        jsonFile: 'WTTT_posts.json'
+      },
+      denlys: {
+        id: 'denlys',
+        name: 'Denly Gardens',
+        type: 'Garden Brand',
+        icon: 'fas fa-seedling',
+        jsonFile: 'Denlys_posts.json'
+      },
+      jabronis: {
+        id: 'jabronis',
+        name: 'Jabroni\'s',
+        type: 'Fitness Brand',
+        icon: 'fas fa-dumbbell',
+        jsonFile: 'Jabronis_posts.json'
+      }
+    };
 
     let selectedPosts = new Set();
     let isBulkMode = false;
-    let currentProfile = {
-      id: 'wttt',
-      name: 'WELCOME TO THE TRIBE',
-      type: 'FruTropics Brand',
-      icon: 'fas fa-leaf'
-    };
+    let currentBrand = 'wttt';
     let viewMode = 'grid';
     let currentTab = 'active';
     let allPosts = [];
     let activePosts = [];
     let postedPosts = [];
 
-    // Profile management
-    function selectProfile(id, name, type, icon) {
-      currentProfile = { id, name, type, icon };
+    // Brand management
+    function changeBrand(brandId) {
+      currentBrand = brandId;
+      const brandConfig = brands[brandId];
       
-      // Update active profile display
-      document.getElementById('active-profile').innerHTML = `
-        <div class="profile-avatar">
-          <i class="${icon}"></i>
-        </div>
-        <div class="profile-info">
-          <span class="profile-name">${name}</span>
-          <span class="profile-type">${type}</span>
-        </div>
-      `;
+      // Update brand tab states
+      document.querySelectorAll('.brand-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelector(`[data-brand="${brandId}"]`).classList.add('active');
       
       // Update header
-      document.getElementById('current-brand').textContent = name;
+      document.getElementById('current-brand').textContent = brandConfig.name;
       
-      // Update profile modal
-      document.querySelectorAll('.profile-option').forEach(option => {
-        option.classList.remove('active');
-      });
-      event.currentTarget.classList.add('active');
+      // Load posts for the new brand
+      loadPosts();
       
-      toggleProfileModal();
-      showToast(`Switched to ${name}`, 'success');
-    }
-
-    function toggleProfileModal() {
-      const modal = document.getElementById('profile-modal');
-      modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+      showToast(`Switched to ${brandConfig.name}`, 'success');
     }
 
 
@@ -387,7 +344,7 @@
     document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const formData = new FormData(this);
-      formData.append('profile', currentProfile.id);
+              formData.append('brand', currentBrand);
       const submitBtn = this.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerHTML;
       
@@ -515,6 +472,9 @@
       
       loadingIndicator.style.display = 'flex';
       container.innerHTML = '';
+      
+      const currentBrandConfig = brands[currentBrand];
+      const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/${currentBrandConfig.jsonFile}?cacheBust=${Date.now()}`;
       
       fetch(POSTS_JSON_URL)
         .then(res => res.json())
@@ -763,7 +723,8 @@
         token_id: tokenId,
         link,
         product,
-        profile: currentProfile.id,
+        brand: currentBrand,
+        brand_name: brands[currentBrand].name,
         delay_hours
       };
 
@@ -890,12 +851,11 @@
 
     // Close modals when clicking outside
     window.addEventListener('click', function(e) {
-      const modals = ['upload-modal', 'profile-modal', 'image-modal'];
+      const modals = ['upload-modal', 'image-modal'];
       modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (e.target === modal) {
           if (modalId === 'upload-modal') toggleUploadModal();
-          if (modalId === 'profile-modal') toggleProfileModal();
           if (modalId === 'image-modal') closeImageModal();
         }
       });
