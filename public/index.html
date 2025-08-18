@@ -82,6 +82,11 @@
 
   <!-- Main Content Area -->
   <main class="main-content">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+      <i class="fas fa-bars"></i>
+    </button>
+    
     <!-- Top Header -->
     <header class="top-header">
       <div class="header-left">
@@ -522,6 +527,25 @@
       filterPosts();
     }
 
+    function toggleMobileMenu() {
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.classList.toggle('open');
+      
+      // Add overlay for mobile
+      if (sidebar.classList.contains('open')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'mobile-overlay';
+        overlay.onclick = () => {
+          sidebar.classList.remove('open');
+          overlay.remove();
+        };
+        document.body.appendChild(overlay);
+      } else {
+        const overlay = document.querySelector('.mobile-overlay');
+        if (overlay) overlay.remove();
+      }
+    }
+
     function getBrandDisplayName(brandCode) {
       const brandNames = {
         'wttt': 'WTTT',
@@ -681,13 +705,7 @@
               <small class="form-help">Set to 0 for immediate posting, or enter hours to delay</small>
             </div>
             
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="publish-${index}">
-                <span class="checkmark"></span>
-                Publish immediately
-              </label>
-            </div>
+
           </div>
         </div>
         
@@ -721,7 +739,6 @@
       const caption = document.getElementById(`caption-${index}`).value;
       const hashtags = document.getElementById(`hashtags-${index}`).value;
       const platform = document.getElementById(`platform-${index}`).value;
-      const publish_now = document.getElementById(`publish-${index}`).checked;
       const link = document.getElementById(`link-${index}`).value;
       const product = document.getElementById(`product-${index}`).value;
       const delay_hours = parseInt(document.getElementById(`delay-${index}`).value) || 0;
@@ -738,7 +755,6 @@
         caption,
         hashtags,
         platform,
-        publish_now,
         token_id: tokenId,
         link,
         product,
