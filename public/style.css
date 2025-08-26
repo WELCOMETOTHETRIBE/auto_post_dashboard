@@ -123,6 +123,18 @@ body {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+.nav-btn.logout-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #ef4444;
+  color: white;
+  margin-top: auto;
+}
+
+.nav-btn.logout-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border-color: #dc2626;
+}
+
 .nav-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

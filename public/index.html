@@ -77,6 +77,13 @@
           </div>
         </div>
       </div>
+      
+      <div class="nav-section">
+        <button onclick="logout()" class="nav-btn logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
     </nav>
   </aside>
 
@@ -236,6 +243,44 @@
   <div id="toast-container" class="toast-container"></div>
 
   <script>
+    // Authentication check
+    function checkAuthentication() {
+      const authenticated = sessionStorage.getItem('authenticated');
+      const loginTime = sessionStorage.getItem('loginTime');
+      
+      if (authenticated !== 'true' || !loginTime) {
+        window.location.href = 'login.html';
+        return false;
+      }
+      
+      const now = Date.now();
+      const loginTimestamp = parseInt(loginTime);
+      const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours
+      
+      if (now - loginTimestamp >= sessionDuration) {
+        // Session expired
+        sessionStorage.removeItem('authenticated');
+        sessionStorage.removeItem('loginTime');
+        window.location.href = 'login.html';
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Check authentication on page load
+    if (!checkAuthentication()) {
+      // Stop execution if not authenticated
+      throw new Error('Authentication required');
+    }
+    
+    // Add logout function
+    function logout() {
+      sessionStorage.removeItem('authenticated');
+      sessionStorage.removeItem('loginTime');
+      window.location.href = 'login.html';
+    }
+    
     const API_BASE = 'https://autopostdashboard-production.up.railway.app';
     let selectedPosts = new Set();
     let isBulkMode = false;

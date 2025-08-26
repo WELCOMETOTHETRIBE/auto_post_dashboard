@@ -25,6 +25,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/', express.static('public'));
 
+// Health check endpoint for Docker
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Redirect root to login page
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
+
 // === Trigger Upload Endpoint ===
 app.post('/trigger-upload', async (req, res) => {
   try {
