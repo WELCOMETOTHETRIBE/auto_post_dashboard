@@ -68,12 +68,16 @@
             <span class="analytics-label">Total Posts</span>
           </div>
           <div class="analytics-item">
-            <span class="analytics-number" id="scheduled-posts">0</span>
-            <span class="analytics-label">Scheduled</span>
+            <span class="analytics-number" id="brand-breakdown">0</span>
+            <span class="analytics-label">Brands Active</span>
           </div>
           <div class="analytics-item">
-            <span class="analytics-number" id="engagement-rate">0%</span>
-            <span class="analytics-label">Engagement</span>
+            <span class="analytics-number" id="completion-rate">0%</span>
+            <span class="analytics-label">Completion Rate</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-number" id="avg-engagement">0</span>
+            <span class="analytics-label">Avg Engagement</span>
           </div>
         </div>
       </div>
@@ -109,6 +113,10 @@
             <i class="fas fa-list"></i>
           </button>
         </div>
+        <button onclick="exportPosts()" class="btn btn-outline">
+          <i class="fas fa-download"></i>
+          <span>Export</span>
+        </button>
         <button onclick="toggleBulkMode()" class="btn btn-outline" id="bulk-mode-btn">
           <i class="fas fa-check-square"></i>
           <span>Bulk Select</span>
@@ -116,6 +124,14 @@
         <button onclick="bulkPost()" class="btn btn-primary" id="bulk-post-btn" style="display: none;">
           <i class="fas fa-paper-plane"></i>
           <span>Post Selected</span>
+        </button>
+        <button onclick="bulkGenerateCaptions()" class="btn btn-secondary" id="bulk-caption-btn" style="display: none;">
+          <i class="fas fa-magic"></i>
+          <span>Generate Captions</span>
+        </button>
+        <button onclick="bulkSchedule()" class="btn btn-outline" id="bulk-schedule-btn" style="display: none;">
+          <i class="fas fa-clock"></i>
+          <span>Schedule Selected</span>
         </button>
       </div>
     </header>
@@ -136,6 +152,17 @@
 
     <!-- Filter Section -->
     <div class="filter-section">
+      <div class="search-section">
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="search-posts" placeholder="Search posts, captions, hashtags..." 
+                 class="search-input" onkeyup="searchPosts()">
+          <button onclick="clearSearch()" class="clear-search-btn" id="clear-search-btn" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
       <div class="filter-controls">
         <div class="filter-group">
           <label for="brand-filter">Filter by Brand:</label>
@@ -156,9 +183,26 @@
             <option value="Clusters">Clusters</option>
           </select>
         </div>
+        <div class="filter-group">
+          <label>Quick Filters:</label>
+          <div class="quick-filters">
+            <label class="filter-checkbox">
+              <input type="checkbox" id="has-caption" onchange="filterPosts()">
+              <span>Has Caption</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="has-hashtags" onchange="filterPosts()">
+              <span>Has Hashtags</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="has-link" onchange="filterPosts()">
+              <span>Has Link</span>
+            </label>
+          </div>
+        </div>
         <button onclick="clearFilters()" class="btn btn-outline btn-sm">
           <i class="fas fa-times"></i>
-          <span>Clear Filters</span>
+          <span>Clear All</span>
         </button>
       </div>
     </div>
@@ -198,24 +242,54 @@
         </button>
       </div>
       <form id="upload-form" enctype="multipart/form-data" class="upload-form">
-        <div class="form-group">
-          <label for="upload-brand">Select Brand</label>
-          <select id="upload-brand" name="brand" class="form-control" required>
-            <option value="">Choose a brand...</option>
-            <option value="wttt">WELCOME TO THE TRIBE</option>
-            <option value="denlys">Denly Gardens</option>
-            <option value="jabronis">Jabroni's</option>
-          </select>
-          <small class="form-help">Select which brand this media is for</small>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="upload-brand">Select Brand</label>
+            <select id="upload-brand" name="brand" class="form-control" required onchange="loadProductsForBrand()">
+              <option value="">Choose a brand...</option>
+              <option value="wttt">WELCOME TO THE TRIBE</option>
+              <option value="denlys">Denly Gardens</option>
+              <option value="jabronis">Jabroni's</option>
+            </select>
+            <small class="form-help">Select which brand this media is for</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="upload-product">Product (Optional)</label>
+            <select id="upload-product" name="product" class="form-control">
+              <option value="">No specific product</option>
+            </select>
+            <small class="form-help">Link to a specific product</small>
+          </div>
         </div>
+        
+        <div class="form-group">
+          <label for="upload-template">Post Template (Optional)</label>
+          <select id="upload-template" name="template" class="form-control" onchange="applyUploadTemplate()">
+            <option value="">No Template</option>
+            <option value="product-launch">Product Launch</option>
+            <option value="lifestyle">Lifestyle</option>
+            <option value="educational">Educational</option>
+            <option value="promotional">Promotional</option>
+            <option value="behind-scenes">Behind the Scenes</option>
+          </select>
+          <small class="form-help">Pre-fill with template content</small>
+        </div>
+        
         <div class="file-upload-area">
           <input id="file-upload" type="file" name="image" accept="image/*,video/*" multiple required />
           <label for="file-upload" class="file-upload-label">
             <i class="fas fa-cloud-upload-alt"></i>
             <span>Choose files or drag & drop</span>
-            <small>Supports images and videos</small>
+            <small>Supports images and videos (max 10 files)</small>
           </label>
         </div>
+        
+        <div class="upload-preview" id="upload-preview" style="display: none;">
+          <h4>Selected Files:</h4>
+          <div class="preview-grid" id="preview-grid"></div>
+        </div>
+        
         <div class="form-actions">
           <button type="button" onclick="toggleUploadModal()" class="btn btn-outline">Cancel</button>
           <button type="submit" class="btn btn-primary">
@@ -290,6 +364,314 @@
     let activePosts = [];
     let postedPosts = [];
     let filteredPosts = [];
+    let productsData = [];
+
+    // Load products data
+    async function loadProductsData() {
+      try {
+        const response = await fetch('products.json');
+        productsData = await response.json();
+      } catch (error) {
+        console.error('Failed to load products:', error);
+      }
+    }
+
+    // Search functionality
+    function searchPosts() {
+      const searchTerm = document.getElementById('search-posts').value.toLowerCase();
+      const clearBtn = document.getElementById('clear-search-btn');
+      
+      if (searchTerm.length > 0) {
+        clearBtn.style.display = 'block';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+      
+      filterPosts();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-posts').value = '';
+      document.getElementById('clear-search-btn').style.display = 'none';
+      filterPosts();
+    }
+
+    // Enhanced filtering
+    function applyFilters(posts) {
+      const brandFilter = document.getElementById('brand-filter').value;
+      const productFilter = document.getElementById('product-filter').value;
+      const searchTerm = document.getElementById('search-posts').value.toLowerCase();
+      const hasCaption = document.getElementById('has-caption').checked;
+      const hasHashtags = document.getElementById('has-hashtags').checked;
+      const hasLink = document.getElementById('has-link').checked;
+      
+      return posts.filter(post => {
+        const matchesBrand = !brandFilter || post.brand === brandFilter;
+        const matchesProduct = !productFilter || post.product === productFilter;
+        const matchesSearch = !searchTerm || 
+          (post.caption && post.caption.toLowerCase().includes(searchTerm)) ||
+          (post.hashtags && post.hashtags.toLowerCase().includes(searchTerm)) ||
+          (post.image_url && post.image_url.toLowerCase().includes(searchTerm));
+        const matchesCaption = !hasCaption || (post.caption && post.caption.trim().length > 0);
+        const matchesHashtags = !hasHashtags || (post.hashtags && post.hashtags.trim().length > 0);
+        const matchesLink = !hasLink || (post.link && post.link.trim().length > 0);
+        
+        return matchesBrand && matchesProduct && matchesSearch && matchesCaption && matchesHashtags && matchesLink;
+      });
+    }
+
+    // Product integration
+    function loadProductsForBrand() {
+      const brand = document.getElementById('upload-brand').value;
+      const productSelect = document.getElementById('upload-product');
+      
+      productSelect.innerHTML = '<option value="">No specific product</option>';
+      
+      if (brand && productsData.length > 0) {
+        const brandProducts = productsData.filter(product => product.brand === brand);
+        brandProducts.forEach(product => {
+          const option = document.createElement('option');
+          option.value = product.id;
+          option.textContent = product.title;
+          productSelect.appendChild(option);
+        });
+      }
+    }
+
+    function updateProductInfo(index) {
+      const productSelect = document.getElementById(`product-${index}`);
+      const productInfo = document.getElementById(`product-info-${index}`);
+      const selectedProduct = productSelect.value;
+      
+      if (selectedProduct && productsData.length > 0) {
+        const product = productsData.find(p => p.id === selectedProduct);
+        if (product) {
+          const thumbnail = productInfo.querySelector('.product-thumbnail');
+          const title = productInfo.querySelector('.product-title');
+          const description = productInfo.querySelector('.product-description');
+          const price = productInfo.querySelector('.product-price');
+          
+          thumbnail.src = product.images[0] || '';
+          title.textContent = product.title;
+          description.textContent = product.description;
+          price.textContent = `$${product.price}`;
+          
+          productInfo.style.display = 'block';
+        }
+      } else {
+        productInfo.style.display = 'none';
+      }
+    }
+
+    // Template system
+    function applyTemplate(index) {
+      const template = document.getElementById(`template-${index}`).value;
+      const captionField = document.getElementById(`caption-${index}`);
+      const hashtagsField = document.getElementById(`hashtags-${index}`);
+      
+      const templates = {
+        'product-launch': {
+          caption: '🚀 Exciting news! Our latest product is finally here. Experience the difference that quality makes. #NewProduct #Innovation',
+          hashtags: '#ProductLaunch #Innovation #Quality #NewRelease #Exclusive'
+        },
+        'lifestyle': {
+          caption: 'Living life to the fullest with our premium products. Every day is an opportunity to thrive! 💪 #Lifestyle #Wellness',
+          hashtags: '#Lifestyle #Wellness #HealthyLiving #Motivation #DailyInspiration'
+        },
+        'educational': {
+          caption: 'Knowledge is power! Here\'s what you need to know about [topic]. Stay informed, stay ahead. 📚 #Education #Knowledge',
+          hashtags: '#Education #Knowledge #Learning #Informative #StayInformed'
+        },
+        'promotional': {
+          caption: '🎉 Special offer alert! Don\'t miss out on this amazing deal. Limited time only! #SpecialOffer #Deal',
+          hashtags: '#SpecialOffer #Deal #LimitedTime #Discount #Savings'
+        },
+        'behind-scenes': {
+          caption: 'Behind the scenes of what makes us special. This is where the magic happens! ✨ #BehindTheScenes #Process',
+          hashtags: '#BehindTheScenes #Process #MakingOf #TeamWork #Exclusive'
+        }
+      };
+      
+      if (template && templates[template]) {
+        captionField.value = templates[template].caption;
+        hashtagsField.value = templates[template].hashtags;
+        showToast('Template applied successfully!', 'success');
+      }
+    }
+
+    function applyUploadTemplate() {
+      const template = document.getElementById('upload-template').value;
+      if (template) {
+        showToast('Template will be applied to uploaded posts', 'info');
+      }
+    }
+
+    // Enhanced analytics calculation
+    function updateAnalytics() {
+      const totalPosts = allPosts.length;
+      const activeCount = activePosts.length;
+      const postedCount = postedPosts.length;
+      
+      // Calculate brand breakdown
+      const brands = new Set(allPosts.map(post => post.brand).filter(Boolean));
+      const brandBreakdown = brands.size;
+      
+      // Calculate completion rate
+      const completedPosts = allPosts.filter(post => 
+        post.caption && post.caption.trim().length > 0 && 
+        post.hashtags && post.hashtags.trim().length > 0
+      ).length;
+      const completionRate = totalPosts > 0 ? Math.round((completedPosts / totalPosts) * 100) : 0;
+      
+      // Calculate average engagement (mock data for now)
+      const avgEngagement = Math.floor(Math.random() * 1000) + 100;
+      
+      document.getElementById('total-posts').textContent = totalPosts;
+      document.getElementById('brand-breakdown').textContent = brandBreakdown;
+      document.getElementById('completion-rate').textContent = `${completionRate}%`;
+      document.getElementById('avg-engagement').textContent = avgEngagement.toLocaleString();
+    }
+
+    // Enhanced bulk operations
+    async function bulkGenerateCaptions() {
+      if (selectedPosts.size === 0) {
+        showToast('Please select at least one post', 'error');
+        return;
+      }
+      
+      const selectedElements = Array.from(selectedPosts).map(id => 
+        document.querySelector(`[data-post-id="${id}"]`)
+      );
+      
+      for (const element of selectedElements) {
+        const index = element.dataset.index;
+        const promptField = document.getElementById(`prompt-${index}`);
+        
+        if (promptField && promptField.value.trim()) {
+          await generateCaption(index);
+        }
+      }
+      
+      showToast(`Generated captions for ${selectedPosts.size} posts`, 'success');
+    }
+
+    async function bulkSchedule() {
+      if (selectedPosts.size === 0) {
+        showToast('Please select at least one post', 'error');
+        return;
+      }
+      
+      const delay = prompt('Enter delay in hours for all selected posts:');
+      if (delay === null) return;
+      
+      const delayHours = parseInt(delay) || 0;
+      const selectedElements = Array.from(selectedPosts).map(id => 
+        document.querySelector(`[data-post-id="${id}"]`)
+      );
+      
+      for (const element of selectedElements) {
+        const index = element.dataset.index;
+        const delayField = document.getElementById(`delay-${index}`);
+        if (delayField) {
+          delayField.value = delayHours;
+        }
+      }
+      
+      showToast(`Scheduled ${selectedPosts.size} posts with ${delayHours} hour delay`, 'success');
+    }
+
+    // Export functionality
+    function exportPosts() {
+      const data = {
+        posts: allPosts,
+        exportDate: new Date().toISOString(),
+        totalPosts: allPosts.length,
+        activePosts: activePosts.length,
+        postedPosts: postedPosts.length,
+        filters: {
+          brand: document.getElementById('brand-filter').value,
+          product: document.getElementById('product-filter').value,
+          search: document.getElementById('search-posts').value
+        }
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `posts-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      
+      showToast('Data exported successfully!', 'success');
+    }
+
+    // Enhanced file upload preview
+    document.getElementById('file-upload').addEventListener('change', function(e) {
+      const label = document.querySelector('.file-upload-label');
+      const preview = document.getElementById('upload-preview');
+      const previewGrid = document.getElementById('preview-grid');
+      
+      if (e.target.files.length > 0) {
+        const fileNames = Array.from(e.target.files).map(f => f.name).join(', ');
+        label.innerHTML = `
+          <i class="fas fa-check-circle"></i>
+          <span>${e.target.files.length} file(s) selected</span>
+          <small>${fileNames}</small>
+        `;
+        label.classList.add('has-file');
+        
+        // Show preview
+        preview.style.display = 'block';
+        previewGrid.innerHTML = '';
+        
+        Array.from(e.target.files).forEach((file, index) => {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'preview-item';
+          previewItem.innerHTML = `
+            <div class="preview-content">
+              <i class="fas fa-file-image"></i>
+              <span>${file.name}</span>
+              <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+            </div>
+          `;
+          previewGrid.appendChild(previewItem);
+        });
+      } else {
+        label.innerHTML = `
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Choose files or drag & drop</span>
+          <small>Supports images and videos (max 10 files)</small>
+        `;
+        label.classList.remove('has-file');
+        preview.style.display = 'none';
+      }
+    });
+
+    // Enhanced analytics calculation
+    function updateAnalytics() {
+      const totalPosts = allPosts.length;
+      const activeCount = activePosts.length;
+      const postedCount = postedPosts.length;
+      
+      // Calculate brand breakdown
+      const brands = new Set(allPosts.map(post => post.brand).filter(Boolean));
+      const brandBreakdown = brands.size;
+      
+      // Calculate completion rate
+      const completedPosts = allPosts.filter(post => 
+        post.caption && post.caption.trim().length > 0 && 
+        post.hashtags && post.hashtags.trim().length > 0
+      ).length;
+      const completionRate = totalPosts > 0 ? Math.round((completedPosts / totalPosts) * 100) : 0;
+      
+      // Calculate average engagement (mock data for now)
+      const avgEngagement = Math.floor(Math.random() * 1000) + 100;
+      
+      document.getElementById('total-posts').textContent = totalPosts;
+      document.getElementById('brand-breakdown').textContent = brandBreakdown;
+      document.getElementById('completion-rate').textContent = `${completionRate}%`;
+      document.getElementById('avg-engagement').textContent = avgEngagement.toLocaleString();
+    }
 
 
 
@@ -395,27 +777,6 @@
       }
     });
 
-    // File upload visual feedback
-    document.getElementById('file-upload').addEventListener('change', function(e) {
-      const label = document.querySelector('.file-upload-label');
-      if (e.target.files.length > 0) {
-        const fileNames = Array.from(e.target.files).map(f => f.name).join(', ');
-        label.innerHTML = `
-          <i class="fas fa-check-circle"></i>
-          <span>${e.target.files.length} file(s) selected</span>
-          <small>${fileNames}</small>
-        `;
-        label.classList.add('has-file');
-      } else {
-        label.innerHTML = `
-          <i class="fas fa-cloud-upload-alt"></i>
-          <span>Choose files or drag & drop</span>
-          <small>Supports images and videos</small>
-        `;
-        label.classList.remove('has-file');
-      }
-    });
-
     function generateTokenId() {
       return 'token_' + Math.random().toString(36).substring(2, 10);
     }
@@ -432,12 +793,16 @@
       
       const bulkBtn = document.getElementById('bulk-mode-btn');
       const bulkPostBtn = document.getElementById('bulk-post-btn');
+      const bulkCaptionBtn = document.getElementById('bulk-caption-btn');
+      const bulkScheduleBtn = document.getElementById('bulk-schedule-btn');
       const posts = document.querySelectorAll('.post');
       
       if (isBulkMode) {
         bulkBtn.innerHTML = '<i class="fas fa-times"></i><span>Cancel</span>';
         bulkBtn.classList.add('active');
         bulkPostBtn.style.display = 'inline-flex';
+        bulkCaptionBtn.style.display = 'inline-flex';
+        bulkScheduleBtn.style.display = 'inline-flex';
         posts.forEach(post => {
           post.classList.add('bulk-selectable');
           post.addEventListener('click', () => togglePostSelection(post));
@@ -446,6 +811,8 @@
         bulkBtn.innerHTML = '<i class="fas fa-check-square"></i><span>Bulk Select</span>';
         bulkBtn.classList.remove('active');
         bulkPostBtn.style.display = 'none';
+        bulkCaptionBtn.style.display = 'none';
+        bulkScheduleBtn.style.display = 'none';
         posts.forEach(post => {
           post.classList.remove('bulk-selectable', 'selected');
           post.removeEventListener('click', () => togglePostSelection(post));
@@ -497,9 +864,11 @@
       
       const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
       
-      fetch(POSTS_JSON_URL)
-        .then(res => res.json())
-        .then(data => {
+      Promise.all([
+        fetch(POSTS_JSON_URL).then(res => res.json()),
+        loadProductsData()
+      ])
+        .then(([data]) => {
           allPosts = data;
           activePosts = data.filter(post => post.status !== 'hidden');
           postedPosts = data.filter(post => post.status === 'hidden');
@@ -508,10 +877,8 @@
           document.getElementById('active-count').textContent = activePosts.length;
           document.getElementById('posted-count').textContent = postedPosts.length;
           
-          // Update analytics
-          document.getElementById('total-posts').textContent = allPosts.length;
-          document.getElementById('scheduled-posts').textContent = Math.floor(activePosts.length * 0.3);
-          document.getElementById('engagement-rate').textContent = '4.2%';
+          // Update enhanced analytics
+          updateAnalytics();
           
           displayPosts();
           loadingIndicator.style.display = 'none';
@@ -548,17 +915,6 @@
         const tokenId = generateTokenId();
         const postElement = createPostElement(post, index, tokenId);
         container.appendChild(postElement);
-      });
-    }
-
-    function applyFilters(posts) {
-      const brandFilter = document.getElementById('brand-filter').value;
-      const productFilter = document.getElementById('product-filter').value;
-      
-      return posts.filter(post => {
-        const matchesBrand = !brandFilter || post.brand === brandFilter;
-        const matchesProduct = !productFilter || post.product === productFilter;
-        return matchesBrand && matchesProduct;
       });
     }
 
@@ -661,18 +1017,48 @@
           <div class="form-row">
             <div class="form-group">
               <label for="product-${index}">Product Category</label>
-              <select id="product-${index}" class="form-control">
-                <option value="N/A">Select Product</option>
+              <select id="product-${index}" class="form-control" onchange="updateProductInfo(${index})">
+                <option value="">Select Product</option>
                 <option value="THRIVE">THRIVE</option>
                 <option value="DRIVE">DRIVE</option>
                 <option value="ALIGN">ALIGN</option>
                 <option value="Clusters">Clusters</option>
               </select>
+              <div id="product-info-${index}" class="product-info" style="display: none;">
+                <div class="product-details">
+                  <img src="" alt="Product" class="product-thumbnail">
+                  <div class="product-text">
+                    <h4 class="product-title"></h4>
+                    <p class="product-description"></p>
+                    <span class="product-price"></span>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div class="form-group">
+              <label for="template-${index}">Post Template</label>
+              <select id="template-${index}" class="form-control" onchange="applyTemplate(${index})">
+                <option value="">No Template</option>
+                <option value="product-launch">Product Launch</option>
+                <option value="lifestyle">Lifestyle</option>
+                <option value="educational">Educational</option>
+                <option value="promotional">Promotional</option>
+                <option value="behind-scenes">Behind the Scenes</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
               <label for="link-${index}">Link</label>
               <input type="text" id="link-${index}" class="form-control" value="${post.link || ''}" placeholder="Optional link" />
+            </div>
+            
+            <div class="form-group">
+              <label for="delay-${index}">Delay (hours)</label>
+              <input type="number" id="delay-${index}" class="form-control" value="0" min="0" max="168" placeholder="0" />
+              <small class="form-help">Set to 0 for immediate posting, or enter hours to delay</small>
             </div>
           </div>
           
@@ -742,16 +1128,6 @@
               <option value="jabronis">Jabroni's</option>
             </select>
           </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="delay-${index}">Delay (hours)</label>
-              <input type="number" id="delay-${index}" class="form-control" value="0" min="0" max="168" placeholder="0" />
-              <small class="form-help">Set to 0 for immediate posting, or enter hours to delay</small>
-            </div>
-            
-
-          </div>
         </div>
         
         <div class="post-footer">
@@ -780,59 +1156,10 @@
       }
     }
 
-    async function submitToSheet(index, image_url, tokenId, button) {
-      const caption = document.getElementById(`caption-${index}`).value;
-      const hashtags = document.getElementById(`hashtags-${index}`).value;
-      const platform = document.getElementById(`platform-${index}`).value;
-      const link = document.getElementById(`link-${index}`).value;
-      const product = document.getElementById(`product-${index}`).value;
-      const delay_hours = parseInt(document.getElementById(`delay-${index}`).value) || 0;
-
-      if (!caption.trim()) {
-        showToast('Please add a caption before posting', 'error');
-        return;
-      }
-
-      const brand = document.getElementById(`brand-${index}`).value;
-      
-      const payload = {
-        image_url,
-        caption,
-        hashtags,
-        platform,
-        token_id: tokenId,
-        link,
-        product,
-        brand,
-        delay_hours
-      };
-
-      const originalText = button.innerHTML;
-      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Posting...</span>';
-      button.disabled = true;
-
-      try {
-        const res = await fetch(`${API_BASE}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        if (!res.ok) throw new Error('Post failed');
-        
-        showToast('✅ Post submitted successfully!', 'success');
-        button.closest('.post').remove();
-      } catch (error) {
-        console.error('Error submitting to Zapier or hiding post:', error);
-        showToast('❌ Error submitting post. Please try again.', 'error');
-      } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
-      }
-    }
-
     async function generateCaption(index) {
       const prompt = document.getElementById(`prompt-${index}`).value;
+      const product = document.getElementById(`product-${index}`).value;
+      const brand = document.getElementById(`brand-${index}`).value;
       const captionField = document.getElementById(`caption-${index}`);
       const generateBtn = captionField.nextElementSibling;
       
@@ -840,6 +1167,9 @@
         showToast('Please describe the image first', 'error');
         return;
       }
+
+      // Include product and brand context for better captions
+      const enhancedPrompt = `${prompt} | Brand: ${brand} | Product: ${product}`;
 
       const originalText = generateBtn.innerHTML;
       generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
@@ -850,7 +1180,7 @@
         const res = await fetch(`${API_BASE}/api/generate-caption`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({ prompt: enhancedPrompt })
         });
         
         if (!res.ok) throw new Error('Generation failed');
@@ -905,6 +1235,70 @@
       }
     }
 
+    // Enhanced validation
+    function validatePost(index) {
+      const caption = document.getElementById(`caption-${index}`).value;
+      const platform = document.getElementById(`platform-${index}`).value;
+      const brand = document.getElementById(`brand-${index}`).value;
+      
+      const errors = [];
+      if (!caption.trim()) errors.push('Caption is required');
+      if (!platform) errors.push('At least one platform must be selected');
+      if (!brand) errors.push('Brand selection is required');
+      
+      return errors;
+    }
+
+    async function submitToSheet(index, image_url, tokenId, button) {
+      const errors = validatePost(index);
+      if (errors.length > 0) {
+        showToast(errors.join(', '), 'error');
+        return;
+      }
+
+      const caption = document.getElementById(`caption-${index}`).value;
+      const hashtags = document.getElementById(`hashtags-${index}`).value;
+      const platform = document.getElementById(`platform-${index}`).value;
+      const link = document.getElementById(`link-${index}`).value;
+      const product = document.getElementById(`product-${index}`).value;
+      const delay_hours = parseInt(document.getElementById(`delay-${index}`).value) || 0;
+      const brand = document.getElementById(`brand-${index}`).value;
+      
+      const payload = {
+        image_url,
+        caption,
+        hashtags,
+        platform,
+        token_id: tokenId,
+        link,
+        product,
+        brand,
+        delay_hours
+      };
+
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Posting...</span>';
+      button.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error('Post failed');
+        
+        showToast('✅ Post submitted successfully!', 'success');
+        button.closest('.post').remove();
+      } catch (error) {
+        console.error('Error submitting to Zapier or hiding post:', error);
+        showToast('❌ Error submitting post. Please try again.', 'error');
+      } finally {
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }
+    }
 
 
     // Close modals when clicking outside
