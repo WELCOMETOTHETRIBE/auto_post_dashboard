@@ -129,10 +129,6 @@
           <i class="fas fa-magic"></i>
           <span>Generate Captions</span>
         </button>
-        <button onclick="bulkInterpretImages()" class="btn btn-secondary" id="bulk-interpret-btn" style="display: none;">
-          <i class="fas fa-eye"></i>
-          <span>AI Analyze All</span>
-        </button>
         <button onclick="bulkSchedule()" class="btn btn-outline" id="bulk-schedule-btn" style="display: none;">
           <i class="fas fa-clock"></i>
           <span>Schedule Selected</span>
@@ -559,71 +555,6 @@
       showToast(`Generated captions for ${selectedPosts.size} posts`, 'success');
     }
 
-    async function bulkInterpretImages() {
-      if (selectedPosts.size === 0) {
-        showToast('Please select at least one post', 'error');
-        return;
-      }
-
-      const selectedElements = Array.from(selectedPosts).map(id => 
-        document.querySelector(`[data-post-id="${id}"]`)
-      );
-
-      for (const element of selectedElements) {
-        const index = element.dataset.index;
-        const promptField = document.getElementById(`prompt-${index}`);
-        const captionField = document.getElementById(`caption-${index}`);
-        const hashtagsField = document.getElementById(`hashtags-${index}`);
-        const brand = document.getElementById(`brand-${index}`).value;
-        const product = document.getElementById(`product-${index}`).value;
-
-        if (!promptField || !captionField || !hashtagsField) {
-          showToast('Missing fields for interpretation.', 'error');
-          continue;
-        }
-
-        const originalText = promptField.parentElement.querySelector('.btn').innerHTML;
-        promptField.parentElement.querySelector('.btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
-        promptField.parentElement.querySelector('.btn').disabled = true;
-        promptField.placeholder = '⏳ Analyzing image content...';
-        captionField.placeholder = '⏳ Generating caption...';
-        hashtagsField.placeholder = '⏳ Generating hashtags...';
-
-        try {
-          const res = await fetch(`${API_BASE}/api/interpret-image`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              image_url: element.dataset.imageUrl,
-              brand: brand,
-              product: product
-            })
-          });
-
-          if (!res.ok) throw new Error('Interpretation failed');
-
-          const data = await res.json();
-          
-          // Update the fields with AI-generated content
-          promptField.value = data.description || '';
-          captionField.value = data.caption || '';
-          hashtagsField.value = data.hashtags || '';
-          
-          showToast('✅ Image analyzed and content generated!', 'success');
-        } catch (error) {
-          console.error('Error interpreting image:', error);
-          showToast('❌ Failed to interpret image. Please try again.', 'error');
-        } finally {
-          promptField.parentElement.querySelector('.btn').innerHTML = originalText;
-          promptField.parentElement.querySelector('.btn').disabled = false;
-          promptField.placeholder = 'Describe the image or message...';
-          captionField.placeholder = 'Click generate to create a caption';
-          hashtagsField.placeholder = 'Click generate to create hashtags';
-        }
-      }
-      showToast(`Analyzed ${selectedPosts.size} posts`, 'success');
-    }
-
     async function bulkSchedule() {
       if (selectedPosts.size === 0) {
         showToast('Please select at least one post', 'error');
@@ -863,7 +794,6 @@
       const bulkBtn = document.getElementById('bulk-mode-btn');
       const bulkPostBtn = document.getElementById('bulk-post-btn');
       const bulkCaptionBtn = document.getElementById('bulk-caption-btn');
-      const bulkInterpretBtn = document.getElementById('bulk-interpret-btn');
       const bulkScheduleBtn = document.getElementById('bulk-schedule-btn');
       const posts = document.querySelectorAll('.post');
       
@@ -872,7 +802,6 @@
         bulkBtn.classList.add('active');
         bulkPostBtn.style.display = 'inline-flex';
         bulkCaptionBtn.style.display = 'inline-flex';
-        bulkInterpretBtn.style.display = 'inline-flex';
         bulkScheduleBtn.style.display = 'inline-flex';
         posts.forEach(post => {
           post.classList.add('bulk-selectable');
@@ -883,7 +812,6 @@
         bulkBtn.classList.remove('active');
         bulkPostBtn.style.display = 'none';
         bulkCaptionBtn.style.display = 'none';
-        bulkInterpretBtn.style.display = 'none';
         bulkScheduleBtn.style.display = 'none';
         posts.forEach(post => {
           post.classList.remove('bulk-selectable', 'selected');
@@ -1040,13 +968,14 @@
       const postedDate = post.posted_date || new Date().toLocaleDateString();
       
       postElement.innerHTML = `
-        <div class="post-header">
+        <div class="post-image-container" onclick="togglePostDetails(this)">
           <div class="post-image">
             <img src="${post.image_url}" alt="Post image" loading="lazy" />
             <div class="image-overlay">
-              <button class="btn btn-sm btn-outline" onclick="previewImage('${post.image_url}')">
-                <i class="fas fa-expand"></i>
-              </button>
+              <div class="overlay-content">
+                <i class="fas fa-edit"></i>
+                <span>Tap to edit</span>
+              </div>
             </div>
             ${isPosted ? `<div class="posted-badge">
               <i class="fas fa-check-circle"></i>
@@ -1057,12 +986,6 @@
               <span>${getBrandDisplayName(post.brand)}</span>
             </div>` : ''}
           </div>
-          ${!isPosted ? `<div class="post-actions">
-            <button class="btn btn-sm btn-outline" onclick="togglePostDetails(this)">
-              <i class="fas fa-edit"></i>
-              <span>Edit</span>
-            </button>
-          </div>` : ''}
         </div>
         
         ${isPosted ? `
@@ -1136,14 +1059,8 @@
           
           <div class="form-group">
             <label for="prompt-${index}">Image Description</label>
-            <div class="input-group">
-              <textarea id="prompt-${index}" class="form-control" placeholder="Describe the image or message...">${post.caption || ''}</textarea>
-              <button class="btn btn-sm btn-ai-analyze" onclick="interpretImage(${index})" title="AI Analyze Image (Ctrl+I)">
-                <i class="fas fa-eye"></i>
-                <span>AI Analyze</span>
-              </button>
-            </div>
-            <small class="form-help">Describe the image or use AI to automatically analyze it. Press Ctrl+I for quick analysis.</small>
+            <textarea id="prompt-${index}" class="form-control" placeholder="Describe the image or message...">${post.caption || ''}</textarea>
+            <small class="form-help">Describe the image to help generate better captions</small>
           </div>
           
           <div class="form-group">
@@ -1207,13 +1124,13 @@
               <option value="jabronis">Jabroni's</option>
             </select>
           </div>
-        </div>
-        
-        <div class="post-footer">
-          <button class="btn btn-primary post-now-btn" onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">
-            <i class="fas fa-paper-plane"></i>
-            <span>Post Now</span>
-          </button>
+          
+          <div class="post-actions">
+            <button class="btn btn-primary post-now-btn" onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">
+              <i class="fas fa-paper-plane"></i>
+              <span>Post Now</span>
+            </button>
+          </div>
         </div>
         `}
       `;
@@ -1221,28 +1138,20 @@
       return postElement;
     }
 
-    function togglePostDetails(button) {
-      const post = button.closest('.post');
+    function togglePostDetails(imageContainer) {
+      const post = imageContainer.closest('.post');
       const details = post.querySelector('.post-details');
+      const overlay = imageContainer.querySelector('.overlay-content');
       const isVisible = details.style.display !== 'none';
       
       if (isVisible) {
         details.style.display = 'none';
-        button.innerHTML = '<i class="fas fa-edit"></i><span>Edit</span>';
+        overlay.innerHTML = '<i class="fas fa-edit"></i><span>Tap to edit</span>';
+        post.classList.remove('expanded');
       } else {
         details.style.display = 'block';
-        button.innerHTML = '<i class="fas fa-chevron-up"></i><span>Collapse</span>';
-        
-        // Auto-analyze if no content exists
-        const index = post.dataset.index;
-        const promptField = document.getElementById(`prompt-${index}`);
-        const captionField = document.getElementById(`caption-${index}`);
-        const hashtagsField = document.getElementById(`hashtags-${index}`);
-        
-        if ((!promptField.value.trim() && !captionField.value.trim() && !hashtagsField.value.trim())) {
-          // Show a subtle prompt to use AI analysis
-          showToast('💡 Tip: Use "AI Analyze" to automatically generate content from your image!', 'info');
-        }
+        overlay.innerHTML = '<i class="fas fa-chevron-up"></i><span>Tap to collapse</span>';
+        post.classList.add('expanded');
       }
     }
 
@@ -1392,17 +1301,6 @@
 
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
-      // Ctrl/Cmd + I for AI analysis on focused post
-      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault();
-        const activeElement = document.activeElement;
-        const postElement = activeElement.closest('.post');
-        if (postElement) {
-          const index = postElement.dataset.index;
-          interpretImage(index);
-        }
-      }
-      
       // Ctrl/Cmd + Enter for quick posting
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();

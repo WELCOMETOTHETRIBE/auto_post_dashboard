@@ -1834,85 +1834,225 @@ body {
   border-color: #4b5563;
 }
 
-/* === AI Analysis Button Styles === */
-.btn-ai-analyze {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
+/* === Enhanced Mobile Responsiveness === */
+@media (max-width: 768px) {
+  .posts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .post-image {
+    height: 250px;
+  }
+  
+  .post-details {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .posts-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .post-image {
+    height: 200px;
+  }
+  
+  .overlay-content {
+    font-size: 0.75rem;
+  }
+  
+  .overlay-content i {
+    font-size: 1.25rem;
+  }
+}
+
+/* === Instagram-Style Gallery Layout === */
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.post {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: all 0.3s ease;
   position: relative;
+}
+
+.post:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.post.expanded {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.post-image-container {
+  position: relative;
+  cursor: pointer;
   overflow: hidden;
 }
 
-.btn-ai-analyze:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.btn-ai-analyze:active {
-  transform: translateY(0);
-}
-
-.btn-ai-analyze i {
-  margin-right: 0.5rem;
-}
-
-/* AI Analysis Loading State */
-.analyzing {
+.post-image {
   position: relative;
-  color: #6b7280;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
 }
 
-.analyzing::after {
-  content: '';
+.post-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post:hover .post-image img {
+  transform: scale(1.05);
+}
+
+.image-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* Enhanced Input Group for AI Analysis */
-.input-group-ai {
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.input-group-ai .form-control {
-  flex: 1;
-  border-radius: 6px 0 0 6px;
+.post:hover .image-overlay,
+.post.expanded .image-overlay {
+  opacity: 1;
 }
 
-.input-group-ai .btn {
-  border-radius: 0 6px 6px 0;
-  border-left: none;
+.overlay-content {
+  color: white;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.overlay-content i {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.posted-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: rgba(5, 150, 105, 0.9);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  z-index: 5;
+}
+
+.brand-badge {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  background: rgba(30, 41, 59, 0.9);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  z-index: 5;
+}
+
+.brand-badge.brand-wttt {
+  background: rgba(59, 130, 246, 0.9);
+}
+
+.brand-badge.brand-dentlys {
+  background: rgba(5, 150, 105, 0.9);
+}
+
+.brand-badge.brand-jabronis {
+  background: rgba(245, 101, 101, 0.9);
+}
+
+/* === Post Details (Hidden by default) === */
+.post-details {
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.post-actions {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 1rem;
+}
+
+.post-actions .btn {
   min-width: 120px;
 }
 
-/* AI Analysis Success State */
-.ai-success {
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+/* === Post Info for Posted Content === */
+.post-info {
+  padding: 1rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
 }
 
-.ai-success .form-control {
-  border-color: #059669;
+.post-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #64748b;
 }
 
-/* AI Analysis Error State */
-.ai-error {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+.posted-caption,
+.posted-hashtags {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
 }
 
-.ai-error .form-control {
-  border-color: #dc2626;
+.posted-caption strong,
+.posted-hashtags strong {
+  color: #374151;
 }
