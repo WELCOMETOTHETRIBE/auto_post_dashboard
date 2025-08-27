@@ -406,12 +406,7 @@ body {
   object-fit: contain;
 }
 
-.posts-list .post-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+/* Removed post-details styles for list view - now using modal */
 
 .posts-list .form-row {
   display: grid;
@@ -428,6 +423,8 @@ body {
   overflow: hidden;
   transition: all 0.3s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .post:hover {
@@ -457,48 +454,103 @@ body {
   position: relative;
   width: 100%;
   height: 300px;
-  overflow: hidden;
   background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .post-image img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   transition: transform 0.3s ease;
 }
 
-.post:hover .post-image img {
+.post-image:hover img {
   transform: scale(1.05);
 }
 
 .image-overlay {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.post:hover .image-overlay {
+.post-image:hover .image-overlay {
   opacity: 1;
+}
+
+.overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.overlay-content i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.overlay-content span {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.post-info {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.posted-date, .posted-platform {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.posted-caption, .posted-hashtags {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.posted-caption {
+  color: #1e293b;
+}
+
+.posted-hashtags {
+  color: #3b82f6;
 }
 
 .post-actions {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  padding: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
 
-.post:hover .post-actions {
-  opacity: 1;
+.post-actions .btn {
+  width: 100%;
+  justify-content: center;
 }
 
 /* === Posted Content Styling === */
@@ -545,61 +597,7 @@ body {
   background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
-.post-info {
-  padding: 1.5rem;
-  border-top: 1px solid #f1f5f9;
-}
-
-.post-meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.posted-date,
-.posted-platform {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #64748b;
-  padding: 0.5rem 0.75rem;
-  background: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-}
-
-.posted-date i,
-.posted-platform i {
-  color: #10b981;
-}
-
-.posted-caption,
-.posted-hashtags {
-  margin-bottom: 0.75rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.posted-caption strong,
-.posted-hashtags strong {
-  color: #374151;
-  font-weight: 600;
-}
-
-.posted-caption {
-  color: #1e293b;
-}
-
-.posted-hashtags {
-  color: #3b82f6;
-}
-
-.post-details {
-  padding: 1.5rem;
-  border-top: 1px solid #f1f5f9;
-}
+/* Removed post-details styles - now using modal */
 
 .post-footer {
   padding: 1rem 1.5rem 1.5rem;
@@ -2055,4 +2053,142 @@ body {
 .posted-caption strong,
 .posted-hashtags strong {
   color: #374151;
+}
+
+/* === Edit Modal Styles === */
+.edit-modal-content {
+  display: flex;
+  flex-direction: column;
+  width: 90vw;
+  max-width: 1200px;
+  height: 85vh;
+  max-height: 800px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.edit-modal-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.edit-image-preview {
+  flex: 0 0 400px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.edit-image-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.edit-form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.edit-form {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.edit-form .form-row {
+  margin-bottom: 0;
+}
+
+.edit-form .form-group {
+  margin-bottom: 0;
+}
+
+.edit-form .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  margin-top: auto;
+}
+
+.edit-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 0.875rem 1.5rem;
+  font-weight: 600;
+}
+
+/* Responsive design for edit modal */
+@media (max-width: 1024px) {
+  .edit-modal-content {
+    width: 95vw;
+    height: 90vh;
+    max-height: none;
+  }
+  
+  .edit-modal-body {
+    flex-direction: column;
+  }
+  
+  .edit-image-preview {
+    flex: 0 0 200px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .edit-form {
+    padding: 1.5rem;
+  }
+  
+  .edit-actions {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .edit-modal-content {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+  
+  .edit-image-preview {
+    flex: 0 0 150px;
+  }
+  
+  .edit-form {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .edit-form .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .edit-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 }

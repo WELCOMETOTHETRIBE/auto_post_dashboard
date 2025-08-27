@@ -316,6 +316,150 @@
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
 
+  <!-- Edit Post Modal -->
+  <div id="edit-modal" class="modal" style="display: none;">
+    <div class="modal-content edit-modal-content">
+      <div class="modal-header">
+        <h3>Edit Post</h3>
+        <button onclick="closeEditModal()" class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="edit-modal-body">
+        <div class="edit-image-preview">
+          <img id="edit-preview-image" src="" alt="Post preview" />
+        </div>
+        <div class="edit-form-container">
+          <form id="edit-form" class="edit-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-product">Product Category</label>
+                <select id="edit-product" class="form-control" onchange="updateEditProductInfo()">
+                  <option value="">Select Product</option>
+                  <option value="THRIVE">THRIVE</option>
+                  <option value="DRIVE">DRIVE</option>
+                  <option value="ALIGN">ALIGN</option>
+                  <option value="Clusters">Clusters</option>
+                </select>
+                <div id="edit-product-info" class="product-info" style="display: none;">
+                  <div class="product-details">
+                    <img src="" alt="Product" class="product-thumbnail">
+                    <div class="product-text">
+                      <h4 class="product-title"></h4>
+                      <p class="product-description"></p>
+                      <span class="product-price"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="edit-template">Post Template</label>
+                <select id="edit-template" class="form-control" onchange="applyEditTemplate()">
+                  <option value="">No Template</option>
+                  <option value="product-launch">Product Launch</option>
+                  <option value="lifestyle">Lifestyle</option>
+                  <option value="educational">Educational</option>
+                  <option value="promotional">Promotional</option>
+                  <option value="behind-scenes">Behind the Scenes</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-link">Link</label>
+                <input type="text" id="edit-link" class="form-control" placeholder="Optional link" />
+              </div>
+              
+              <div class="form-group">
+                <label for="edit-delay">Delay (hours)</label>
+                <input type="number" id="edit-delay" class="form-control" value="0" min="0" max="168" placeholder="0" />
+                <small class="form-help">Set to 0 for immediate posting, or enter hours to delay</small>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-prompt">Image Description</label>
+              <textarea id="edit-prompt" class="form-control" placeholder="Describe the image or message..."></textarea>
+              <small class="form-help">Describe the image to help generate better captions</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-caption">Generated Caption</label>
+              <div class="input-group">
+                <textarea id="edit-caption" class="form-control" placeholder="Click generate to create a caption"></textarea>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="generateEditCaption()">
+                  <i class="fas fa-magic"></i>
+                  <span>Generate</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-hashtags">Generated Hashtags</label>
+              <div class="input-group">
+                <input type="text" id="edit-hashtags" class="form-control" placeholder="Click generate to create hashtags" />
+                <button type="button" class="btn btn-sm btn-secondary" onclick="generateEditHashtags()">
+                  <i class="fas fa-hashtag"></i>
+                  <span>Generate</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Platforms</label>
+              <div class="platform-buttons">
+                <button type="button" class="platform-button" data-platform="Instagram" onclick="toggleEditPlatform(this)">
+                  <i class="fab fa-instagram"></i>
+                  <span>Instagram</span>
+                </button>
+                <button type="button" class="platform-button" data-platform="Facebook" onclick="toggleEditPlatform(this)">
+                  <i class="fab fa-facebook"></i>
+                  <span>Facebook</span>
+                </button>
+                <button type="button" class="platform-button" data-platform="LinkedIn" onclick="toggleEditPlatform(this)">
+                  <i class="fab fa-linkedin"></i>
+                  <span>LinkedIn</span>
+                </button>
+                <button type="button" class="platform-button" data-platform="X" onclick="toggleEditPlatform(this)">
+                  <i class="fab fa-twitter"></i>
+                  <span>X (Twitter)</span>
+                </button>
+                <button type="button" class="platform-button" data-platform="Pinterest" onclick="toggleEditPlatform(this)">
+                  <i class="fab fa-pinterest"></i>
+                  <span>Pinterest</span>
+                </button>
+                <button type="button" class="platform-button" data-platform="Reddit" onclick="toggleEditPlatform(this)">
+                  <i class="fab fa-reddit"></i>
+                  <span>Reddit</span>
+                </button>
+              </div>
+              <input type="hidden" id="edit-platform" value="" />
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-brand">Brand</label>
+              <select id="edit-brand" class="form-control">
+                <option value="wttt">WELCOME TO THE TRIBE</option>
+                <option value="denlys">Denly Gardens</option>
+                <option value="jabronis">Jabroni's</option>
+              </select>
+            </div>
+            
+            <div class="edit-actions">
+              <button type="button" onclick="closeEditModal()" class="btn btn-outline">Cancel</button>
+              <button type="button" class="btn btn-primary" onclick="submitEditPost()">
+                <i class="fas fa-paper-plane"></i>
+                <span>Post Now</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Authentication check
     function checkAuthentication() {
@@ -744,6 +888,276 @@
       modal.style.display = 'flex';
     }
 
+    // Edit Modal Functions
+    let currentEditData = null;
+
+    function openEditModal(index, imageUrl, tokenId, postElement) {
+      const modal = document.getElementById('edit-modal');
+      const previewImage = document.getElementById('edit-preview-image');
+      
+      // Set the preview image
+      previewImage.src = imageUrl;
+      
+      // Store current edit data
+      currentEditData = {
+        index: index,
+        imageUrl: imageUrl,
+        tokenId: tokenId,
+        postElement: postElement
+      };
+      
+      // Populate form with existing data if available
+      const post = allPosts[index];
+      if (post) {
+        document.getElementById('edit-product').value = post.product || '';
+        document.getElementById('edit-link').value = post.link || '';
+        document.getElementById('edit-delay').value = '0';
+        document.getElementById('edit-prompt').value = post.caption || '';
+        document.getElementById('edit-caption').value = post.caption || '';
+        document.getElementById('edit-hashtags').value = post.hashtags || '';
+        document.getElementById('edit-brand').value = post.brand || 'wttt';
+        
+        // Set platforms
+        if (post.platform) {
+          const platforms = post.platform.split(' ');
+          platforms.forEach(platform => {
+            const button = document.querySelector(`[data-platform="${platform}"]`);
+            if (button) {
+              button.classList.add('active');
+            }
+          });
+          document.getElementById('edit-platform').value = post.platform;
+        }
+      }
+      
+      modal.style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.style.display = 'none';
+      
+      // Reset form
+      document.getElementById('edit-form').reset();
+      
+      // Reset platform buttons
+      document.querySelectorAll('.platform-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      currentEditData = null;
+    }
+
+    function updateEditProductInfo() {
+      const productSelect = document.getElementById('edit-product');
+      const productInfo = document.getElementById('edit-product-info');
+      const selectedProduct = productSelect.value;
+      
+      if (selectedProduct && productsData.length > 0) {
+        const product = productsData.find(p => p.id === selectedProduct);
+        if (product) {
+          const thumbnail = productInfo.querySelector('.product-thumbnail');
+          const title = productInfo.querySelector('.product-title');
+          const description = productInfo.querySelector('.product-description');
+          const price = productInfo.querySelector('.product-price');
+          
+          thumbnail.src = product.images[0] || '';
+          title.textContent = product.title;
+          description.textContent = product.description;
+          price.textContent = `$${product.price}`;
+          
+          productInfo.style.display = 'block';
+        }
+      } else {
+        productInfo.style.display = 'none';
+      }
+    }
+
+    function applyEditTemplate() {
+      const template = document.getElementById('edit-template').value;
+      const captionField = document.getElementById('edit-caption');
+      const hashtagsField = document.getElementById('edit-hashtags');
+      
+      const templates = {
+        'product-launch': {
+          caption: '🚀 Exciting news! Our latest product is finally here. Experience the difference that quality makes. #NewProduct #Innovation',
+          hashtags: '#ProductLaunch #Innovation #Quality #NewRelease #Exclusive'
+        },
+        'lifestyle': {
+          caption: 'Living life to the fullest with our premium products. Every day is an opportunity to thrive! 💪 #Lifestyle #Wellness',
+          hashtags: '#Lifestyle #Wellness #HealthyLiving #Motivation #DailyInspiration'
+        },
+        'educational': {
+          caption: 'Knowledge is power! Here\'s what you need to know about [topic]. Stay informed, stay ahead. 📚 #Education #Knowledge',
+          hashtags: '#Education #Knowledge #Learning #Informative #StayInformed'
+        },
+        'promotional': {
+          caption: '🎉 Special offer alert! Don\'t miss out on this amazing deal. Limited time only! #SpecialOffer #Deal',
+          hashtags: '#SpecialOffer #Deal #LimitedTime #Discount #Savings'
+        },
+        'behind-scenes': {
+          caption: 'Behind the scenes of what makes us special. This is where the magic happens! ✨ #BehindTheScenes #Process',
+          hashtags: '#BehindTheScenes #Process #MakingOf #TeamWork #Exclusive'
+        }
+      };
+      
+      if (template && templates[template]) {
+        captionField.value = templates[template].caption;
+        hashtagsField.value = templates[template].hashtags;
+        showToast('Template applied successfully!', 'success');
+      }
+    }
+
+    function toggleEditPlatform(button) {
+      button.classList.toggle('active');
+      const platforms = Array.from(button.parentElement.querySelectorAll('.platform-button.active')).map(btn => btn.dataset.platform);
+      document.getElementById('edit-platform').value = platforms.join(' ');
+    }
+
+    async function generateEditCaption() {
+      const prompt = document.getElementById('edit-prompt').value;
+      const product = document.getElementById('edit-product').value;
+      const brand = document.getElementById('edit-brand').value;
+      const captionField = document.getElementById('edit-caption');
+      const generateBtn = captionField.nextElementSibling;
+      
+      if (!prompt.trim()) {
+        showToast('Please describe the image first', 'error');
+        return;
+      }
+
+      const enhancedPrompt = `${prompt} | Brand: ${brand} | Product: ${product}`;
+
+      const originalText = generateBtn.innerHTML;
+      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
+      generateBtn.disabled = true;
+      captionField.placeholder = "⏳ Generating caption...";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/generate-caption`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: enhancedPrompt })
+        });
+        
+        if (!res.ok) throw new Error('Generation failed');
+        
+        const data = await res.json();
+        captionField.value = data.caption || '';
+        showToast('✅ Caption generated!', 'success');
+      } catch (error) {
+        console.error('Error generating caption:', error);
+        showToast('❌ Failed to generate caption.', 'error');
+      } finally {
+        generateBtn.innerHTML = originalText;
+        generateBtn.disabled = false;
+        captionField.placeholder = "Click generate to create a caption";
+      }
+    }
+
+    async function generateEditHashtags() {
+      const caption = document.getElementById('edit-caption').value;
+      const hashtagsField = document.getElementById('edit-hashtags');
+      const generateBtn = hashtagsField.nextElementSibling;
+      
+      if (!caption.trim()) {
+        showToast('Please add a caption first', 'error');
+        return;
+      }
+
+      const originalText = generateBtn.innerHTML;
+      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
+      generateBtn.disabled = true;
+      hashtagsField.placeholder = "⏳ Generating hashtags...";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/generate-hashtags`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ caption })
+        });
+        
+        if (!res.ok) throw new Error('Generation failed');
+        
+        const data = await res.json();
+        hashtagsField.value = data.hashtags || '';
+        showToast('✅ Hashtags generated!', 'success');
+      } catch (error) {
+        console.error('Error generating hashtags:', error);
+        showToast('❌ Failed to generate hashtags.', 'error');
+      } finally {
+        generateBtn.innerHTML = originalText;
+        generateBtn.disabled = false;
+        hashtagsField.placeholder = "Click generate to create hashtags";
+      }
+    }
+
+    async function submitEditPost() {
+      if (!currentEditData) {
+        showToast('No post data available', 'error');
+        return;
+      }
+
+      const caption = document.getElementById('edit-caption').value;
+      const hashtags = document.getElementById('edit-hashtags').value;
+      const platform = document.getElementById('edit-platform').value;
+      const link = document.getElementById('edit-link').value;
+      const product = document.getElementById('edit-product').value;
+      const delay_hours = parseInt(document.getElementById('edit-delay').value) || 0;
+      const brand = document.getElementById('edit-brand').value;
+      
+      if (!caption.trim()) {
+        showToast('Caption is required', 'error');
+        return;
+      }
+      
+      if (!platform) {
+        showToast('At least one platform must be selected', 'error');
+        return;
+      }
+      
+      const payload = {
+        image_url: currentEditData.imageUrl,
+        caption,
+        hashtags,
+        platform,
+        token_id: currentEditData.tokenId,
+        link,
+        product,
+        brand,
+        delay_hours
+      };
+
+      const submitBtn = document.querySelector('.edit-actions .btn-primary');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Posting...</span>';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error('Post failed');
+        
+        showToast('✅ Post submitted successfully!', 'success');
+        closeEditModal();
+        
+        // Remove the post from the UI
+        if (currentEditData.postElement) {
+          currentEditData.postElement.remove();
+        }
+      } catch (error) {
+        console.error('Error submitting post:', error);
+        showToast('❌ Error submitting post. Please try again.', 'error');
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    }
+
     // Upload form handling
     document.getElementById('upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
@@ -974,7 +1388,7 @@
             <div class="image-overlay">
               <div class="overlay-content">
                 <i class="fas fa-edit"></i>
-                <span>Tap to edit</span>
+                <span>Click to edit</span>
               </div>
             </div>
             ${isPosted ? `<div class="posted-badge">
@@ -1008,129 +1422,11 @@
           </div>` : ''}
         </div>
         ` : `
-        <div class="post-details" style="display: none;">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="product-${index}">Product Category</label>
-              <select id="product-${index}" class="form-control" onchange="updateProductInfo(${index})">
-                <option value="">Select Product</option>
-                <option value="THRIVE">THRIVE</option>
-                <option value="DRIVE">DRIVE</option>
-                <option value="ALIGN">ALIGN</option>
-                <option value="Clusters">Clusters</option>
-              </select>
-              <div id="product-info-${index}" class="product-info" style="display: none;">
-                <div class="product-details">
-                  <img src="" alt="Product" class="product-thumbnail">
-                  <div class="product-text">
-                    <h4 class="product-title"></h4>
-                    <p class="product-description"></p>
-                    <span class="product-price"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="template-${index}">Post Template</label>
-              <select id="template-${index}" class="form-control" onchange="applyTemplate(${index})">
-                <option value="">No Template</option>
-                <option value="product-launch">Product Launch</option>
-                <option value="lifestyle">Lifestyle</option>
-                <option value="educational">Educational</option>
-                <option value="promotional">Promotional</option>
-                <option value="behind-scenes">Behind the Scenes</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="link-${index}">Link</label>
-              <input type="text" id="link-${index}" class="form-control" value="${post.link || ''}" placeholder="Optional link" />
-            </div>
-            
-            <div class="form-group">
-              <label for="delay-${index}">Delay (hours)</label>
-              <input type="number" id="delay-${index}" class="form-control" value="0" min="0" max="168" placeholder="0" />
-              <small class="form-help">Set to 0 for immediate posting, or enter hours to delay</small>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="prompt-${index}">Image Description</label>
-            <textarea id="prompt-${index}" class="form-control" placeholder="Describe the image or message...">${post.caption || ''}</textarea>
-            <small class="form-help">Describe the image to help generate better captions</small>
-          </div>
-          
-          <div class="form-group">
-            <label for="caption-${index}">Generated Caption</label>
-            <div class="input-group">
-              <textarea id="caption-${index}" class="form-control" placeholder="Click generate to create a caption"></textarea>
-              <button class="btn btn-sm btn-secondary" onclick="generateCaption(${index})">
-                <i class="fas fa-magic"></i>
-                <span>Generate</span>
-              </button>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="hashtags-${index}">Generated Hashtags</label>
-            <div class="input-group">
-              <input type="text" id="hashtags-${index}" class="form-control" placeholder="Click generate to create hashtags" />
-              <button class="btn btn-sm btn-secondary" onclick="generateHashtags(${index})">
-                <i class="fas fa-hashtag"></i>
-                <span>Generate</span>
-              </button>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Platforms</label>
-            <div class="platform-buttons">
-              <button type="button" class="platform-button" data-platform="Instagram" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">
-                <i class="fab fa-instagram"></i>
-                <span>Instagram</span>
-              </button>
-              <button type="button" class="platform-button" data-platform="Facebook" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">
-                <i class="fab fa-facebook"></i>
-                <span>Facebook</span>
-              </button>
-              <button type="button" class="platform-button" data-platform="LinkedIn" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">
-                <i class="fab fa-linkedin"></i>
-                <span>LinkedIn</span>
-              </button>
-              <button type="button" class="platform-button" data-platform="X" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">
-                <i class="fab fa-twitter"></i>
-                <span>X (Twitter)</span>
-              </button>
-              <button type="button" class="platform-button" data-platform="Pinterest" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">
-                <i class="fab fa-pinterest"></i>
-                <span>Pinterest</span>
-              </button>
-              <button type="button" class="platform-button" data-platform="Reddit" onclick="togglePlatform(this, document.getElementById('platform-${index}'))">
-                <i class="fab fa-reddit"></i>
-                <span>Reddit</span>
-              </button>
-            </div>
-            <input type="hidden" id="platform-${index}" value="${post.platform || ''}" />
-          </div>
-          
-          <div class="form-group">
-            <label for="brand-${index}">Brand</label>
-            <select id="brand-${index}" class="form-control">
-              <option value="wttt">WELCOME TO THE TRIBE</option>
-              <option value="denlys">Denly Gardens</option>
-              <option value="jabronis">Jabroni's</option>
-            </select>
-          </div>
-          
-          <div class="post-actions">
-            <button class="btn btn-primary post-now-btn" onclick="submitToSheet(${index}, '${post.image_url}', '${tokenId}', this)">
-              <i class="fas fa-paper-plane"></i>
-              <span>Post Now</span>
-            </button>
-          </div>
+        <div class="post-actions">
+          <button class="btn btn-primary post-now-btn" onclick="openEditModal(${index}, '${post.image_url}', '${tokenId}', this.closest('.post'))">
+            <i class="fas fa-edit"></i>
+            <span>Edit Post</span>
+          </button>
         </div>
         `}
       `;
@@ -1140,19 +1436,12 @@
 
     function togglePostDetails(imageContainer) {
       const post = imageContainer.closest('.post');
-      const details = post.querySelector('.post-details');
-      const overlay = imageContainer.querySelector('.overlay-content');
-      const isVisible = details.style.display !== 'none';
+      const index = post.dataset.index;
+      const imageUrl = post.dataset.imageUrl;
+      const tokenId = post.dataset.tokenId;
       
-      if (isVisible) {
-        details.style.display = 'none';
-        overlay.innerHTML = '<i class="fas fa-edit"></i><span>Tap to edit</span>';
-        post.classList.remove('expanded');
-      } else {
-        details.style.display = 'block';
-        overlay.innerHTML = '<i class="fas fa-chevron-up"></i><span>Tap to collapse</span>';
-        post.classList.add('expanded');
-      }
+      // Open edit modal with post data
+      openEditModal(index, imageUrl, tokenId, post);
     }
 
     async function generateCaption(index) {
@@ -1411,12 +1700,13 @@
 
     // Close modals when clicking outside
     window.addEventListener('click', function(e) {
-      const modals = ['upload-modal', 'image-modal'];
+      const modals = ['upload-modal', 'image-modal', 'edit-modal'];
       modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (e.target === modal) {
           if (modalId === 'upload-modal') toggleUploadModal();
           if (modalId === 'image-modal') closeImageModal();
+          if (modalId === 'edit-modal') closeEditModal();
         }
       });
     });
