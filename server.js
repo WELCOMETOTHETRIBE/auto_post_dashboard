@@ -229,125 +229,132 @@ app.post('/api/interpret-image', async (req, res) => {
       return res.status(500).json({ error: 'AI assistant not configured. Please contact administrator.' });
     }
 
-    // Create a prompt for image interpretation
-    const interpretationPrompt = `You are an expert social media content creator. Analyze the provided image and create engaging content.
+    console.log('Starting AI image interpretation for:', image_url, 'Brand:', brand, 'Product:', product);
 
-Image URL: ${image_url}
+    // Approach 1: Try to get context-based content generation
+    let description = '';
+    let caption = '';
+    let hashtags = '';
+
+    try {
+      // Create a prompt for image interpretation
+      const interpretationPrompt = `You are an expert social media content creator. I have an image for a social media post, and I need you to create engaging content based on the context.
+
+Image Context: ${image_url}
 Brand: ${brand || 'Not specified'}
 Product: ${product || 'Not specified'}
 
-Your task is to:
-1. Describe what you see in the image in detail
-2. Create an engaging social media caption (2-3 sentences)
-3. Generate relevant hashtags (5-8 hashtags)
+Based on this context, please create:
+1. A description of what this image likely contains (based on the brand/product context)
+2. An engaging social media caption that would work well with this type of image
+3. Relevant hashtags for this type of content
 
 IMPORTANT: You must respond in this exact JSON format:
 {
-  "description": "Your detailed description of the image content",
+  "description": "Your description of what this image likely contains based on the context",
   "caption": "Your engaging social media caption",
   "hashtags": "hashtag1 hashtag2 hashtag3 hashtag4 hashtag5"
 }
 
-Make the content engaging, authentic, and suitable for social media. Consider the brand and product context if provided.`;
+Make the content engaging, authentic, and suitable for social media. Consider the brand and product context to create relevant content.`;
 
-    console.log('Starting AI image interpretation for:', image_url);
-    const interpretation = await runAssistant(interpretationPrompt);
-    console.log('AI interpretation completed');
-    console.log('Raw AI response:', interpretation);
-    
-    // Try to parse the JSON response
-    try {
-      const parsedResponse = JSON.parse(interpretation);
-      console.log('Successfully parsed JSON response:', parsedResponse);
-      res.json({
-        description: parsedResponse.description || '',
-        caption: parsedResponse.caption || '',
-        hashtags: parsedResponse.hashtags || ''
-      });
-    } catch (parseError) {
-      console.log('JSON parsing failed, error:', parseError.message);
-      console.log('Attempting to extract content from text response');
+      console.log('Attempting context-based content generation...');
+      const interpretation = await runAssistant(interpretationPrompt);
+      console.log('AI interpretation completed');
+      console.log('Raw AI response:', interpretation);
       
-      // If JSON parsing fails, try to extract content from text response
-      let description = '';
-      let caption = '';
-      let hashtags = '';
-      
-      // Try multiple extraction methods
-      const lines = interpretation.split('\n');
-      
-      // Method 1: Look for specific patterns
-      for (const line of lines) {
-        const lowerLine = line.toLowerCase().trim();
-        if (lowerLine.includes('description:') || lowerLine.includes('what you see:') || lowerLine.includes('image shows:')) {
-          description = line.split(':').slice(1).join(':').trim();
-        } else if (lowerLine.includes('caption:') || lowerLine.includes('social media:') || lowerLine.includes('post:')) {
-          caption = line.split(':').slice(1).join(':').trim();
-        } else if (lowerLine.includes('hashtag') || line.includes('#')) {
-          hashtags = line.replace(/^.*?:/, '').trim();
-        }
-      }
-      
-      // Method 2: If still empty, try to extract from the full text
-      if (!description && !caption && !hashtags) {
-        // Split by common delimiters and try to extract meaningful content
-        const parts = interpretation.split(/[:\n]/);
-        for (let i = 0; i < parts.length; i++) {
-          const part = parts[i].trim();
-          if (part.length > 20 && !description) {
-            description = part;
-          } else if (part.length > 10 && !caption && part.includes(' ')) {
-            caption = part;
-          } else if (part.includes('#') && !hashtags) {
-            hashtags = part;
+      // Try to parse the JSON response
+      try {
+        const parsedResponse = JSON.parse(interpretation);
+        console.log('Successfully parsed JSON response:', parsedResponse);
+        description = parsedResponse.description || '';
+        caption = parsedResponse.caption || '';
+        hashtags = parsedResponse.hashtags || '';
+      } catch (parseError) {
+        console.log('JSON parsing failed, error:', parseError.message);
+        console.log('Attempting to extract content from text response');
+        
+        // Extract content from text response
+        const lines = interpretation.split('\n');
+        
+        for (const line of lines) {
+          const lowerLine = line.toLowerCase().trim();
+          if (lowerLine.includes('description:') || lowerLine.includes('what you see:') || lowerLine.includes('image shows:')) {
+            description = line.split(':').slice(1).join(':').trim();
+          } else if (lowerLine.includes('caption:') || lowerLine.includes('social media:') || lowerLine.includes('post:')) {
+            caption = line.split(':').slice(1).join(':').trim();
+          } else if (lowerLine.includes('hashtag') || line.includes('#')) {
+            hashtags = line.replace(/^.*?:/, '').trim();
           }
         }
       }
-      
-      // Method 3: Generate fallback content based on brand/product
-      if (!description) {
-        description = `A professional image for ${brand || 'our brand'}${product ? ` featuring ${product}` : ''}. The image appears to be high-quality and suitable for social media marketing.`;
-      }
-      
-      if (!caption) {
-        caption = `Discover amazing content from ${brand || 'our brand'}! ${product ? `Experience the quality of ${product}.` : 'Quality you can trust.'} #${brand || 'brand'} #quality #socialmedia`;
-      }
-      
-      if (!hashtags) {
-        hashtags = `#${brand || 'brand'} #socialmedia #content #quality #marketing`;
-      }
-      
-      // Method 4: Use existing caption/hashtag generation as fallback
-      if (!caption || caption.length < 20) {
-        try {
-          console.log('Using fallback caption generation');
-          const captionPrompt = `Generate an engaging social media caption for a ${brand || 'brand'} image${product ? ` featuring ${product}` : ''}. Make it exciting and authentic.`;
-          const fallbackCaption = await runAssistant(captionPrompt);
-          caption = fallbackCaption || caption;
-        } catch (captionError) {
-          console.log('Fallback caption generation failed:', captionError.message);
-        }
-      }
-      
-      if (!hashtags || !hashtags.includes('#')) {
-        try {
-          console.log('Using fallback hashtag generation');
-          const hashtagPrompt = `Generate 5-8 relevant hashtags for a ${brand || 'brand'} social media post${product ? ` about ${product}` : ''}. Only return hashtags separated by spaces.`;
-          const fallbackHashtags = await runAssistant(hashtagPrompt);
-          hashtags = fallbackHashtags || hashtags;
-        } catch (hashtagError) {
-          console.log('Fallback hashtag generation failed:', hashtagError.message);
-        }
-      }
-      
-      console.log('Final extracted content:', { description, caption, hashtags });
-      
-      res.json({
-        description: description || 'Image analysis completed',
-        caption: caption || 'Engaging content for your audience!',
-        hashtags: hashtags || '#content #socialmedia #engagement'
-      });
+    } catch (contextError) {
+      console.log('Context-based generation failed:', contextError.message);
     }
+
+    // Approach 2: Use existing endpoints as fallback
+    if (!caption || caption.length < 20) {
+      try {
+        console.log('Using caption generation endpoint...');
+        const captionRes = await fetch(`${req.protocol}://${req.get('host')}/api/generate-caption`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            prompt: `Create an engaging social media caption for a ${brand || 'brand'} image${product ? ` featuring ${product}` : ''}. Make it exciting and authentic.` 
+          })
+        });
+        
+        if (captionRes.ok) {
+          const captionData = await captionRes.json();
+          caption = captionData.caption || caption;
+          console.log('Generated caption:', caption);
+        }
+      } catch (captionError) {
+        console.log('Caption generation failed:', captionError.message);
+      }
+    }
+    
+    if (!hashtags || !hashtags.includes('#')) {
+      try {
+        console.log('Using hashtag generation endpoint...');
+        const hashtagRes = await fetch(`${req.protocol}://${req.get('host')}/api/generate-hashtags`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            caption: caption || `A ${brand || 'brand'} social media post${product ? ` about ${product}` : ''}` 
+          })
+        });
+        
+        if (hashtagRes.ok) {
+          const hashtagData = await hashtagRes.json();
+          hashtags = hashtagData.hashtags || hashtags;
+          console.log('Generated hashtags:', hashtags);
+        }
+      } catch (hashtagError) {
+        console.log('Hashtag generation failed:', hashtagError.message);
+      }
+    }
+
+    // Approach 3: Generate fallback content based on brand/product
+    if (!description) {
+      description = `A professional image for ${brand || 'our brand'}${product ? ` featuring ${product}` : ''}. The image appears to be high-quality and suitable for social media marketing.`;
+    }
+    
+    if (!caption) {
+      caption = `Discover amazing content from ${brand || 'our brand'}! ${product ? `Experience the quality of ${product}.` : 'Quality you can trust.'} #${brand || 'brand'} #quality #socialmedia`;
+    }
+    
+    if (!hashtags) {
+      hashtags = `#${brand || 'brand'} #socialmedia #content #quality #marketing`;
+    }
+    
+    console.log('Final content:', { description, caption, hashtags });
+    
+    res.json({
+      description: description || 'Image analysis completed',
+      caption: caption || 'Engaging content for your audience!',
+      hashtags: hashtags || '#content #socialmedia #engagement'
+    });
     
   } catch (error) {
     console.error('Image interpretation error:', error);
