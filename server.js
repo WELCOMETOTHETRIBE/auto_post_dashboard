@@ -127,6 +127,76 @@ app.post('/api/generate-hashtags', async (req, res) => {
   }
 });
 
+// === AI Image Interpretation ===
+app.post('/api/interpret-image', async (req, res) => {
+  try {
+    const { image_url, brand, product } = req.body;
+    
+    if (!image_url) {
+      return res.status(400).json({ error: 'Image URL is required' });
+    }
+
+    // Create a prompt for image interpretation
+    const interpretationPrompt = `Analyze this image and create an engaging social media caption. 
+    
+    Image URL: ${image_url}
+    Brand: ${brand || 'Not specified'}
+    Product: ${product || 'Not specified'}
+    
+    Please provide:
+    1. A detailed description of what you see in the image
+    2. An engaging social media caption (2-3 sentences max)
+    3. Relevant hashtags (5-8 hashtags)
+    
+    Format your response as JSON:
+    {
+      "description": "Detailed description of the image content",
+      "caption": "Engaging social media caption",
+      "hashtags": "hashtag1 hashtag2 hashtag3 hashtag4 hashtag5"
+    }
+    
+    Make the caption engaging, authentic, and suitable for social media. Consider the brand and product context if provided.`;
+
+    const interpretation = await runAssistant(interpretationPrompt);
+    
+    // Try to parse the JSON response
+    try {
+      const parsedResponse = JSON.parse(interpretation);
+      res.json({
+        description: parsedResponse.description || '',
+        caption: parsedResponse.caption || '',
+        hashtags: parsedResponse.hashtags || ''
+      });
+    } catch (parseError) {
+      // If JSON parsing fails, extract content from text response
+      const lines = interpretation.split('\n');
+      let description = '';
+      let caption = '';
+      let hashtags = '';
+      
+      for (const line of lines) {
+        if (line.toLowerCase().includes('description:') || line.toLowerCase().includes('what you see:')) {
+          description = line.split(':').slice(1).join(':').trim();
+        } else if (line.toLowerCase().includes('caption:') || line.toLowerCase().includes('social media:')) {
+          caption = line.split(':').slice(1).join(':').trim();
+        } else if (line.toLowerCase().includes('hashtag') || line.includes('#')) {
+          hashtags = line.replace(/^.*?:/, '').trim();
+        }
+      }
+      
+      res.json({
+        description: description || 'Image analysis completed',
+        caption: caption || 'Engaging content for your audience!',
+        hashtags: hashtags || '#content #socialmedia #engagement'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Image interpretation error:', error);
+    res.status(500).json({ error: 'Failed to interpret image' });
+  }
+});
+
 // === Submit & Update GitHub ===
 app.post('/submit', async (req, res) => {
   try {

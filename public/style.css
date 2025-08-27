@@ -1833,3 +1833,86 @@ body {
   background: #4b5563;
   border-color: #4b5563;
 }
+
+/* === AI Analysis Button Styles === */
+.btn-ai-analyze {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ai-analyze:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-ai-analyze:active {
+  transform: translateY(0);
+}
+
+.btn-ai-analyze i {
+  margin-right: 0.5rem;
+}
+
+/* AI Analysis Loading State */
+.analyzing {
+  position: relative;
+  color: #6b7280;
+}
+
+.analyzing::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Enhanced Input Group for AI Analysis */
+.input-group-ai {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.input-group-ai .form-control {
+  flex: 1;
+  border-radius: 6px 0 0 6px;
+}
+
+.input-group-ai .btn {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+  min-width: 120px;
+}
+
+/* AI Analysis Success State */
+.ai-success {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+}
+
+.ai-success .form-control {
+  border-color: #059669;
+}
+
+/* AI Analysis Error State */
+.ai-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+}
+
+.ai-error .form-control {
+  border-color: #dc2626;
+}
