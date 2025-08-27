@@ -1,0 +1,122 @@
+[
+  {
+    "id": "wttt-001",
+    "title": "FruTropics Energy Drink - Tropical",
+    "description": "Natural energy boost with tropical fruit flavors",
+    "price": 29.99,
+    "sale_price": null,
+    "currency": "USD",
+    "images": [
+      "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/tropicalflavor.png"
+    ],
+    "variants": [
+      {
+        "id": "wttt-001-tropical",
+        "title": "Tropical Flavor",
+        "price": 29.99,
+        "stock": 50
+      }
+    ],
+    "tags": ["energy", "natural", "tropical", "beverage"],
+    "category": "Beverages",
+    "brand": "wttt",
+    "shop_url": "https://frutropics.com/products/tropical-energy",
+    "status": "active"
+  },
+  {
+    "id": "wttt-002", 
+    "title": "FruTropics ALIGN - Wellness Formula",
+    "description": "Daily wellness supplement for optimal health",
+    "price": 39.99,
+    "sale_price": 34.99,
+    "currency": "USD",
+    "images": [
+      "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/ALIGN_Transparent_r3.png"
+    ],
+    "variants": [
+      {
+        "id": "wttt-002-align",
+        "title": "30-Day Supply",
+        "price": 39.99,
+        "stock": 25
+      }
+    ],
+    "tags": ["wellness", "supplement", "health", "daily"],
+    "category": "Supplements",
+    "brand": "wttt",
+    "shop_url": "https://frutropics.com/products/align-wellness",
+    "status": "active"
+  },
+  {
+    "id": "wttt-003",
+    "title": "FruTropics DRIVE - Performance Formula",
+    "description": "Enhanced performance and focus formula",
+    "price": 44.99,
+    "sale_price": null,
+    "currency": "USD",
+    "images": [
+      "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/DRIVE_Transparent_r2.png"
+    ],
+    "variants": [
+      {
+        "id": "wttt-003-drive",
+        "title": "30-Day Supply",
+        "price": 44.99,
+        "stock": 30
+      }
+    ],
+    "tags": ["performance", "focus", "energy", "fitness"],
+    "category": "Supplements",
+    "brand": "wttt",
+    "shop_url": "https://frutropics.com/products/drive-performance",
+    "status": "active"
+  },
+  {
+    "id": "denlys-001",
+    "title": "Denly Gardens Organic Seeds - Basil",
+    "description": "Premium organic basil seeds for home gardening",
+    "price": 12.99,
+    "sale_price": 9.99,
+    "currency": "USD",
+    "images": [
+      "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/IMG_2519.jpeg"
+    ],
+    "variants": [
+      {
+        "id": "denlys-001-basil",
+        "title": "Basil Seeds Pack",
+        "price": 12.99,
+        "stock": 100
+      }
+    ],
+    "tags": ["organic", "seeds", "basil", "gardening", "herbs"],
+    "category": "Seeds",
+    "brand": "denlys",
+    "shop_url": "https://denlygardens.com/products/basil-seeds",
+    "status": "active"
+  },
+  {
+    "id": "jabronis-001",
+    "title": "Jabroni's Premium Protein Powder",
+    "description": "High-quality protein powder for muscle building",
+    "price": 59.99,
+    "sale_price": null,
+    "currency": "USD",
+    "images": [
+      "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/archive/thrive_3.png"
+    ],
+    "variants": [
+      {
+        "id": "jabronis-001-protein",
+        "title": "Chocolate Flavor - 2lb",
+        "price": 59.99,
+        "stock": 40
+      }
+    ],
+    "tags": ["protein", "fitness", "muscle", "supplement"],
+    "category": "Supplements",
+    "brand": "jabronis",
+    "shop_url": "https://jabronis.com/products/premium-protein",
+    "status": "active"
+  }
+] 
