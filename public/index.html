@@ -1484,7 +1484,19 @@
           promptField.parentElement.classList.remove('ai-error');
         }, 3000);
         
-        showToast(`❌ ${error.message || 'Failed to interpret image. Please try again.'}`, 'error');
+        // Provide helpful error message and fallback
+        let errorMessage = error.message || 'Failed to interpret image. Please try again.';
+        
+        if (errorMessage.includes('not configured') || errorMessage.includes('authentication failed')) {
+          errorMessage = 'AI service temporarily unavailable. Please describe the image manually and use the generate buttons.';
+          showToast('💡 Tip: You can still generate captions manually by describing the image and clicking "Generate"', 'info');
+        } else if (errorMessage.includes('timed out')) {
+          errorMessage = 'AI analysis took too long. Please try again or describe the image manually.';
+        } else if (errorMessage.includes('assistant not available')) {
+          errorMessage = 'AI assistant is busy. Please try again in a moment or describe the image manually.';
+        }
+        
+        showToast(`❌ ${errorMessage}`, 'error');
       } finally {
         // Reset button state
         analyzeBtn.innerHTML = originalText;
