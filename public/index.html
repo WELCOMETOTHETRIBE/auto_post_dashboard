@@ -2,207 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multi-Brand Content Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Content Hub" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="msapplication-TileColor" content="#3b82f6" />
+  <meta name="msapplication-navbutton-color" content="#3b82f6" />
+  
+  <title>Content Hub</title>
+  
+  <!-- iOS Icons -->
+  <link rel="apple-touch-icon" href="wttt-logo.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="wttt-logo.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="wttt-logo.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="wttt-logo.png" />
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="style.css" as="style" />
+  <link rel="preload" href="app.js" as="script" />
+  
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- iOS Splash Screen -->
+  <style>
+    @media screen and (max-width: 390px) and (max-height: 844px) {
+      .ios-splash {
+        background-image: url('wttt-logo.png');
+        background-size: 120px 120px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #3b82f6;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Sidebar Navigation -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <img src="wttt-logo.png" alt="WTTT Logo" class="logo-image">
-        <h1>Content Hub</h1>
-      </div>
-      <p class="tagline">Multi-Brand Dashboard</p>
+  <!-- iOS Splash Screen -->
+  <div id="ios-splash" class="ios-splash">
+    <div class="splash-content">
+      <img src="wttt-logo.png" alt="WTTT Logo" class="splash-logo">
+      <h1>Content Hub</h1>
+      <div class="splash-spinner"></div>
     </div>
-    
+  </div>
 
-    
-    <nav class="sidebar-nav">
-      <div class="nav-section">
-        <h3>Quick Actions</h3>
-        <button onclick="toggleUploadModal()" class="nav-btn primary">
-          <i class="fas fa-cloud-upload-alt"></i>
-          <span>Upload Media</span>
-        </button>
-      </div>
-      
-      <div class="nav-section">
-        <h3>Social Platforms</h3>
-        <div class="social-links">
-          <a href="https://www.instagram.com/wttt_official/" target="_blank" class="social-link">
-            <i class="fab fa-instagram"></i>
-            <span>Instagram</span>
-          </a>
-          <a href="https://www.facebook.com/wttt_official/" target="_blank" class="social-link">
-            <i class="fab fa-facebook"></i>
-            <span>Facebook</span>
-          </a>
-          <a href="https://twitter.com/wttt_official/" target="_blank" class="social-link">
-            <i class="fab fa-twitter"></i>
-            <span>Twitter</span>
-          </a>
-          <a href="https://www.tiktok.com/@wttt_official/" target="_blank" class="social-link">
-            <i class="fab fa-tiktok"></i>
-            <span>TikTok</span>
-          </a>
-          <a href="https://www.reddit.com/r/wttt_official/" target="_blank" class="social-link">
-            <i class="fab fa-reddit"></i>
-            <span>Reddit</span>
-          </a>
-          <a href="https://www.youtube.com/@wttt_official/" target="_blank" class="social-link">
-            <i class="fab fa-youtube"></i>
-            <span>YouTube</span>
-          </a>
-        </div>
-      </div>
-      
-      <div class="nav-section">
-        <h3>Analytics</h3>
-        <div class="analytics-summary">
-          <div class="analytics-item">
-            <span class="analytics-number" id="total-posts">0</span>
-            <span class="analytics-label">Total Posts</span>
-          </div>
-          <div class="analytics-item">
-            <span class="analytics-number" id="brand-breakdown">0</span>
-            <span class="analytics-label">Brands Active</span>
-          </div>
-          <div class="analytics-item">
-            <span class="analytics-number" id="completion-rate">0%</span>
-            <span class="analytics-label">Completion Rate</span>
-          </div>
-          <div class="analytics-item">
-            <span class="analytics-number" id="avg-engagement">0</span>
-            <span class="analytics-label">Avg Engagement</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="nav-section">
-        <button onclick="logout()" class="nav-btn logout-btn">
-          <i class="fas fa-sign-out-alt"></i>
-          <span>Sign Out</span>
-        </button>
-      </div>
-    </nav>
-  </aside>
-
-  <!-- Main Content Area -->
-  <main class="main-content">
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-      <i class="fas fa-bars"></i>
+  <!-- Bottom Navigation (Mobile First) -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('active')" id="active-tab">
+      <i class="fas fa-clock"></i>
+      <span>Active</span>
     </button>
-    
-    <!-- Top Header -->
-    <header class="top-header">
+    <button class="nav-item" onclick="switchTab('posted')" id="posted-tab">
+      <i class="fas fa-check-circle"></i>
+      <span>Posted</span>
+    </button>
+    <button class="nav-item" onclick="toggleUploadModal()">
+      <i class="fas fa-plus"></i>
+      <span>Upload</span>
+    </button>
+    <button class="nav-item" onclick="toggleSearchModal()">
+      <i class="fas fa-search"></i>
+      <span>Search</span>
+    </button>
+    <button class="nav-item" onclick="toggleProfileModal()">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="header-content">
       <div class="header-left">
-        <h2>Content Queue</h2>
-        <p class="subtitle">Manage and schedule posts across all brands</p>
+        <h1>Content Hub</h1>
+        <p class="subtitle">Multi-Brand Dashboard</p>
       </div>
       <div class="header-right">
-        <div class="view-controls">
-          <button class="view-btn active" onclick="setViewMode('grid')">
-            <i class="fas fa-th"></i>
-          </button>
-          <button class="view-btn" onclick="setViewMode('list')">
-            <i class="fas fa-list"></i>
-          </button>
-        </div>
-        <button onclick="exportPosts()" class="btn btn-outline">
-          <i class="fas fa-download"></i>
-          <span>Export</span>
+        <button onclick="toggleViewMode()" class="view-toggle-btn">
+          <i class="fas fa-th" id="view-icon"></i>
         </button>
-        <button onclick="toggleBulkMode()" class="btn btn-outline" id="bulk-mode-btn">
+        <button onclick="toggleBulkMode()" class="bulk-btn" id="bulk-mode-btn">
           <i class="fas fa-check-square"></i>
-          <span>Bulk Select</span>
-        </button>
-        <button onclick="bulkPost()" class="btn btn-primary" id="bulk-post-btn" style="display: none;">
-          <i class="fas fa-paper-plane"></i>
-          <span>Post Selected</span>
-        </button>
-        <button onclick="bulkGenerateCaptions()" class="btn btn-secondary" id="bulk-caption-btn" style="display: none;">
-          <i class="fas fa-magic"></i>
-          <span>Generate Captions</span>
-        </button>
-        <button onclick="bulkSchedule()" class="btn btn-outline" id="bulk-schedule-btn" style="display: none;">
-          <i class="fas fa-clock"></i>
-          <span>Schedule Selected</span>
         </button>
       </div>
-    </header>
-
-    <!-- Tab Navigation -->
-    <div class="tab-navigation">
-      <button class="tab-btn active" onclick="switchTab('active')" id="active-tab">
-        <i class="fas fa-clock"></i>
-        <span>Active Posts</span>
-        <span class="tab-count" id="active-count">0</span>
-      </button>
-      <button class="tab-btn" onclick="switchTab('posted')" id="posted-tab">
-        <i class="fas fa-check-circle"></i>
-        <span>Posted</span>
-        <span class="tab-count" id="posted-count">0</span>
-      </button>
     </div>
-
-    <!-- Filter Section -->
-    <div class="filter-section">
-      <div class="search-section">
-        <div class="search-container">
-          <i class="fas fa-search search-icon"></i>
-          <input type="text" id="search-posts" placeholder="Search posts, captions, hashtags..." 
-                 class="search-input" onkeyup="searchPosts()">
-          <button onclick="clearSearch()" class="clear-search-btn" id="clear-search-btn" style="display: none;">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+    
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+      <div class="stat-item">
+        <span class="stat-number" id="total-posts">0</span>
+        <span class="stat-label">Posts</span>
       </div>
-      
-      <div class="filter-controls">
-        <div class="filter-group">
-          <label for="brand-filter">Filter by Brand:</label>
-          <select id="brand-filter" class="filter-select" onchange="filterPosts()">
-            <option value="">All Brands</option>
-            <option value="wttt">WELCOME TO THE TRIBE</option>
-            <option value="denlys">Denly Gardens</option>
-            <option value="jabronis">Jabroni's</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label for="product-filter">Filter by Product:</label>
-          <select id="product-filter" class="filter-select" onchange="filterPosts()">
-            <option value="">All Products</option>
-            <option value="THRIVE">THRIVE</option>
-            <option value="DRIVE">DRIVE</option>
-            <option value="ALIGN">ALIGN</option>
-            <option value="Clusters">Clusters</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Quick Filters:</label>
-          <div class="quick-filters">
-            <label class="filter-checkbox">
-              <input type="checkbox" id="has-caption" onchange="filterPosts()">
-              <span>Has Caption</span>
-            </label>
-            <label class="filter-checkbox">
-              <input type="checkbox" id="has-hashtags" onchange="filterPosts()">
-              <span>Has Hashtags</span>
-            </label>
-            <label class="filter-checkbox">
-              <input type="checkbox" id="has-link" onchange="filterPosts()">
-              <span>Has Link</span>
-            </label>
-          </div>
-        </div>
-        <button onclick="clearFilters()" class="btn btn-outline btn-sm">
-          <i class="fas fa-times"></i>
-          <span>Clear All</span>
+      <div class="stat-item">
+        <span class="stat-number" id="brand-breakdown">0</span>
+        <span class="stat-label">Brands</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="completion-rate">0%</span>
+        <span class="stat-label">Complete</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <main class="main-content">
+    <!-- Bulk Actions Bar -->
+    <div id="bulk-actions" class="bulk-actions" style="display: none;">
+      <div class="bulk-info">
+        <span id="bulk-count">0</span> selected
+      </div>
+      <div class="bulk-buttons">
+        <button onclick="bulkGenerateCaptions()" class="btn btn-sm btn-secondary">
+          <i class="fas fa-magic"></i>
+        </button>
+        <button onclick="bulkSchedule()" class="btn btn-sm btn-outline">
+          <i class="fas fa-clock"></i>
+        </button>
+        <button onclick="bulkPost()" class="btn btn-sm btn-primary">
+          <i class="fas fa-paper-plane"></i>
         </button>
       </div>
     </div>
@@ -230,41 +154,36 @@
     </div>
   </main>
 
-
-
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content upload-modal-content">
       <div class="modal-header">
-        <h3>Upload New Media</h3>
+        <h3>Upload Media</h3>
         <button onclick="toggleUploadModal()" class="modal-close">
           <i class="fas fa-times"></i>
         </button>
       </div>
+      
       <form id="upload-form" enctype="multipart/form-data" class="upload-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="upload-brand">Select Brand</label>
-            <select id="upload-brand" name="brand" class="form-control" required onchange="loadProductsForBrand()">
-              <option value="">Choose a brand...</option>
-              <option value="wttt">WELCOME TO THE TRIBE</option>
-              <option value="denlys">Denly Gardens</option>
-              <option value="jabronis">Jabroni's</option>
-            </select>
-            <small class="form-help">Select which brand this media is for</small>
-          </div>
-          
-          <div class="form-group">
-            <label for="upload-product">Product (Optional)</label>
-            <select id="upload-product" name="product" class="form-control">
-              <option value="">No specific product</option>
-            </select>
-            <small class="form-help">Link to a specific product</small>
-          </div>
+        <div class="form-group">
+          <label for="upload-brand">Brand</label>
+          <select id="upload-brand" name="brand" class="form-control" required onchange="loadProductsForBrand()">
+            <option value="">Choose brand...</option>
+            <option value="wttt">WELCOME TO THE TRIBE</option>
+            <option value="denlys">Denly Gardens</option>
+            <option value="jabronis">Jabroni's</option>
+          </select>
         </div>
         
         <div class="form-group">
-          <label for="upload-template">Post Template (Optional)</label>
+          <label for="upload-product">Product (Optional)</label>
+          <select id="upload-product" name="product" class="form-control">
+            <option value="">No specific product</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="upload-template">Template</label>
           <select id="upload-template" name="template" class="form-control" onchange="applyUploadTemplate()">
             <option value="">No Template</option>
             <option value="product-launch">Product Launch</option>
@@ -273,15 +192,14 @@
             <option value="promotional">Promotional</option>
             <option value="behind-scenes">Behind the Scenes</option>
           </select>
-          <small class="form-help">Pre-fill with template content</small>
         </div>
         
         <div class="file-upload-area">
           <input id="file-upload" type="file" name="image" accept="image/*,video/*" multiple required />
           <label for="file-upload" class="file-upload-label">
             <i class="fas fa-cloud-upload-alt"></i>
-            <span>Choose files or drag & drop</span>
-            <small>Supports images and videos (max 10 files)</small>
+            <span>Choose files or tap to select</span>
+            <small>Images & videos (max 10)</small>
           </label>
         </div>
         
@@ -294,27 +212,137 @@
           <button type="button" onclick="toggleUploadModal()" class="btn btn-outline">Cancel</button>
           <button type="submit" class="btn btn-primary">
             <i class="fas fa-upload"></i>
-            <span>Upload Files</span>
+            <span>Upload</span>
           </button>
         </div>
       </form>
     </div>
   </div>
 
-
-
-  <!-- Image Preview Modal -->
-  <div id="image-modal" class="modal" style="display: none;">
-    <div class="modal-content image-modal-content">
-      <button onclick="closeImageModal()" class="modal-close">
-        <i class="fas fa-times"></i>
-      </button>
-      <img id="preview-image" src="" alt="Preview" />
+  <!-- Search Modal -->
+  <div id="search-modal" class="modal" style="display: none;">
+    <div class="modal-content search-modal-content">
+      <div class="modal-header">
+        <h3>Search & Filters</h3>
+        <button onclick="toggleSearchModal()" class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="search-content">
+        <div class="search-section">
+          <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-posts" placeholder="Search posts, captions, hashtags..." 
+                   class="search-input" onkeyup="searchPosts()">
+            <button onclick="clearSearch()" class="clear-search-btn" id="clear-search-btn" style="display: none;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="brand-filter">Brand</label>
+            <select id="brand-filter" class="filter-select" onchange="filterPosts()">
+              <option value="">All Brands</option>
+              <option value="wttt">WELCOME TO THE TRIBE</option>
+              <option value="denlys">Denly Gardens</option>
+              <option value="jabronis">Jabroni's</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label for="product-filter">Product</label>
+            <select id="product-filter" class="filter-select" onchange="filterPosts()">
+              <option value="">All Products</option>
+              <option value="THRIVE">THRIVE</option>
+              <option value="DRIVE">DRIVE</option>
+              <option value="ALIGN">ALIGN</option>
+              <option value="Clusters">Clusters</option>
+            </select>
+          </div>
+          
+          <div class="quick-filters">
+            <label class="filter-checkbox">
+              <input type="checkbox" id="has-caption" onchange="filterPosts()">
+              <span>Has Caption</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="has-hashtags" onchange="filterPosts()">
+              <span>Has Hashtags</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="has-link" onchange="filterPosts()">
+              <span>Has Link</span>
+            </label>
+          </div>
+          
+          <button onclick="clearFilters()" class="btn btn-outline btn-sm">
+            <i class="fas fa-times"></i>
+            <span>Clear All</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Toast Notifications -->
-  <div id="toast-container" class="toast-container"></div>
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal" style="display: none;">
+    <div class="modal-content profile-modal-content">
+      <div class="modal-header">
+        <h3>Profile & Settings</h3>
+        <button onclick="toggleProfileModal()" class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="profile-content">
+        <div class="profile-section">
+          <div class="profile-info">
+            <img src="wttt-logo.png" alt="Profile" class="profile-avatar">
+            <div class="profile-details">
+              <h4>Content Manager</h4>
+              <p>Multi-Brand Dashboard</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="profile-section">
+          <h4>Social Platforms</h4>
+          <div class="social-links">
+            <a href="https://www.instagram.com/wttt_official/" target="_blank" class="social-link">
+              <i class="fab fa-instagram"></i>
+              <span>Instagram</span>
+            </a>
+            <a href="https://www.facebook.com/wttt_official/" target="_blank" class="social-link">
+              <i class="fab fa-facebook"></i>
+              <span>Facebook</span>
+            </a>
+            <a href="https://twitter.com/wttt_official/" target="_blank" class="social-link">
+              <i class="fab fa-twitter"></i>
+              <span>Twitter</span>
+            </a>
+            <a href="https://www.tiktok.com/@wttt_official/" target="_blank" class="social-link">
+              <i class="fab fa-tiktok"></i>
+              <span>TikTok</span>
+            </a>
+          </div>
+        </div>
+        
+        <div class="profile-section">
+          <button onclick="exportPosts()" class="btn btn-outline btn-full">
+            <i class="fas fa-download"></i>
+            <span>Export Data</span>
+          </button>
+          <button onclick="logout()" class="btn btn-outline btn-full logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Edit Post Modal -->
   <div id="edit-modal" class="modal" style="display: none;">
@@ -325,86 +353,79 @@
           <i class="fas fa-times"></i>
         </button>
       </div>
+      
       <div class="edit-modal-body">
         <div class="edit-image-preview">
           <img id="edit-preview-image" src="" alt="Post preview" />
         </div>
+        
         <div class="edit-form-container">
           <form id="edit-form" class="edit-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="edit-product">Product Category</label>
-                <select id="edit-product" class="form-control" onchange="updateEditProductInfo()">
-                  <option value="">Select Product</option>
-                  <option value="THRIVE">THRIVE</option>
-                  <option value="DRIVE">DRIVE</option>
-                  <option value="ALIGN">ALIGN</option>
-                  <option value="Clusters">Clusters</option>
-                </select>
-                <div id="edit-product-info" class="product-info" style="display: none;">
-                  <div class="product-details">
-                    <img src="" alt="Product" class="product-thumbnail">
-                    <div class="product-text">
-                      <h4 class="product-title"></h4>
-                      <p class="product-description"></p>
-                      <span class="product-price"></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="edit-template">Post Template</label>
-                <select id="edit-template" class="form-control" onchange="applyEditTemplate()">
-                  <option value="">No Template</option>
-                  <option value="product-launch">Product Launch</option>
-                  <option value="lifestyle">Lifestyle</option>
-                  <option value="educational">Educational</option>
-                  <option value="promotional">Promotional</option>
-                  <option value="behind-scenes">Behind the Scenes</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label for="edit-link">Link</label>
-                <input type="text" id="edit-link" class="form-control" placeholder="Optional link" />
-              </div>
-              
-              <div class="form-group">
-                <label for="edit-delay">Delay (hours)</label>
-                <input type="number" id="edit-delay" class="form-control" value="0" min="0" max="168" placeholder="0" />
-                <small class="form-help">Set to 0 for immediate posting, or enter hours to delay</small>
-              </div>
+            <div class="form-group">
+              <label for="edit-brand">Brand</label>
+              <select id="edit-brand" class="form-control">
+                <option value="wttt">WELCOME TO THE TRIBE</option>
+                <option value="denlys">Denly Gardens</option>
+                <option value="jabronis">Jabroni's</option>
+              </select>
             </div>
             
             <div class="form-group">
-              <label for="edit-prompt">Image Description</label>
-              <textarea id="edit-prompt" class="form-control" placeholder="Describe the image or message..."></textarea>
-              <small class="form-help">Describe the image to help generate better captions</small>
+              <label for="edit-product">Product</label>
+              <select id="edit-product" class="form-control" onchange="updateEditProductInfo()">
+                <option value="">Select Product</option>
+                <option value="THRIVE">THRIVE</option>
+                <option value="DRIVE">DRIVE</option>
+                <option value="ALIGN">ALIGN</option>
+                <option value="Clusters">Clusters</option>
+              </select>
             </div>
             
             <div class="form-group">
-              <label for="edit-caption">Generated Caption</label>
+              <label for="edit-template">Template</label>
+              <select id="edit-template" class="form-control" onchange="applyEditTemplate()">
+                <option value="">No Template</option>
+                <option value="product-launch">Product Launch</option>
+                <option value="lifestyle">Lifestyle</option>
+                <option value="educational">Educational</option>
+                <option value="promotional">Promotional</option>
+                <option value="behind-scenes">Behind the Scenes</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-prompt">Description</label>
+              <textarea id="edit-prompt" class="form-control" placeholder="Describe the image..."></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-caption">Caption</label>
               <div class="input-group">
                 <textarea id="edit-caption" class="form-control" placeholder="Click generate to create a caption"></textarea>
                 <button type="button" class="btn btn-sm btn-secondary" onclick="generateEditCaption()">
                   <i class="fas fa-magic"></i>
-                  <span>Generate</span>
                 </button>
               </div>
             </div>
             
             <div class="form-group">
-              <label for="edit-hashtags">Generated Hashtags</label>
+              <label for="edit-hashtags">Hashtags</label>
               <div class="input-group">
                 <input type="text" id="edit-hashtags" class="form-control" placeholder="Click generate to create hashtags" />
                 <button type="button" class="btn btn-sm btn-secondary" onclick="generateEditHashtags()">
                   <i class="fas fa-hashtag"></i>
-                  <span>Generate</span>
                 </button>
               </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-link">Link (Optional)</label>
+              <input type="text" id="edit-link" class="form-control" placeholder="Optional link" />
+            </div>
+            
+            <div class="form-group">
+              <label for="edit-delay">Delay (hours)</label>
+              <input type="number" id="edit-delay" class="form-control" value="0" min="0" max="168" placeholder="0" />
             </div>
             
             <div class="form-group">
@@ -426,25 +447,8 @@
                   <i class="fab fa-twitter"></i>
                   <span>X (Twitter)</span>
                 </button>
-                <button type="button" class="platform-button" data-platform="Pinterest" onclick="toggleEditPlatform(this)">
-                  <i class="fab fa-pinterest"></i>
-                  <span>Pinterest</span>
-                </button>
-                <button type="button" class="platform-button" data-platform="Reddit" onclick="toggleEditPlatform(this)">
-                  <i class="fab fa-reddit"></i>
-                  <span>Reddit</span>
-                </button>
               </div>
               <input type="hidden" id="edit-platform" value="" />
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-brand">Brand</label>
-              <select id="edit-brand" class="form-control">
-                <option value="wttt">WELCOME TO THE TRIBE</option>
-                <option value="denlys">Denly Gardens</option>
-                <option value="jabronis">Jabroni's</option>
-              </select>
             </div>
             
             <div class="edit-actions">
@@ -460,1258 +464,27 @@
     </div>
   </div>
 
-  <script>
-    // Authentication check
-    function checkAuthentication() {
-      const authenticated = sessionStorage.getItem('authenticated');
-      const loginTime = sessionStorage.getItem('loginTime');
-      
-      if (authenticated !== 'true' || !loginTime) {
-        window.location.href = 'login.html';
-        return false;
-      }
-      
-      const now = Date.now();
-      const loginTimestamp = parseInt(loginTime);
-      const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours
-      
-      if (now - loginTimestamp >= sessionDuration) {
-        // Session expired
-        sessionStorage.removeItem('authenticated');
-        sessionStorage.removeItem('loginTime');
-        window.location.href = 'login.html';
-        return false;
-      }
-      
-      return true;
-    }
-    
-    // Check authentication on page load
-    if (!checkAuthentication()) {
-      // Stop execution if not authenticated
-      throw new Error('Authentication required');
-    }
-    
-    // Add logout function
-    function logout() {
-      sessionStorage.removeItem('authenticated');
-      sessionStorage.removeItem('loginTime');
-      window.location.href = 'login.html';
-    }
-    
-    const API_BASE = 'https://autopostdashboard-production.up.railway.app';
-    let selectedPosts = new Set();
-    let isBulkMode = false;
-    let viewMode = 'grid';
-    let currentTab = 'active';
-    let allPosts = [];
-    let activePosts = [];
-    let postedPosts = [];
-    let filteredPosts = [];
-    let productsData = [];
-
-    // Load products data
-    async function loadProductsData() {
-      try {
-        const response = await fetch('products.json');
-        productsData = await response.json();
-      } catch (error) {
-        console.error('Failed to load products:', error);
-      }
-    }
-
-    // Search functionality
-    function searchPosts() {
-      const searchTerm = document.getElementById('search-posts').value.toLowerCase();
-      const clearBtn = document.getElementById('clear-search-btn');
-      
-      if (searchTerm.length > 0) {
-        clearBtn.style.display = 'block';
-      } else {
-        clearBtn.style.display = 'none';
-      }
-      
-      filterPosts();
-    }
-
-    function clearSearch() {
-      document.getElementById('search-posts').value = '';
-      document.getElementById('clear-search-btn').style.display = 'none';
-      filterPosts();
-    }
-
-    // Enhanced filtering
-    function applyFilters(posts) {
-      const brandFilter = document.getElementById('brand-filter').value;
-      const productFilter = document.getElementById('product-filter').value;
-      const searchTerm = document.getElementById('search-posts').value.toLowerCase();
-      const hasCaption = document.getElementById('has-caption').checked;
-      const hasHashtags = document.getElementById('has-hashtags').checked;
-      const hasLink = document.getElementById('has-link').checked;
-      
-      return posts.filter(post => {
-        const matchesBrand = !brandFilter || post.brand === brandFilter;
-        const matchesProduct = !productFilter || post.product === productFilter;
-        const matchesSearch = !searchTerm || 
-          (post.caption && post.caption.toLowerCase().includes(searchTerm)) ||
-          (post.hashtags && post.hashtags.toLowerCase().includes(searchTerm)) ||
-          (post.image_url && post.image_url.toLowerCase().includes(searchTerm));
-        const matchesCaption = !hasCaption || (post.caption && post.caption.trim().length > 0);
-        const matchesHashtags = !hasHashtags || (post.hashtags && post.hashtags.trim().length > 0);
-        const matchesLink = !hasLink || (post.link && post.link.trim().length > 0);
-        
-        return matchesBrand && matchesProduct && matchesSearch && matchesCaption && matchesHashtags && matchesLink;
-      });
-    }
-
-    // Product integration
-    function loadProductsForBrand() {
-      const brand = document.getElementById('upload-brand').value;
-      const productSelect = document.getElementById('upload-product');
-      
-      productSelect.innerHTML = '<option value="">No specific product</option>';
-      
-      if (brand && productsData.length > 0) {
-        const brandProducts = productsData.filter(product => product.brand === brand);
-        brandProducts.forEach(product => {
-          const option = document.createElement('option');
-          option.value = product.id;
-          option.textContent = product.title;
-          productSelect.appendChild(option);
-        });
-      }
-    }
-
-    function updateProductInfo(index) {
-      const productSelect = document.getElementById(`product-${index}`);
-      const productInfo = document.getElementById(`product-info-${index}`);
-      const selectedProduct = productSelect.value;
-      
-      if (selectedProduct && productsData.length > 0) {
-        const product = productsData.find(p => p.id === selectedProduct);
-        if (product) {
-          const thumbnail = productInfo.querySelector('.product-thumbnail');
-          const title = productInfo.querySelector('.product-title');
-          const description = productInfo.querySelector('.product-description');
-          const price = productInfo.querySelector('.product-price');
-          
-          thumbnail.src = product.images[0] || '';
-          title.textContent = product.title;
-          description.textContent = product.description;
-          price.textContent = `$${product.price}`;
-          
-          productInfo.style.display = 'block';
-        }
-      } else {
-        productInfo.style.display = 'none';
-      }
-    }
-
-    // Template system
-    function applyTemplate(index) {
-      const template = document.getElementById(`template-${index}`).value;
-      const captionField = document.getElementById(`caption-${index}`);
-      const hashtagsField = document.getElementById(`hashtags-${index}`);
-      
-      const templates = {
-        'product-launch': {
-          caption: '🚀 Exciting news! Our latest product is finally here. Experience the difference that quality makes. #NewProduct #Innovation',
-          hashtags: '#ProductLaunch #Innovation #Quality #NewRelease #Exclusive'
-        },
-        'lifestyle': {
-          caption: 'Living life to the fullest with our premium products. Every day is an opportunity to thrive! 💪 #Lifestyle #Wellness',
-          hashtags: '#Lifestyle #Wellness #HealthyLiving #Motivation #DailyInspiration'
-        },
-        'educational': {
-          caption: 'Knowledge is power! Here\'s what you need to know about [topic]. Stay informed, stay ahead. 📚 #Education #Knowledge',
-          hashtags: '#Education #Knowledge #Learning #Informative #StayInformed'
-        },
-        'promotional': {
-          caption: '🎉 Special offer alert! Don\'t miss out on this amazing deal. Limited time only! #SpecialOffer #Deal',
-          hashtags: '#SpecialOffer #Deal #LimitedTime #Discount #Savings'
-        },
-        'behind-scenes': {
-          caption: 'Behind the scenes of what makes us special. This is where the magic happens! ✨ #BehindTheScenes #Process',
-          hashtags: '#BehindTheScenes #Process #MakingOf #TeamWork #Exclusive'
-        }
-      };
-      
-      if (template && templates[template]) {
-        captionField.value = templates[template].caption;
-        hashtagsField.value = templates[template].hashtags;
-        showToast('Template applied successfully!', 'success');
-      }
-    }
-
-    function applyUploadTemplate() {
-      const template = document.getElementById('upload-template').value;
-      if (template) {
-        showToast('Template will be applied to uploaded posts', 'info');
-      }
-    }
-
-    // Enhanced analytics calculation
-    function updateAnalytics() {
-      const totalPosts = allPosts.length;
-      const activeCount = activePosts.length;
-      const postedCount = postedPosts.length;
-      
-      // Calculate brand breakdown
-      const brands = new Set(allPosts.map(post => post.brand).filter(Boolean));
-      const brandBreakdown = brands.size;
-      
-      // Calculate completion rate
-      const completedPosts = allPosts.filter(post => 
-        post.caption && post.caption.trim().length > 0 && 
-        post.hashtags && post.hashtags.trim().length > 0
-      ).length;
-      const completionRate = totalPosts > 0 ? Math.round((completedPosts / totalPosts) * 100) : 0;
-      
-      // Calculate average engagement (mock data for now)
-      const avgEngagement = Math.floor(Math.random() * 1000) + 100;
-      
-      document.getElementById('total-posts').textContent = totalPosts;
-      document.getElementById('brand-breakdown').textContent = brandBreakdown;
-      document.getElementById('completion-rate').textContent = `${completionRate}%`;
-      document.getElementById('avg-engagement').textContent = avgEngagement.toLocaleString();
-    }
-
-    // Enhanced bulk operations
-    async function bulkGenerateCaptions() {
-      if (selectedPosts.size === 0) {
-        showToast('Please select at least one post', 'error');
-        return;
-      }
-      
-      const selectedElements = Array.from(selectedPosts).map(id => 
-        document.querySelector(`[data-post-id="${id}"]`)
-      );
-      
-      for (const element of selectedElements) {
-        const index = element.dataset.index;
-        const promptField = document.getElementById(`prompt-${index}`);
-        
-        if (promptField && promptField.value.trim()) {
-          await generateCaption(index);
-        }
-      }
-      
-      showToast(`Generated captions for ${selectedPosts.size} posts`, 'success');
-    }
-
-    async function bulkSchedule() {
-      if (selectedPosts.size === 0) {
-        showToast('Please select at least one post', 'error');
-        return;
-      }
-      
-      const delay = prompt('Enter delay in hours for all selected posts:');
-      if (delay === null) return;
-      
-      const delayHours = parseInt(delay) || 0;
-      const selectedElements = Array.from(selectedPosts).map(id => 
-        document.querySelector(`[data-post-id="${id}"]`)
-      );
-      
-      for (const element of selectedElements) {
-        const index = element.dataset.index;
-        const delayField = document.getElementById(`delay-${index}`);
-        if (delayField) {
-          delayField.value = delayHours;
-        }
-      }
-      
-      showToast(`Scheduled ${selectedPosts.size} posts with ${delayHours} hour delay`, 'success');
-    }
-
-    // Export functionality
-    function exportPosts() {
-      const data = {
-        posts: allPosts,
-        exportDate: new Date().toISOString(),
-        totalPosts: allPosts.length,
-        activePosts: activePosts.length,
-        postedPosts: postedPosts.length,
-        filters: {
-          brand: document.getElementById('brand-filter').value,
-          product: document.getElementById('product-filter').value,
-          search: document.getElementById('search-posts').value
-        }
-      };
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `posts-export-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      
-      showToast('Data exported successfully!', 'success');
-    }
-
-    // Enhanced file upload preview
-    document.getElementById('file-upload').addEventListener('change', function(e) {
-      const label = document.querySelector('.file-upload-label');
-      const preview = document.getElementById('upload-preview');
-      const previewGrid = document.getElementById('preview-grid');
-      
-      if (e.target.files.length > 0) {
-        const fileNames = Array.from(e.target.files).map(f => f.name).join(', ');
-        label.innerHTML = `
-          <i class="fas fa-check-circle"></i>
-          <span>${e.target.files.length} file(s) selected</span>
-          <small>${fileNames}</small>
-        `;
-        label.classList.add('has-file');
-        
-        // Show preview
-        preview.style.display = 'block';
-        previewGrid.innerHTML = '';
-        
-        Array.from(e.target.files).forEach((file, index) => {
-          const previewItem = document.createElement('div');
-          previewItem.className = 'preview-item';
-          previewItem.innerHTML = `
-            <div class="preview-content">
-              <i class="fas fa-file-image"></i>
-              <span>${file.name}</span>
-              <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>
-            </div>
-          `;
-          previewGrid.appendChild(previewItem);
-        });
-      } else {
-        label.innerHTML = `
-          <i class="fas fa-cloud-upload-alt"></i>
-          <span>Choose files or drag & drop</span>
-          <small>Supports images and videos (max 10 files)</small>
-        `;
-        label.classList.remove('has-file');
-        preview.style.display = 'none';
-      }
-    });
-
-    // Enhanced analytics calculation
-    function updateAnalytics() {
-      const totalPosts = allPosts.length;
-      const activeCount = activePosts.length;
-      const postedCount = postedPosts.length;
-      
-      // Calculate brand breakdown
-      const brands = new Set(allPosts.map(post => post.brand).filter(Boolean));
-      const brandBreakdown = brands.size;
-      
-      // Calculate completion rate
-      const completedPosts = allPosts.filter(post => 
-        post.caption && post.caption.trim().length > 0 && 
-        post.hashtags && post.hashtags.trim().length > 0
-      ).length;
-      const completionRate = totalPosts > 0 ? Math.round((completedPosts / totalPosts) * 100) : 0;
-      
-      // Calculate average engagement (mock data for now)
-      const avgEngagement = Math.floor(Math.random() * 1000) + 100;
-      
-      document.getElementById('total-posts').textContent = totalPosts;
-      document.getElementById('brand-breakdown').textContent = brandBreakdown;
-      document.getElementById('completion-rate').textContent = `${completionRate}%`;
-      document.getElementById('avg-engagement').textContent = avgEngagement.toLocaleString();
-    }
-
-
-
-
-
-    function setViewMode(mode) {
-      viewMode = mode;
-      const container = document.getElementById('posts-container');
-      const buttons = document.querySelectorAll('.view-btn');
-      
-      buttons.forEach(btn => btn.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-      
-      container.className = `posts-${mode}`;
-      displayPosts(); // Reload posts with new layout
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      const tabButtons = document.querySelectorAll('.tab-btn');
-      const activeTab = document.getElementById('active-tab');
-      const postedTab = document.getElementById('posted-tab');
-      
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      
-      if (tab === 'active') {
-        activeTab.classList.add('active');
-      } else {
-        postedTab.classList.add('active');
-      }
-      
-      displayPosts();
-    }
-
-    // Toast notification system
-    function showToast(message, type = 'info') {
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      toast.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
-      `;
-      
-      document.getElementById('toast-container').appendChild(toast);
-      
-      setTimeout(() => {
-        toast.classList.add('show');
-      }, 100);
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
-    }
-
-    // Modal functions
-    function toggleUploadModal() {
-      const modal = document.getElementById('upload-modal');
-      modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-    }
-
-    function closeImageModal() {
-      document.getElementById('image-modal').style.display = 'none';
-    }
-
-    function previewImage(imageUrl) {
-      const modal = document.getElementById('image-modal');
-      const img = document.getElementById('preview-image');
-      img.src = imageUrl;
-      modal.style.display = 'flex';
-    }
-
-    // Edit Modal Functions
-    let currentEditData = null;
-
-    function openEditModal(index, imageUrl, tokenId, postElement) {
-      const modal = document.getElementById('edit-modal');
-      const previewImage = document.getElementById('edit-preview-image');
-      
-      // Set the preview image
-      previewImage.src = imageUrl;
-      
-      // Store current edit data
-      currentEditData = {
-        index: index,
-        imageUrl: imageUrl,
-        tokenId: tokenId,
-        postElement: postElement
-      };
-      
-      // Populate form with existing data if available
-      const post = allPosts[index];
-      if (post) {
-        document.getElementById('edit-product').value = post.product || '';
-        document.getElementById('edit-link').value = post.link || '';
-        document.getElementById('edit-delay').value = '0';
-        document.getElementById('edit-prompt').value = post.caption || '';
-        document.getElementById('edit-caption').value = post.caption || '';
-        document.getElementById('edit-hashtags').value = post.hashtags || '';
-        document.getElementById('edit-brand').value = post.brand || 'wttt';
-        
-        // Set platforms
-        if (post.platform) {
-          const platforms = post.platform.split(' ');
-          platforms.forEach(platform => {
-            const button = document.querySelector(`[data-platform="${platform}"]`);
-            if (button) {
-              button.classList.add('active');
-            }
-          });
-          document.getElementById('edit-platform').value = post.platform;
-        }
-      }
-      
-      modal.style.display = 'flex';
-    }
-
-    function closeEditModal() {
-      const modal = document.getElementById('edit-modal');
-      modal.style.display = 'none';
-      
-      // Reset form
-      document.getElementById('edit-form').reset();
-      
-      // Reset platform buttons
-      document.querySelectorAll('.platform-button').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      
-      currentEditData = null;
-    }
-
-    function updateEditProductInfo() {
-      const productSelect = document.getElementById('edit-product');
-      const productInfo = document.getElementById('edit-product-info');
-      const selectedProduct = productSelect.value;
-      
-      if (selectedProduct && productsData.length > 0) {
-        const product = productsData.find(p => p.id === selectedProduct);
-        if (product) {
-          const thumbnail = productInfo.querySelector('.product-thumbnail');
-          const title = productInfo.querySelector('.product-title');
-          const description = productInfo.querySelector('.product-description');
-          const price = productInfo.querySelector('.product-price');
-          
-          thumbnail.src = product.images[0] || '';
-          title.textContent = product.title;
-          description.textContent = product.description;
-          price.textContent = `$${product.price}`;
-          
-          productInfo.style.display = 'block';
-        }
-      } else {
-        productInfo.style.display = 'none';
-      }
-    }
-
-    function applyEditTemplate() {
-      const template = document.getElementById('edit-template').value;
-      const captionField = document.getElementById('edit-caption');
-      const hashtagsField = document.getElementById('edit-hashtags');
-      
-      const templates = {
-        'product-launch': {
-          caption: '🚀 Exciting news! Our latest product is finally here. Experience the difference that quality makes. #NewProduct #Innovation',
-          hashtags: '#ProductLaunch #Innovation #Quality #NewRelease #Exclusive'
-        },
-        'lifestyle': {
-          caption: 'Living life to the fullest with our premium products. Every day is an opportunity to thrive! 💪 #Lifestyle #Wellness',
-          hashtags: '#Lifestyle #Wellness #HealthyLiving #Motivation #DailyInspiration'
-        },
-        'educational': {
-          caption: 'Knowledge is power! Here\'s what you need to know about [topic]. Stay informed, stay ahead. 📚 #Education #Knowledge',
-          hashtags: '#Education #Knowledge #Learning #Informative #StayInformed'
-        },
-        'promotional': {
-          caption: '🎉 Special offer alert! Don\'t miss out on this amazing deal. Limited time only! #SpecialOffer #Deal',
-          hashtags: '#SpecialOffer #Deal #LimitedTime #Discount #Savings'
-        },
-        'behind-scenes': {
-          caption: 'Behind the scenes of what makes us special. This is where the magic happens! ✨ #BehindTheScenes #Process',
-          hashtags: '#BehindTheScenes #Process #MakingOf #TeamWork #Exclusive'
-        }
-      };
-      
-      if (template && templates[template]) {
-        captionField.value = templates[template].caption;
-        hashtagsField.value = templates[template].hashtags;
-        showToast('Template applied successfully!', 'success');
-      }
-    }
-
-    function toggleEditPlatform(button) {
-      button.classList.toggle('active');
-      const platforms = Array.from(button.parentElement.querySelectorAll('.platform-button.active')).map(btn => btn.dataset.platform);
-      document.getElementById('edit-platform').value = platforms.join(' ');
-    }
-
-    async function generateEditCaption() {
-      const prompt = document.getElementById('edit-prompt').value;
-      const product = document.getElementById('edit-product').value;
-      const brand = document.getElementById('edit-brand').value;
-      const captionField = document.getElementById('edit-caption');
-      const generateBtn = captionField.nextElementSibling;
-      
-      if (!prompt.trim()) {
-        showToast('Please describe the image first', 'error');
-        return;
-      }
-
-      const enhancedPrompt = `${prompt} | Brand: ${brand} | Product: ${product}`;
-
-      const originalText = generateBtn.innerHTML;
-      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
-      generateBtn.disabled = true;
-      captionField.placeholder = "⏳ Generating caption...";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/generate-caption`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: enhancedPrompt })
-        });
-        
-        if (!res.ok) throw new Error('Generation failed');
-        
-        const data = await res.json();
-        captionField.value = data.caption || '';
-        showToast('✅ Caption generated!', 'success');
-      } catch (error) {
-        console.error('Error generating caption:', error);
-        showToast('❌ Failed to generate caption.', 'error');
-      } finally {
-        generateBtn.innerHTML = originalText;
-        generateBtn.disabled = false;
-        captionField.placeholder = "Click generate to create a caption";
-      }
-    }
-
-    async function generateEditHashtags() {
-      const caption = document.getElementById('edit-caption').value;
-      const hashtagsField = document.getElementById('edit-hashtags');
-      const generateBtn = hashtagsField.nextElementSibling;
-      
-      if (!caption.trim()) {
-        showToast('Please add a caption first', 'error');
-        return;
-      }
-
-      const originalText = generateBtn.innerHTML;
-      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
-      generateBtn.disabled = true;
-      hashtagsField.placeholder = "⏳ Generating hashtags...";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/generate-hashtags`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ caption })
-        });
-        
-        if (!res.ok) throw new Error('Generation failed');
-        
-        const data = await res.json();
-        hashtagsField.value = data.hashtags || '';
-        showToast('✅ Hashtags generated!', 'success');
-      } catch (error) {
-        console.error('Error generating hashtags:', error);
-        showToast('❌ Failed to generate hashtags.', 'error');
-      } finally {
-        generateBtn.innerHTML = originalText;
-        generateBtn.disabled = false;
-        hashtagsField.placeholder = "Click generate to create hashtags";
-      }
-    }
-
-    async function submitEditPost() {
-      if (!currentEditData) {
-        showToast('No post data available', 'error');
-        return;
-      }
-
-      const caption = document.getElementById('edit-caption').value;
-      const hashtags = document.getElementById('edit-hashtags').value;
-      const platform = document.getElementById('edit-platform').value;
-      const link = document.getElementById('edit-link').value;
-      const product = document.getElementById('edit-product').value;
-      const delay_hours = parseInt(document.getElementById('edit-delay').value) || 0;
-      const brand = document.getElementById('edit-brand').value;
-      
-      if (!caption.trim()) {
-        showToast('Caption is required', 'error');
-        return;
-      }
-      
-      if (!platform) {
-        showToast('At least one platform must be selected', 'error');
-        return;
-      }
-      
-      const payload = {
-        image_url: currentEditData.imageUrl,
-        caption,
-        hashtags,
-        platform,
-        token_id: currentEditData.tokenId,
-        link,
-        product,
-        brand,
-        delay_hours
-      };
-
-      const submitBtn = document.querySelector('.edit-actions .btn-primary');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Posting...</span>';
-      submitBtn.disabled = true;
-
-      try {
-        const res = await fetch(`${API_BASE}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        if (!res.ok) throw new Error('Post failed');
-        
-        showToast('✅ Post submitted successfully!', 'success');
-        closeEditModal();
-        
-        // Remove the post from the UI
-        if (currentEditData.postElement) {
-          currentEditData.postElement.remove();
-        }
-      } catch (error) {
-        console.error('Error submitting post:', error);
-        showToast('❌ Error submitting post. Please try again.', 'error');
-      } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-      }
-    }
-
-    // Upload form handling
-    document.getElementById('upload-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      
-      const submitBtn = this.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-      
-      try {
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Uploading...</span>';
-        submitBtn.disabled = true;
-        
-        const res = await fetch('/upload-image', {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (!res.ok) throw new Error('Upload failed');
-        
-        const data = await res.json();
-        showToast('✅ Media uploaded successfully!', 'success');
-        this.reset();
-        toggleUploadModal();
-        setTimeout(() => location.reload(), 1000);
-      } catch (err) {
-        console.error('Upload failed:', err);
-        showToast('❌ Upload failed. Please try again.', 'error');
-      } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-      }
-    });
-
-    function generateTokenId() {
-      return 'token_' + Math.random().toString(36).substring(2, 10);
-    }
-
-    function togglePlatform(button, input) {
-      button.classList.toggle('active');
-      const platforms = Array.from(button.parentElement.querySelectorAll('.platform-button.active')).map(btn => btn.dataset.platform);
-      input.value = platforms.join(' ');
-    }
-
-    function toggleBulkMode() {
-      isBulkMode = !isBulkMode;
-      selectedPosts.clear();
-      
-      const bulkBtn = document.getElementById('bulk-mode-btn');
-      const bulkPostBtn = document.getElementById('bulk-post-btn');
-      const bulkCaptionBtn = document.getElementById('bulk-caption-btn');
-      const bulkScheduleBtn = document.getElementById('bulk-schedule-btn');
-      const posts = document.querySelectorAll('.post');
-      
-      if (isBulkMode) {
-        bulkBtn.innerHTML = '<i class="fas fa-times"></i><span>Cancel</span>';
-        bulkBtn.classList.add('active');
-        bulkPostBtn.style.display = 'inline-flex';
-        bulkCaptionBtn.style.display = 'inline-flex';
-        bulkScheduleBtn.style.display = 'inline-flex';
-        posts.forEach(post => {
-          post.classList.add('bulk-selectable');
-          post.addEventListener('click', () => togglePostSelection(post));
-        });
-      } else {
-        bulkBtn.innerHTML = '<i class="fas fa-check-square"></i><span>Bulk Select</span>';
-        bulkBtn.classList.remove('active');
-        bulkPostBtn.style.display = 'none';
-        bulkCaptionBtn.style.display = 'none';
-        bulkScheduleBtn.style.display = 'none';
-        posts.forEach(post => {
-          post.classList.remove('bulk-selectable', 'selected');
-          post.removeEventListener('click', () => togglePostSelection(post));
-        });
-      }
-    }
-
-    function togglePostSelection(post) {
-      const postId = post.dataset.postId;
-      if (selectedPosts.has(postId)) {
-        selectedPosts.delete(postId);
-        post.classList.remove('selected');
-      } else {
-        selectedPosts.add(postId);
-        post.classList.add('selected');
-      }
-      
-      const bulkPostBtn = document.getElementById('bulk-post-btn');
-      bulkPostBtn.innerHTML = `<i class="fas fa-paper-plane"></i><span>Post Selected (${selectedPosts.size})</span>`;
-    }
-
-    async function bulkPost() {
-      if (selectedPosts.size === 0) {
-        showToast('Please select at least one post', 'error');
-        return;
-      }
-      
-      const selectedElements = Array.from(selectedPosts).map(id => 
-        document.querySelector(`[data-post-id="${id}"]`)
-      );
-      
-      for (const element of selectedElements) {
-        await submitToSheet(
-          element.dataset.index,
-          element.dataset.imageUrl,
-          element.dataset.tokenId,
-          element.querySelector('.post-now-btn')
-        );
-      }
-    }
-
-    function loadPosts() {
-      const container = document.getElementById('posts-container');
-      const loadingIndicator = document.getElementById('loading-indicator');
-      const emptyState = document.getElementById('empty-state');
-      
-      loadingIndicator.style.display = 'flex';
-      container.innerHTML = '';
-      
-      const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
-      
-      Promise.all([
-        fetch(POSTS_JSON_URL).then(res => res.json()),
-        loadProductsData()
-      ])
-        .then(([data]) => {
-          allPosts = data;
-          activePosts = data.filter(post => post.status !== 'hidden');
-          postedPosts = data.filter(post => post.status === 'hidden');
-          
-          // Update tab counts
-          document.getElementById('active-count').textContent = activePosts.length;
-          document.getElementById('posted-count').textContent = postedPosts.length;
-          
-          // Update enhanced analytics
-          updateAnalytics();
-          
-          displayPosts();
-          loadingIndicator.style.display = 'none';
-        })
-        .catch(err => {
-          console.error('❌ Failed to load posts.json:', err);
-          showToast('Could not load posts from GitHub.', 'error');
-          loadingIndicator.style.display = 'none';
-          emptyState.style.display = 'flex';
-        });
-    }
-
-    function displayPosts() {
-      const container = document.getElementById('posts-container');
-      const emptyState = document.getElementById('empty-state');
-      
-      container.innerHTML = '';
-      
-      const postsToShow = currentTab === 'active' ? activePosts : postedPosts;
-      
-      // Apply filters
-      filteredPosts = applyFilters(postsToShow);
-      
-      if (filteredPosts.length === 0) {
-        emptyState.style.display = 'flex';
-        emptyState.querySelector('h3').textContent = currentTab === 'active' ? 'No active content' : 'No posted content';
-        emptyState.querySelector('p').textContent = currentTab === 'active' ? 'Upload new media or pull content to get started' : 'No posts have been published yet';
-        return;
-      }
-      
-      emptyState.style.display = 'none';
-      
-      filteredPosts.forEach((post, index) => {
-        const tokenId = generateTokenId();
-        const postElement = createPostElement(post, index, tokenId);
-        container.appendChild(postElement);
-      });
-    }
-
-    function filterPosts() {
-      displayPosts();
-    }
-
-    function clearFilters() {
-      document.getElementById('brand-filter').value = '';
-      document.getElementById('product-filter').value = '';
-      filterPosts();
-    }
-
-    function toggleMobileMenu() {
-      const sidebar = document.querySelector('.sidebar');
-      sidebar.classList.toggle('open');
-      
-      // Add overlay for mobile
-      if (sidebar.classList.contains('open')) {
-        const overlay = document.createElement('div');
-        overlay.className = 'mobile-overlay';
-        overlay.onclick = () => {
-          sidebar.classList.remove('open');
-          overlay.remove();
-        };
-        document.body.appendChild(overlay);
-      } else {
-        const overlay = document.querySelector('.mobile-overlay');
-        if (overlay) overlay.remove();
-      }
-    }
-
-    function getBrandDisplayName(brandCode) {
-      const brandNames = {
-        'wttt': 'WTTT',
-        'denlys': 'Denly',
-        'jabronis': 'Jabroni'
-      };
-      return brandNames[brandCode] || brandCode;
-    }
-
-    function createPostElement(post, index, tokenId) {
-      const postElement = document.createElement('div');
-      postElement.className = 'post';
-      postElement.dataset.postId = tokenId;
-      postElement.dataset.index = index;
-      postElement.dataset.imageUrl = post.image_url;
-      postElement.dataset.tokenId = tokenId;
-      
-      const isPosted = post.status === 'hidden';
-      const postedDate = post.posted_date || new Date().toLocaleDateString();
-      
-      postElement.innerHTML = `
-        <div class="post-image-container" onclick="togglePostDetails(this)">
-          <div class="post-image">
-            <img src="${post.image_url}" alt="Post image" loading="lazy" />
-            <div class="image-overlay">
-              <div class="overlay-content">
-                <i class="fas fa-edit"></i>
-                <span>Click to edit</span>
-              </div>
-            </div>
-            ${isPosted ? `<div class="posted-badge">
-              <i class="fas fa-check-circle"></i>
-              <span>Posted</span>
-            </div>` : ''}
-            ${post.brand ? `<div class="brand-badge brand-${post.brand}">
-              <i class="fas fa-tag"></i>
-              <span>${getBrandDisplayName(post.brand)}</span>
-            </div>` : ''}
-          </div>
-        </div>
-        
-        ${isPosted ? `
-        <div class="post-info">
-          <div class="post-meta">
-            <span class="posted-date">
-              <i class="fas fa-calendar"></i>
-              Posted on ${postedDate}
-            </span>
-            ${post.platform ? `<span class="posted-platform">
-              <i class="fas fa-share"></i>
-              ${post.platform}
-            </span>` : ''}
-          </div>
-          ${post.caption ? `<div class="posted-caption">
-            <strong>Caption:</strong> ${post.caption}
-          </div>` : ''}
-          ${post.hashtags ? `<div class="posted-hashtags">
-            <strong>Hashtags:</strong> ${post.hashtags}
-          </div>` : ''}
-        </div>
-        ` : `
-        <div class="post-actions">
-          <button class="btn btn-primary post-now-btn" onclick="openEditModal(${index}, '${post.image_url}', '${tokenId}', this.closest('.post'))">
-            <i class="fas fa-edit"></i>
-            <span>Edit Post</span>
-          </button>
-        </div>
-        `}
-      `;
-      
-      return postElement;
-    }
-
-    function togglePostDetails(imageContainer) {
-      const post = imageContainer.closest('.post');
-      const index = post.dataset.index;
-      const imageUrl = post.dataset.imageUrl;
-      const tokenId = post.dataset.tokenId;
-      
-      // Open edit modal with post data
-      openEditModal(index, imageUrl, tokenId, post);
-    }
-
-    async function generateCaption(index) {
-      const prompt = document.getElementById(`prompt-${index}`).value;
-      const product = document.getElementById(`product-${index}`).value;
-      const brand = document.getElementById(`brand-${index}`).value;
-      const captionField = document.getElementById(`caption-${index}`);
-      const generateBtn = captionField.nextElementSibling;
-      
-      if (!prompt.trim()) {
-        showToast('Please describe the image first', 'error');
-        return;
-      }
-
-      // Include product and brand context for better captions
-      const enhancedPrompt = `${prompt} | Brand: ${brand} | Product: ${product}`;
-
-      const originalText = generateBtn.innerHTML;
-      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
-      generateBtn.disabled = true;
-      captionField.placeholder = "⏳ Generating caption...";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/generate-caption`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: enhancedPrompt })
-        });
-        
-        if (!res.ok) throw new Error('Generation failed');
-        
-        const data = await res.json();
-        captionField.value = data.caption || '';
-        showToast('✅ Caption generated!', 'success');
-      } catch (error) {
-        console.error('Error generating caption:', error);
-        showToast('❌ Failed to generate caption.', 'error');
-      } finally {
-        generateBtn.innerHTML = originalText;
-        generateBtn.disabled = false;
-        captionField.placeholder = "Click generate to create a caption";
-      }
-    }
-
-    async function generateHashtags(index) {
-      const caption = document.getElementById(`caption-${index}`).value;
-      const hashtagsField = document.getElementById(`hashtags-${index}`);
-      const generateBtn = hashtagsField.nextElementSibling;
-      
-      if (!caption.trim()) {
-        showToast('Please add a caption first', 'error');
-        return;
-      }
-
-      const originalText = generateBtn.innerHTML;
-      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
-      generateBtn.disabled = true;
-      hashtagsField.placeholder = "⏳ Generating hashtags...";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/generate-hashtags`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ caption })
-        });
-        
-        if (!res.ok) throw new Error('Generation failed');
-        
-        const data = await res.json();
-        hashtagsField.value = data.hashtags || '';
-        showToast('✅ Hashtags generated!', 'success');
-      } catch (error) {
-        console.error('Error generating hashtags:', error);
-        showToast('❌ Failed to generate hashtags.', 'error');
-      } finally {
-        generateBtn.innerHTML = originalText;
-        generateBtn.disabled = false;
-        hashtagsField.placeholder = "Click generate to create hashtags";
-      }
-    }
-
-    // Enhanced validation
-    function validatePost(index) {
-      const caption = document.getElementById(`caption-${index}`).value;
-      const platform = document.getElementById(`platform-${index}`).value;
-      const brand = document.getElementById(`brand-${index}`).value;
-      
-      const errors = [];
-      if (!caption.trim()) errors.push('Caption is required');
-      if (!platform) errors.push('At least one platform must be selected');
-      if (!brand) errors.push('Brand selection is required');
-      
-      return errors;
-    }
-
-    async function submitToSheet(index, image_url, tokenId, button) {
-      const errors = validatePost(index);
-      if (errors.length > 0) {
-        showToast(errors.join(', '), 'error');
-        return;
-      }
-
-      const caption = document.getElementById(`caption-${index}`).value;
-      const hashtags = document.getElementById(`hashtags-${index}`).value;
-      const platform = document.getElementById(`platform-${index}`).value;
-      const link = document.getElementById(`link-${index}`).value;
-      const product = document.getElementById(`product-${index}`).value;
-      const delay_hours = parseInt(document.getElementById(`delay-${index}`).value) || 0;
-      const brand = document.getElementById(`brand-${index}`).value;
-      
-      const payload = {
-        image_url,
-        caption,
-        hashtags,
-        platform,
-        token_id: tokenId,
-        link,
-        product,
-        brand,
-        delay_hours
-      };
-
-      const originalText = button.innerHTML;
-      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Posting...</span>';
-      button.disabled = true;
-
-      try {
-        const res = await fetch(`${API_BASE}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        if (!res.ok) throw new Error('Post failed');
-        
-        showToast('✅ Post submitted successfully!', 'success');
-        button.closest('.post').remove();
-      } catch (error) {
-        console.error('Error submitting to Zapier or hiding post:', error);
-        showToast('❌ Error submitting post. Please try again.', 'error');
-      } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
-      }
-    }
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      // Ctrl/Cmd + Enter for quick posting
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        const activeElement = document.activeElement;
-        const postElement = activeElement.closest('.post');
-        if (postElement) {
-          const index = postElement.dataset.index;
-          const postButton = postElement.querySelector('.post-now-btn');
-          if (postButton) {
-            submitToSheet(index, postElement.dataset.imageUrl, postElement.dataset.tokenId, postButton);
-          }
-        }
-      }
-    });
-
-    // Enhanced AI analysis with better error handling and user feedback
-    async function interpretImage(index) {
-      const postElement = document.querySelector(`[data-index="${index}"]`);
-      const imageUrl = postElement.dataset.imageUrl;
-      const promptField = document.getElementById(`prompt-${index}`);
-      const captionField = document.getElementById(`caption-${index}`);
-      const hashtagsField = document.getElementById(`hashtags-${index}`);
-      const brand = document.getElementById(`brand-${index}`).value;
-      const product = document.getElementById(`product-${index}`).value;
-      const analyzeBtn = promptField.parentElement.querySelector('.btn-ai-analyze');
-
-      if (!imageUrl) {
-        showToast('No image URL found for interpretation.', 'error');
-        return;
-      }
-
-      // Add loading state
-      const originalText = analyzeBtn.innerHTML;
-      analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
-      analyzeBtn.disabled = true;
-      analyzeBtn.classList.add('analyzing');
-      
-      // Update placeholders
-      promptField.placeholder = '⏳ Analyzing image content...';
-      captionField.placeholder = '⏳ Generating caption...';
-      hashtagsField.placeholder = '⏳ Generating hashtags...';
-
-      try {
-        const res = await fetch(`${API_BASE}/api/interpret-image`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            image_url: imageUrl,
-            brand: brand,
-            product: product
-          })
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Interpretation failed');
-        }
-
-        const data = await res.json();
-        
-        // Update the fields with AI-generated content
-        promptField.value = data.description || '';
-        captionField.value = data.caption || '';
-        hashtagsField.value = data.hashtags || '';
-        
-        // Add success visual feedback
-        promptField.parentElement.classList.add('ai-success');
-        setTimeout(() => {
-          promptField.parentElement.classList.remove('ai-success');
-        }, 3000);
-        
-        showToast('✅ Image analyzed and content generated!', 'success');
-      } catch (error) {
-        console.error('Error interpreting image:', error);
-        
-        // Add error visual feedback
-        promptField.parentElement.classList.add('ai-error');
-        setTimeout(() => {
-          promptField.parentElement.classList.remove('ai-error');
-        }, 3000);
-        
-        // Provide helpful error message and fallback
-        let errorMessage = error.message || 'Failed to interpret image. Please try again.';
-        
-        if (errorMessage.includes('not configured') || errorMessage.includes('authentication failed')) {
-          errorMessage = 'AI service temporarily unavailable. Please describe the image manually and use the generate buttons.';
-          showToast('💡 Tip: You can still generate captions manually by describing the image and clicking "Generate"', 'info');
-        } else if (errorMessage.includes('timed out')) {
-          errorMessage = 'AI analysis took too long. Please try again or describe the image manually.';
-        } else if (errorMessage.includes('assistant not available')) {
-          errorMessage = 'AI assistant is busy. Please try again in a moment or describe the image manually.';
-        }
-        
-        showToast(`❌ ${errorMessage}`, 'error');
-      } finally {
-        // Reset button state
-        analyzeBtn.innerHTML = originalText;
-        analyzeBtn.disabled = false;
-        analyzeBtn.classList.remove('analyzing');
-        
-        // Reset placeholders
-        promptField.placeholder = 'Describe the image or message...';
-        captionField.placeholder = 'Click generate to create a caption';
-        hashtagsField.placeholder = 'Click generate to create hashtags';
-      }
-    }
-
-
-    // Close modals when clicking outside
-    window.addEventListener('click', function(e) {
-      const modals = ['upload-modal', 'image-modal', 'edit-modal'];
-      modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (e.target === modal) {
-          if (modalId === 'upload-modal') toggleUploadModal();
-          if (modalId === 'image-modal') closeImageModal();
-          if (modalId === 'edit-modal') closeEditModal();
-        }
-      });
-    });
-
-    window.onload = loadPosts;
-  </script>
+  <!-- Image Preview Modal -->
+  <div id="image-modal" class="modal" style="display: none;">
+    <div class="modal-content image-modal-content">
+      <button onclick="closeImageModal()" class="modal-close">
+        <i class="fas fa-times"></i>
+      </button>
+      <img id="preview-image" src="" alt="Preview" />
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Pull to Refresh Indicator -->
+  <div id="pull-refresh" class="pull-refresh">
+    <div class="pull-refresh-content">
+      <i class="fas fa-arrow-down"></i>
+      <span>Pull to refresh</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
