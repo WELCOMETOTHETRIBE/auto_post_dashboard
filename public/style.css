@@ -146,18 +146,8 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* === Top Header === */
-.top-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1rem;
-  padding-top: calc(1rem + env(safe-area-inset-top));
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+/* === Top Header (force hidden) === */
+.top-header { display: none !important; }
 
 .header-content {
   display: flex;
