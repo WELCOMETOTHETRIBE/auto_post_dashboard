@@ -438,8 +438,8 @@
     </div>
   </div>
 
-  <script>document.getElementById('build-tag').textContent = new Date(window.__BUILD__||Date.now()).toISOString();</script>
   <script>window.__BUILD__ = Date.now();</script>
+  <script>document.getElementById('build-tag').textContent = new Date(window.__BUILD__).toISOString();</script>
   <script src="app.js?v=__BUILD__"></script>
 </body>
 </html>
