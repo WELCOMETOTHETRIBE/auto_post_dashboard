@@ -752,6 +752,49 @@ function toggleEditPlatform(button) {
   document.getElementById('edit-platform').value = platforms.join(' ');
 }
 
+async function analyzeEditImage() {
+  const promptField = document.getElementById('edit-prompt');
+  const captionField = document.getElementById('edit-caption');
+  const hashtagsField = document.getElementById('edit-hashtags');
+  const analyzeBtn = promptField.nextElementSibling; // button in input-group
+
+  const imageUrl = currentEditData?.imageUrl;
+  const brand = document.getElementById('edit-brand').value;
+  const product = document.getElementById('edit-product').value;
+
+  if (!imageUrl) {
+    showToast('No image to analyze', 'error');
+    return;
+  }
+
+  const original = analyzeBtn.innerHTML;
+  analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  analyzeBtn.disabled = true;
+
+  try {
+    // Calls backend to use GPT-4o vision
+    const res = await fetch(`${API_BASE}/api/interpret-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: imageUrl, brand, product })
+    });
+
+    if (!res.ok) throw new Error('Interpretation failed');
+    const data = await res.json();
+
+    promptField.value = data.description || '';
+    captionField.value = data.caption || '';
+    hashtagsField.value = data.hashtags || '';
+    showToast('✅ Image analyzed with GPT-4o', 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Image analysis failed', 'error');
+  } finally {
+    analyzeBtn.innerHTML = original;
+    analyzeBtn.disabled = false;
+  }
+}
+
 async function generateEditCaption() {
   const prompt = document.getElementById('edit-prompt').value;
   const product = document.getElementById('edit-product').value;
@@ -916,11 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add iOS-specific event listeners
   if ('ontouchstart' in window) {
     // Touch device optimizations
-    document.addEventListener('touchmove', function(e) {
-      if (e.target.closest('.modal-content')) {
-        e.preventDefault();
-      }
-    }, { passive: false });
+    // Allow native scrolling inside modals; no preventDefault here to fix scroll issue
   }
 });
 
