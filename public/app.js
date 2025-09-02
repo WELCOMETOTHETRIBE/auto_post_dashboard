@@ -378,7 +378,6 @@ async function loadPosts() {
     activePosts = postsResponse.filter(post => post.status !== 'hidden');
     postedPosts = postsResponse.filter(post => post.status === 'hidden');
     
-    updateAnalytics();
     displayPosts();
     loadingIndicator.style.display = 'none';
   } catch (err) {
