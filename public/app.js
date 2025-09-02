@@ -767,7 +767,7 @@ async function analyzeEditImage() {
 
   const imageUrl = currentEditData?.imageUrl;
   const brand = document.getElementById('edit-brand').value;
-  const product = document.getElementById('edit-product').value;
+  const product = "";
 
   if (!imageUrl) {
     showToast('No image to analyze', 'error');
@@ -804,8 +804,8 @@ async function analyzeEditImage() {
 
 async function generateEditCaption() {
   const prompt = document.getElementById('edit-prompt').value;
-  const product = document.getElementById('edit-product').value;
   const brand = document.getElementById('edit-brand').value;
+  const product = "";
   const captionField = document.getElementById('edit-caption');
   const generateBtn = captionField.nextElementSibling;
   
@@ -890,7 +890,7 @@ async function submitEditPost() {
   const hashtags = document.getElementById('edit-hashtags').value;
   const platform = document.getElementById('edit-platform').value;
   const link = document.getElementById('edit-link').value;
-  const product = document.getElementById('edit-product').value;
+  const product = "";
   const delay_hours = parseInt(document.getElementById('edit-delay').value) || 0;
   const brand = document.getElementById('edit-brand').value;
   
