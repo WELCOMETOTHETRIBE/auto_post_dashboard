@@ -366,7 +366,7 @@ async function loadPosts() {
   loadingIndicator.style.display = 'flex';
   container.innerHTML = '';
   
-  const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}`;
+  const POSTS_JSON_URL = `https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=${Date.now()}&v=${window.__BUILD__ || ''}`;
   
   try {
     const [postsResponse] = await Promise.all([
