@@ -992,9 +992,12 @@ async function submitEditPost() {
   }
 }
 
-// === Event Listeners ===
+// === Initialization ===
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Content Hub initializing...');
+  console.log('🚀 Content Hub v2.1.0 initializing...');
+  console.log('📱 User Agent:', navigator.userAgent);
+  console.log('🌐 Platform:', navigator.platform);
+  console.log('📅 Build Time:', new Date().toISOString());
   
   // Clean up any analytics panels first
   cleanupAnalyticsPanels();
@@ -1016,6 +1019,17 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Hide splash screen after a delay
   setTimeout(hideSplashScreen, 2500);
+  
+  // Check if we're running the latest version
+  setTimeout(() => {
+    console.log('🔍 Checking for deployment issues...');
+    const buildTag = document.getElementById('build-tag');
+    if (buildTag) {
+      console.log('🏷️ Build tag found:', buildTag.textContent);
+    } else {
+      console.log('❌ Build tag missing - possible deployment issue');
+    }
+  }, 2000);
 });
 
 // === Close modals when clicking outside ===
