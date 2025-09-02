@@ -496,23 +496,20 @@ function togglePostDetails(imageContainer) {
 // === Analytics ===
 function updateAnalytics() {
   const totalPosts = allPosts.length;
-  const activeCount = activePosts.length;
-  const postedCount = postedPosts.length;
-  
-  // Calculate brand breakdown
   const brands = new Set(allPosts.map(post => post.brand).filter(Boolean));
   const brandBreakdown = brands.size;
-  
-  // Calculate completion rate
-  const completedPosts = allPosts.filter(post => 
-    post.caption && post.caption.trim().length > 0 && 
-    post.hashtags && post.hashtags.trim().length > 0
-  ).length;
+  const completedPosts = allPosts.filter(post => post.caption && post.caption.trim().length > 0 && post.hashtags && post.hashtags.trim().length > 0).length;
   const completionRate = totalPosts > 0 ? Math.round((completedPosts / totalPosts) * 100) : 0;
-  
-  document.getElementById('total-posts').textContent = totalPosts;
-  document.getElementById('brand-breakdown').textContent = brandBreakdown;
-  document.getElementById('completion-rate').textContent = `${completionRate}%`;
+
+  const totalEl = document.getElementById('total-posts');
+  const brandEl = document.getElementById('brand-breakdown');
+  const completionEl = document.getElementById('completion-rate');
+  if (!totalEl || !brandEl || !completionEl) {
+    return; // analytics panels not present in simplified UI
+  }
+  totalEl.textContent = totalPosts;
+  brandEl.textContent = brandBreakdown;
+  completionEl.textContent = `${completionRate}%`;
 }
 
 // === Utility Functions ===
