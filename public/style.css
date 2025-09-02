@@ -395,6 +395,9 @@ body {
   overflow: hidden;
 }
 
+/* prevent full overlay on tap so edit modal shows */
+.post-image-container .image-overlay { display: none; }
+
 .post-image {
   position: relative;
   width: 100%;

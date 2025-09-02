@@ -485,7 +485,12 @@ function togglePostDetails(imageContainer) {
   const imageUrl = post.dataset.imageUrl;
   const tokenId = post.dataset.tokenId;
   
+  // Open edit modal and focus the form to enable scroll
   openEditModal(index, imageUrl, tokenId, post);
+  const formEl = document.querySelector('#edit-form');
+  if (formEl) {
+    setTimeout(() => formEl.scrollTop = 0, 0);
+  }
 }
 
 // === Analytics ===
