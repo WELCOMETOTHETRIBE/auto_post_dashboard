@@ -30,11 +30,24 @@ app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
+    version: 'v2.1.0-nuclear',
+    deployment: '2025-09-02T09:52:00Z',
     services: {
       openai: !!OPENAI_API_KEY,
       assistant: !!ASSISTANT_ID,
       github: !!GH_PAT
     }
+  });
+});
+
+// Deployment version endpoint
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: 'v2.1.0-nuclear',
+    deployment: '2025-09-02T09:52:00Z',
+    timestamp: new Date().toISOString(),
+    git_commit: process.env.GIT_COMMIT || 'unknown',
+    environment: process.env.NODE_ENV || 'production'
   });
 });
 

@@ -437,16 +437,26 @@
   <div style="position:fixed;left:8px;bottom:60px;z-index:9999;background:#ef4444;color:white;padding:12px 16px;border-radius:12px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:2px solid white;">
     <div style="font-weight:bold;margin-bottom:4px;">🚨 DEPLOYMENT ISSUE</div>
     <div style="font-size:12px;opacity:.9;">Git not syncing to Railway</div>
+    <div style="font-size:10px;opacity:.7;margin-top:4px;">Deploy: 2025-09-02 09:52</div>
     <button onclick="forceDeploy()" style="background:#dc2626;border:none;color:white;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;cursor:pointer;font-weight:bold;">FORCE DEPLOY</button>
   </div>
 
   <!-- Force Deploy Script -->
   <script>
+    // Deployment timestamp
+    window.DEPLOYMENT_TIME = '2025-09-02T09:52:00Z';
+    window.BUILD_VERSION = 'v2.1.0-nuclear';
+    
     function forceDeploy() {
+      console.log('🚨 FORCE DEPLOY triggered');
+      
       // Clear all caches
       if ('caches' in window) {
         caches.keys().then(names => {
-          names.forEach(name => caches.delete(name));
+          names.forEach(name => {
+            console.log('🗑️ Deleting cache:', name);
+            caches.delete(name);
+          });
         });
       }
       
@@ -454,18 +464,40 @@
       localStorage.clear();
       sessionStorage.clear();
       
+      // Unregister service worker if exists
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(reg => {
+            console.log('🗑️ Unregistering service worker:', reg);
+            reg.unregister();
+          });
+        });
+      }
+      
       // Force reload with cache busting
-      window.location.href = window.location.href + '?v=' + Date.now();
+      const timestamp = Date.now();
+      const newUrl = window.location.origin + window.location.pathname + '?v=' + timestamp + '&deploy=' + window.DEPLOYMENT_TIME;
+      console.log('🔄 Reloading to:', newUrl);
+      window.location.href = newUrl;
     }
     
-    // Auto-deploy check every 30 seconds
+    // Auto-deploy check every 15 seconds
     setInterval(() => {
       const buildTag = document.getElementById('build-tag');
       if (!buildTag || !buildTag.textContent.includes('2025')) {
         console.log('🚨 Deployment issue detected - forcing refresh');
         forceDeploy();
       }
-    }, 30000);
+    }, 15000);
+    
+    // Nuclear option: Force refresh every minute if deployment issues persist
+    setInterval(() => {
+      const buildTag = document.getElementById('build-tag');
+      if (!buildTag || !buildTag.textContent.includes('2025')) {
+        console.log('🚨 Deployment issue persists - nuclear refresh');
+        forceDeploy();
+      }
+    }, 60000);
   </script>
 
   <!-- Pull to Refresh Indicator -->
