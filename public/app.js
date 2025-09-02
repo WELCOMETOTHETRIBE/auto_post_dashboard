@@ -1018,14 +1018,19 @@ document.addEventListener('keydown', function(e) {
 });
 
 // === Service Worker Registration for PWA ===
+// Temporarily disable service worker and proactively unregister to avoid stale caches during fixes
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js')
-      .then(function(registration) {
-        console.log('SW registered: ', registration);
-      })
-      .catch(function(registrationError) {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  }).catch(() => {});
+  // Disabled registration for now to prevent caching issues
+  // window.addEventListener('load', function() {
+  //   navigator.serviceWorker.register('/sw.js')
+  //     .then(function(registration) {
+  //       console.log('SW registered: ', registration);
+  //     })
+  //     .catch(function(registrationError) {
+  //       console.log('SW registration failed: ', registrationError);
+  //     });
+  // });
 }
