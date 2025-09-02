@@ -712,6 +712,11 @@ function openEditModal(index, imageUrl, tokenId, postElement) {
   
   previewImage.src = imageUrl;
   
+  // Ensure modal is scrollable and body doesn't lock scrolling on iOS
+  modal.style.overflow = 'auto';
+  document.querySelector('.edit-modal-content').style.overflow = 'auto';
+  document.querySelector('.edit-form').style.overflowY = 'auto';
+  
   currentEditData = {
     index: index,
     imageUrl: imageUrl,
