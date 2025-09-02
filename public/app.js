@@ -999,6 +999,17 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('🌐 Platform:', navigator.platform);
   console.log('📅 Build Time:', new Date().toISOString());
   
+  // NUCLEAR OPTION: Force latest version
+  const currentVersion = 'v2.1.0-' + Date.now();
+  console.log('🔥 Current Version:', currentVersion);
+  
+  // Check if we're running the latest version
+  const urlParams = new URLSearchParams(window.location.search);
+  const forceVersion = urlParams.get('v');
+  if (forceVersion) {
+    console.log('🚀 Force version detected:', forceVersion);
+  }
+  
   // Clean up any analytics panels first
   cleanupAnalyticsPanels();
   
@@ -1026,10 +1037,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const buildTag = document.getElementById('build-tag');
     if (buildTag) {
       console.log('🏷️ Build tag found:', buildTag.textContent);
+      // If build tag is old, force refresh
+      if (!buildTag.textContent.includes('2025')) {
+        console.log('🚨 Old build detected - forcing refresh');
+        window.location.reload(true);
+      }
     } else {
-      console.log('❌ Build tag missing - possible deployment issue');
+      console.log('❌ Build tag missing - forcing refresh');
+      window.location.reload(true);
     }
   }, 2000);
+  
+  // Nuclear option: Force refresh every 2 minutes if deployment issues persist
+  setInterval(() => {
+    const buildTag = document.getElementById('build-tag');
+    if (!buildTag || !buildTag.textContent.includes('2025')) {
+      console.log('🚨 Deployment issue persists - nuclear refresh');
+      window.location.reload(true);
+    }
+  }, 120000);
 });
 
 // === Close modals when clicking outside ===
