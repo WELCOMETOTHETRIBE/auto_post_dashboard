@@ -143,6 +143,16 @@ body {
 
 /* === Quick Stats (force hidden) === */
 .quick-stats { display: none !important; }
+.stat-item { display: none !important; }
+[id*="total"] { display: none !important; }
+[id*="brand"] { display: none !important; }
+[id*="completion"] { display: none !important; }
+
+/* === Analytics Panels (force hidden) === */
+.analytics-panel,
+.analytics-container,
+.stats-container,
+.stats-panel { display: none !important; }
 
 /* === Main Content === */
 .main-content {
@@ -712,6 +722,8 @@ body {
   max-width: 1200px;
   height: 90vh;
   max-height: 800px;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 .edit-modal-body {
@@ -719,6 +731,7 @@ body {
   flex: 1;
   overflow: auto !important;
   -webkit-overflow-scrolling: touch !important;
+  height: 100%;
 }
 
 .edit-image-preview {
@@ -746,6 +759,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
 }
 
 .edit-form {
@@ -756,6 +770,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  height: 100%;
+  max-height: calc(100% - 80px); /* Account for edit-actions */
 }
 
 .edit-actions {

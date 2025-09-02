@@ -393,6 +393,16 @@ function displayPosts() {
   const container = document.getElementById('posts-container');
   const emptyState = document.getElementById('empty-state');
   
+  // Debug: Check if analytics panels exist
+  const analyticsPanels = document.querySelectorAll('.stat-item, .quick-stats, [id*="total"], [id*="brand"], [id*="completion"]');
+  if (analyticsPanels.length > 0) {
+    console.log('🔍 Found analytics panels:', analyticsPanels);
+    analyticsPanels.forEach(panel => {
+      console.log('Panel:', panel.outerHTML);
+      panel.remove(); // Remove them
+    });
+  }
+  
   container.innerHTML = '';
   
   const postsToShow = currentTab === 'active' ? activePosts : postedPosts;
@@ -514,6 +524,29 @@ function updateAnalytics() {
 // === Utility Functions ===
 function generateTokenId() {
   return 'token_' + Math.random().toString(36).substring(2, 10);
+}
+
+function cleanupAnalyticsPanels() {
+  // Remove any analytics panels that might exist
+  const selectors = [
+    '.stat-item',
+    '.quick-stats', 
+    '[id*="total"]',
+    '[id*="brand"]',
+    '[id*="completion"]',
+    '.analytics-panel',
+    '.analytics-container',
+    '.stats-container',
+    '.stats-panel'
+  ];
+  
+  selectors.forEach(selector => {
+    const elements = document.querySelectorAll(selector);
+    if (elements.length > 0) {
+      console.log(`🧹 Removing ${elements.length} analytics panels with selector: ${selector}`);
+      elements.forEach(el => el.remove());
+    }
+  });
 }
 
 function getBrandDisplayName(brandCode) {
@@ -715,8 +748,15 @@ function openEditModal(index, imageUrl, tokenId, postElement) {
   
   // Ensure modal is scrollable and body doesn't lock scrolling on iOS
   modal.style.overflow = 'auto';
-  document.querySelector('.edit-modal-content').style.overflow = 'auto';
-  document.querySelector('.edit-form').style.overflowY = 'auto';
+  const modalContent = document.querySelector('.edit-modal-content');
+  const editForm = document.querySelector('.edit-form');
+  
+  if (modalContent) modalContent.style.overflow = 'auto';
+  if (editForm) editForm.style.overflowY = 'auto';
+  
+  // Force iOS scrolling
+  if (modalContent) modalContent.style.webkitOverflowScrolling = 'touch';
+  if (editForm) editForm.style.webkitOverflowScrolling = 'touch';
   
   currentEditData = {
     index: index,
@@ -728,7 +768,6 @@ function openEditModal(index, imageUrl, tokenId, postElement) {
   // Populate form with existing data if available
   const post = allPosts[index];
   if (post) {
-    document.getElementById('edit-product').value = post.product || '';
     document.getElementById('edit-link').value = post.link || '';
     document.getElementById('edit-delay').value = '0';
     document.getElementById('edit-prompt').value = post.caption || '';
@@ -750,6 +789,14 @@ function openEditModal(index, imageUrl, tokenId, postElement) {
   }
   
   toggleModal('edit-modal');
+  
+  // Ensure form is scrollable after modal opens
+  setTimeout(() => {
+    if (editForm) {
+      editForm.scrollTop = 0;
+      console.log('📱 Edit modal opened with scrolling enabled');
+    }
+  }, 100);
 }
 
 function toggleEditPlatform(button) {
@@ -947,6 +994,11 @@ async function submitEditPost() {
 
 // === Event Listeners ===
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Content Hub initializing...');
+  
+  // Clean up any analytics panels first
+  cleanupAnalyticsPanels();
+  
   // Initialize touch interactions
   initializeTouchInteractions();
   
@@ -956,17 +1008,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize file upload
   initializeFileUpload();
   
-  // Initialize upload form
-  initializeUploadForm();
-  
   // Load posts
   loadPosts();
   
-  // Add iOS-specific event listeners
-  if ('ontouchstart' in window) {
-    // Touch device optimizations
-    // Allow native scrolling inside modals; no preventDefault here to fix scroll issue
-  }
+  // Clean up analytics panels again after loading
+  setTimeout(cleanupAnalyticsPanels, 1000);
+  
+  // Hide splash screen after a delay
+  setTimeout(hideSplashScreen, 2500);
 });
 
 // === Close modals when clicking outside ===
