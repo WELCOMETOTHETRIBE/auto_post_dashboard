@@ -11,6 +11,11 @@
   <meta name="msapplication-TileColor" content="#3b82f6" />
   <meta name="msapplication-navbutton-color" content="#3b82f6" />
   
+  <!-- NUCLEAR: Prevent all caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
   <title>Content Hub</title>
   
   <!-- iOS Icons -->
@@ -446,6 +451,17 @@
     // Deployment timestamp
     window.DEPLOYMENT_TIME = '2025-09-02T09:52:00Z';
     window.BUILD_VERSION = 'v2.1.0-nuclear';
+    
+    // NUCLEAR: Force reload if service worker exists
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        if (regs.length > 0) {
+          console.log('🚨 Service worker detected - forcing reload');
+          regs.forEach(reg => reg.unregister());
+          window.location.reload(true);
+        }
+      });
+    }
     
     function forceDeploy() {
       console.log('🚨 FORCE DEPLOY triggered');

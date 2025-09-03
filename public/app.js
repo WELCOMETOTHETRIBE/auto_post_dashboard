@@ -974,6 +974,31 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Force version detected:', forceVersion);
   }
   
+  // NUCLEAR: Unregister ALL service workers immediately
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => {
+        console.log('🗑️ NUCLEAR: Unregistering service worker:', reg);
+        reg.unregister();
+      });
+    });
+    
+    // Also unregister any pending registrations
+    navigator.serviceWorker.ready.then(registration => {
+      registration.unregister();
+    });
+  }
+  
+  // NUCLEAR: Clear ALL caches immediately
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => {
+        console.log('🗑️ NUCLEAR: Deleting cache:', name);
+        caches.delete(name);
+      });
+    });
+  }
+  
   // Clean up any analytics panels first
   cleanupAnalyticsPanels();
   
