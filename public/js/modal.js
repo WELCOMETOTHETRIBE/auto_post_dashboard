@@ -41,11 +41,23 @@ class PostModal {
             <div class="post-form">
               <div class="form-group">
                 <label for="modal-caption">Caption</label>
-                <textarea id="modal-caption" placeholder="Write an engaging caption..."></textarea>
+                <div class="input-group">
+                  <textarea id="modal-caption" placeholder="Write an engaging caption..."></textarea>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.postModal.generateCaption()">
+                    <i class="fas fa-magic"></i>
+                    <span>AI Generate</span>
+                  </button>
+                </div>
               </div>
               <div class="form-group">
                 <label for="modal-hashtags">Hashtags</label>
-                <input type="text" id="modal-hashtags" placeholder="#hashtag1 #hashtag2" />
+                <div class="input-group">
+                  <input type="text" id="modal-hashtags" placeholder="#hashtag1 #hashtag2" />
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.postModal.generateHashtags()">
+                    <i class="fas fa-hashtag"></i>
+                    <span>AI Generate</span>
+                  </button>
+                </div>
               </div>
               <div class="form-group">
                 <label>Platforms</label>
@@ -69,6 +81,7 @@ class PostModal {
           <div class="modal-footer">
             <button class="btn btn-secondary" onclick="window.postModal.close()">Cancel</button>
             <button class="btn btn-primary" onclick="window.postModal.save()">Save Changes</button>
+            <button class="btn btn-success" onclick="window.postModal.submitToZapier()">🚀 Submit to Zapier</button>
           </div>
         </div>
       </div>
@@ -179,6 +192,118 @@ class PostModal {
     document.getElementById('platform-instagram').checked = platforms.includes('instagram');
     document.getElementById('platform-facebook').checked = platforms.includes('facebook');
     document.getElementById('platform-twitter').checked = platforms.includes('twitter');
+  }
+
+  async generateCaption() {
+    try {
+      const prompt = `Generate an engaging social media caption for this image. Make it creative, authentic, and engaging.`;
+      
+      const response = await fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`AI generation failed: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      document.getElementById('modal-caption').value = data.caption;
+      
+      window.showToast('✨ AI caption generated successfully!', 'success');
+    } catch (error) {
+      console.error('Caption generation error:', error);
+      window.showToast('❌ Failed to generate caption: ' + error.message, 'error');
+    }
+  }
+
+  async generateHashtags() {
+    try {
+      const caption = document.getElementById('modal-caption').value;
+      if (!caption.trim()) {
+        window.showToast('⚠️ Please write a caption first', 'warning');
+        return;
+      }
+      
+      const response = await fetch('/api/generate-hashtags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`AI generation failed: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      document.getElementById('modal-hashtags').value = data.hashtags;
+      
+      window.showToast('✨ AI hashtags generated successfully!', 'success');
+    } catch (error) {
+      console.error('Hashtag generation error:', error);
+      window.showToast('❌ Failed to generate hashtags: ' + error.message, 'error');
+    }
+  }
+
+  async submitToZapier() {
+    try {
+      if (!this.currentPost) {
+        window.showToast('❌ No post to submit', 'error');
+        return;
+      }
+
+      const caption = document.getElementById('modal-caption').value;
+      const hashtags = document.getElementById('modal-hashtags').value;
+      const platforms = [];
+      
+      if (document.getElementById('platform-instagram').checked) platforms.push('instagram');
+      if (document.getElementById('platform-facebook').checked) platforms.push('facebook');
+      if (document.getElementById('platform-twitter').checked) platforms.push('twitter');
+
+      if (!caption.trim()) {
+        window.showToast('⚠️ Please write a caption first', 'warning');
+        return;
+      }
+
+      if (platforms.length === 0) {
+        window.showToast('⚠️ Please select at least one platform', 'warning');
+        return;
+      }
+
+      const submitData = {
+        image_url: this.currentPost.image_url,
+        caption: caption,
+        hashtags: hashtags,
+        platforms: platforms.join(','),
+        brand: this.currentPost.brand || 'wttt',
+        submitted_at: new Date().toISOString()
+      };
+
+      window.showToast('📤 Submitting to Zapier...', 'info');
+
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submitData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Submission failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.status === 'ok') {
+        window.showToast('✅ Successfully submitted to Zapier!', 'success');
+        this.close();
+      } else {
+        throw new Error(result.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Zapier submission error:', error);
+      window.showToast('❌ Failed to submit: ' + error.message, 'error');
+    }
   }
 
   save() {

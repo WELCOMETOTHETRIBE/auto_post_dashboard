@@ -1239,6 +1239,24 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
+/* Input group styles for AI buttons */
+.input-group {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.input-group textarea,
+.input-group input {
+  flex: 1;
+}
+
+.input-group .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: 120px;
+}
+
 .post-form {
   display: flex;
   flex-direction: column;
