@@ -524,9 +524,24 @@
     </div>
   </div>
 
-  <script>window.__BUILD__ = Date.now();</script>
-  <script>document.getElementById('build-tag').textContent = new Date(window.__BUILD__).toISOString();</script>
+  <!-- Configuration Injection -->
+  <script>
+    window.CONFIG = { 
+      requireAuth: false,
+      enableGitHubProxy: true,
+      enableMockData: true
+    };
+    window.__BUILD__ = Date.now();
+  </script>
+  
+  <!-- Load JavaScript Modules -->
+  <script src="js/log.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/git.js"></script>
+  <script src="js/modal.js"></script>
   <script src="app.js?v=__BUILD__"></script>
+  
+  <script>document.getElementById('build-tag').textContent = new Date(window.__BUILD__).toISOString();</script>
 </body>
 </html>
 

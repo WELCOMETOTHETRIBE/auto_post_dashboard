@@ -1,47 +1,47 @@
-// === iOS Mobile-First Content Hub App ===
+// === Tribe SPA - Recovery Version ===
 
 // Global variables
-const API_BASE = 'https://autopostdashboard-production.up.railway.app';
 let allPosts = [];
 let currentTab = 'active';
 
 // === Initialization ===
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Content Hub v2.1.0 CLEAN VERSION initializing...');
-  console.log('🔥 NUCLEAR v4 - AUTH COMPLETELY REMOVED');
+  console.log('🚀 Tribe SPA v1.0.0-recovery initializing...');
   console.log('📱 User Agent:', navigator.userAgent);
   console.log('📅 Build Time:', new Date().toISOString());
-  console.log('✅ This should be the working version without auth!');
   
-  // NUCLEAR: Unregister ALL service workers immediately
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      regs.forEach(reg => {
-        console.log('🗑️ NUCLEAR: Unregistering service worker:', reg);
-        reg.unregister();
-      });
-    });
+  // Check if auth is required
+  const requireAuth = window.CONFIG?.requireAuth || false;
+  
+  if (!requireAuth) {
+    console.log('✅ Auth disabled - going straight to dashboard');
+    // Initialize app directly without auth
+    initializeApp();
+  } else {
+    console.log('🔐 Auth required - showing auth screen');
+    // Show auth screen (not implemented in this version)
+    showAuthScreen();
   }
-  
-  // NUCLEAR: Clear ALL caches immediately
-  if ('caches' in window) {
-    caches.keys().then(names => {
-      names.forEach(name => {
-        console.log('🗑️ NUCLEAR: Deleting cache:', name);
-        caches.delete(name);
-      });
-    });
-  }
-  
+});
+
+// === App Initialization ===
+function initializeApp() {
   // Initialize basic functionality
   initializeBasicApp();
   
-  // Load posts
+  // Load posts using new git API module
   loadPosts();
   
   // Hide splash screen after a delay
   setTimeout(hideSplashScreen, 2500);
-});
+}
+
+// === Auth Screen (placeholder) ===
+function showAuthScreen() {
+  console.log('Auth screen not implemented in recovery version');
+  // For now, just initialize the app anyway
+  initializeApp();
+}
 
 // === Basic App Initialization ===
 function initializeBasicApp() {
@@ -100,17 +100,22 @@ async function loadPosts() {
   if (loadingIndicator) loadingIndicator.style.display = 'flex';
   
   try {
-    const response = await fetch('https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/posts.json?cacheBust=' + Date.now());
-    if (!response.ok) throw new Error('Failed to fetch posts');
-    
-    const posts = await response.json();
+    // Use the new git API module with fallback
+    const posts = await window.fetchPosts();
     allPosts = posts;
+    
+    // Store in global scope for modal access
+    window.allPosts = allPosts;
     
     displayPosts();
     
     if (loadingIndicator) loadingIndicator.style.display = 'none';
+    
+    console.log(`✅ Loaded ${posts.length} posts successfully`);
   } catch (err) {
-    console.error('❌ Failed to load posts.json:', err);
+    console.error('❌ Failed to load posts:', err);
+    window.logError('POSTS_LOAD_ERROR', { error: err.message });
+    
     if (loadingIndicator) loadingIndicator.style.display = 'none';
     if (emptyState) emptyState.style.display = 'flex';
   }
@@ -237,26 +242,19 @@ function toggleProfileModal() {
 
 // === Edit Modal ===
 function openEditModal(index, imageUrl) {
-  const modal = document.getElementById('edit-modal');
-  const previewImage = document.getElementById('edit-preview-image');
-  
-  if (previewImage) previewImage.src = imageUrl;
-  
-  if (modal) {
-    modal.style.display = 'flex';
-    
-    // Ensure modal is scrollable
-    const modalContent = modal.querySelector('.modal-content');
-    const editForm = modal.querySelector('.edit-form');
-    
-    if (modalContent) modalContent.style.overflow = 'auto';
-    if (editForm) editForm.style.overflowY = 'auto';
+  // Use the new modal system
+  const post = allPosts[index];
+  if (post) {
+    window.openPostModal(post.token_id);
+  } else {
+    console.error('Post not found for index:', index);
+    window.logError('MODAL_ERROR', { index, imageUrl });
   }
 }
 
 function closeEditModal() {
-  const modal = document.getElementById('edit-modal');
-  if (modal) modal.style.display = 'none';
+  // Use the new modal system
+  window.closePostModal();
 }
 
 // === Toast Notifications ===
