@@ -1,35 +1,5 @@
 // === iOS Mobile-First Content Hub App ===
 
-// Authentication check
-function checkAuthentication() {
-  const authenticated = sessionStorage.getItem('authenticated');
-  const loginTime = sessionStorage.getItem('loginTime');
-  
-  if (authenticated !== 'true' || !loginTime) {
-    window.location.href = 'login.html';
-    return false;
-  }
-  
-  const now = Date.now();
-  const loginTimestamp = parseInt(loginTime);
-  const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours
-  
-  if (now - loginTimestamp >= sessionDuration) {
-    // Session expired
-    sessionStorage.removeItem('authenticated');
-    sessionStorage.removeItem('loginTime');
-    window.location.href = 'login.html';
-    return false;
-  }
-  
-  return true;
-}
-
-// Check authentication on page load
-if (!checkAuthentication()) {
-  throw new Error('Authentication required');
-}
-
 // Global variables
 const API_BASE = 'https://autopostdashboard-production.up.railway.app';
 let selectedPosts = new Set();
@@ -558,12 +528,6 @@ function getBrandDisplayName(brandCode) {
   return brandNames[brandCode] || brandCode;
 }
 
-function logout() {
-  sessionStorage.removeItem('authenticated');
-  sessionStorage.removeItem('loginTime');
-  window.location.href = 'login.html';
-}
-
 // === Toast Notifications ===
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');
@@ -1000,7 +964,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('📅 Build Time:', new Date().toISOString());
   
   // NUCLEAR OPTION: Force latest version
-  const currentVersion = 'v2.1.0-' + Date.now();
+  const currentVersion = 'v2.1.0-nuclear';
   console.log('🔥 Current Version:', currentVersion);
   
   // Check if we're running the latest version

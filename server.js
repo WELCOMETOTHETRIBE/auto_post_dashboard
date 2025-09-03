@@ -125,9 +125,9 @@ app.post('/api/test-ai', async (req, res) => {
   }
 });
 
-// Redirect root to login page
+// Redirect root to main app (no more auth)
 app.get('/', (req, res) => {
-  res.redirect('/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // === Trigger Upload Endpoint ===
