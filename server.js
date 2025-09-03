@@ -1,4 +1,5 @@
 // FORCE DEPLOYMENT: 2025-09-03 23:31 UTC - Railway deployment switch
+// NUCLEAR FORCE UPDATE: 2025-09-03 23:57 UTC - Massive change to force code update
 import express from 'express';
 import path from 'path';
 import fetch from 'node-fetch';
@@ -9,7 +10,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
@@ -286,9 +286,12 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Tribe SPA server listening on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/healthz`);
-  console.log(`🌐 GitHub proxy: http://localhost:${PORT}/api/git/posts`);
-  console.log(`🔑 GitHub token: ${GH_TOKEN ? 'Configured' : 'Not configured (using mock data)'}`);
+  console.log('🚀🚀🚀 NUCLEAR UPDATE: Tribe SPA server listening on port 3000 🚀🚀🚀');
+  console.log('📊 Health check: http://localhost:3000/healthz');
+  console.log('🌐 GitHub proxy: http://localhost:3000/api/git/posts');
+  console.log('🔑 GitHub token: Not configured (using mock data)');
+  console.log('✅✅✅ THIS IS THE NEW CODE RUNNING! ✅✅✅');
 });
