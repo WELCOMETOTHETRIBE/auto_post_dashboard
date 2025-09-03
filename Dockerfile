@@ -1,4 +1,5 @@
 # Use Node.js 18 Alpine for smaller image size
+# FORCE REBUILD: 2025-09-03 23:20 UTC - Updated code deployment
 FROM node:18-alpine
 
 # Set working directory
