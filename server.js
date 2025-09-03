@@ -1,3 +1,4 @@
+// FORCE DEPLOYMENT: 2025-09-03 23:31 UTC - Railway deployment switch
 import express from 'express';
 import path from 'path';
 import fetch from 'node-fetch';
