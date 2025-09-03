@@ -1,52 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Content Hub" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#3b82f6" />
-  <meta name="msapplication-TileColor" content="#3b82f6" />
-  <meta name="msapplication-navbutton-color" content="#3b82f6" />
-  
-  <!-- NUCLEAR: Prevent all caching -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  
-  <title>Content Hub</title>
-  
-  <!-- iOS Icons -->
-  <link rel="apple-touch-icon" href="wttt-logo.png" />
-  <link rel="apple-touch-icon" sizes="152x152" href="wttt-logo.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="wttt-logo.png" />
-  <link rel="apple-touch-icon" sizes="167x167" href="wttt-logo.png" />
-  
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json" />
-  
-  <!-- Preload critical resources -->
-  <link rel="preload" href="style.css?v=__BUILD__" as="style" />
-  <link rel="preload" href="app.js?v=__BUILD__" as="script" />
-  
-  <link rel="stylesheet" href="style.css?v=__BUILD__">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- iOS Splash Screen -->
-  <style>
-    @media screen and (max-width: 390px) and (max-height: 844px) {
-      .ios-splash {
-        background-image: url('wttt-logo.png');
-        background-size: 120px 120px;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-color: #3b82f6;
-      }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tribe SPA - Recovery Version</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <!-- iOS Splash Screen -->
@@ -68,15 +27,15 @@
       <i class="fas fa-check-circle"></i>
       <span>Posted</span>
     </button>
-    <button class="nav-item" onclick="toggleUploadModal()">
+    <button class="nav-item" onclick="console.log('Upload - use new modal system')">
       <i class="fas fa-plus"></i>
       <span>Upload</span>
     </button>
-    <button class="nav-item" onclick="toggleSearchModal()">
+    <button class="nav-item" onclick="console.log('Search - use new modal system')">
       <i class="fas fa-search"></i>
       <span>Search</span>
     </button>
-    <button class="nav-item" onclick="toggleProfileModal()">
+    <button class="nav-item" onclick="console.log('Profile - use new modal system')">
       <i class="fas fa-user"></i>
       <span>Profile</span>
     </button>
@@ -84,24 +43,6 @@
 
   <!-- Content Area -->
   <main class="main-content" style="padding-top: calc(0.5rem + env(safe-area-inset-top));">
-    <!-- Bulk Actions Bar -->
-    <div id="bulk-actions" class="bulk-actions" style="display: none;">
-      <div class="bulk-info">
-        <span id="bulk-count">0</span> selected
-      </div>
-      <div class="bulk-buttons">
-        <button onclick="bulkGenerateCaptions()" class="btn btn-sm btn-secondary">
-          <i class="fas fa-magic"></i>
-        </button>
-        <button onclick="bulkSchedule()" class="btn btn-sm btn-outline">
-          <i class="fas fa-clock"></i>
-        </button>
-        <button onclick="bulkPost()" class="btn btn-sm btn-primary">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-    </div>
-
     <!-- Content Grid -->
     <div class="content-area">
       <div id="posts-container" class="posts-grid"></div>
@@ -117,7 +58,7 @@
         </div>
         <h3>No content available</h3>
         <p>Upload new media to get started</p>
-        <button onclick="toggleUploadModal()" class="btn btn-primary">
+        <button onclick="console.log('Add Content - use new modal system')" class="btn btn-primary">
           <i class="fas fa-plus"></i>
           <span>Add Content</span>
         </button>
@@ -125,403 +66,16 @@
     </div>
   </main>
 
-  <!-- Upload Modal -->
-  <div id="upload-modal" class="modal" style="display: none;">
-    <div class="modal-content upload-modal-content">
-      <div class="modal-header">
-        <h3>Upload Media</h3>
-        <button onclick="toggleUploadModal()" class="modal-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <form id="upload-form" enctype="multipart/form-data" class="upload-form">
-        <div class="form-group">
-          <label for="upload-brand">Brand</label>
-          <select id="upload-brand" name="brand" class="form-control" required onchange="loadProductsForBrand()">
-            <option value="">Choose brand...</option>
-            <option value="wttt">WELCOME TO THE TRIBE</option>
-            <option value="denlys">Denly Gardens</option>
-            <option value="jabronis">Jabroni's</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="upload-product">Product (Optional)</label>
-          <select id="upload-product" name="product" class="form-control">
-            <option value="">No specific product</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="upload-template">Template</label>
-          <select id="upload-template" name="template" class="form-control" onchange="applyUploadTemplate()">
-            <option value="">No Template</option>
-            <option value="product-launch">Product Launch</option>
-            <option value="lifestyle">Lifestyle</option>
-            <option value="educational">Educational</option>
-            <option value="promotional">Promotional</option>
-            <option value="behind-scenes">Behind the Scenes</option>
-          </select>
-        </div>
-        
-        <div class="file-upload-area">
-          <input id="file-upload" type="file" name="image" accept="image/*,video/*" multiple required />
-          <label for="file-upload" class="file-upload-label">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <span>Choose files or tap to select</span>
-            <small>Images & videos (max 10)</small>
-          </label>
-        </div>
-        
-        <div class="upload-preview" id="upload-preview" style="display: none;">
-          <h4>Selected Files:</h4>
-          <div class="preview-grid" id="preview-grid"></div>
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" onclick="toggleUploadModal()" class="btn btn-outline">Cancel</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-upload"></i>
-            <span>Upload</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Search Modal -->
-  <div id="search-modal" class="modal" style="display: none;">
-    <div class="modal-content search-modal-content">
-      <div class="modal-header">
-        <h3>Search & Filters</h3>
-        <button onclick="toggleSearchModal()" class="modal-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <div class="search-content">
-        <div class="search-section">
-          <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="search-posts" placeholder="Search posts, captions, hashtags..." 
-                   class="search-input" onkeyup="searchPosts()">
-            <button onclick="clearSearch()" class="clear-search-btn" id="clear-search-btn" style="display: none;">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="filter-controls">
-          <div class="filter-group">
-            <label for="brand-filter">Brand</label>
-            <select id="brand-filter" class="filter-select" onchange="filterPosts()">
-              <option value="">All Brands</option>
-              <option value="wttt">WELCOME TO THE TRIBE</option>
-              <option value="denlys">Denly Gardens</option>
-              <option value="jabronis">Jabroni's</option>
-            </select>
-          </div>
-          
-          <div class="filter-group">
-            <label for="product-filter">Product</label>
-            <select id="product-filter" class="filter-select" onchange="filterPosts()">
-              <option value="">All Products</option>
-              <option value="THRIVE">THRIVE</option>
-              <option value="DRIVE">DRIVE</option>
-              <option value="ALIGN">ALIGN</option>
-              <option value="Clusters">Clusters</option>
-            </select>
-          </div>
-          
-          <div class="quick-filters">
-            <label class="filter-checkbox">
-              <input type="checkbox" id="has-caption" onchange="filterPosts()">
-              <span>Has Caption</span>
-            </label>
-            <label class="filter-checkbox">
-              <input type="checkbox" id="has-hashtags" onchange="filterPosts()">
-              <span>Has Hashtags</span>
-            </label>
-            <label class="filter-checkbox">
-              <input type="checkbox" id="has-link" onchange="filterPosts()">
-              <span>Has Link</span>
-            </label>
-          </div>
-          
-          <button onclick="clearFilters()" class="btn btn-outline btn-sm">
-            <i class="fas fa-times"></i>
-            <span>Clear All</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profile Modal -->
-  <div id="profile-modal" class="modal" style="display: none;">
-    <div class="modal-content profile-modal-content">
-      <div class="modal-header">
-        <h3>Profile & Settings</h3>
-        <button onclick="toggleProfileModal()" class="modal-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <div class="profile-content">
-        <div class="profile-section">
-          <div class="profile-info">
-            <img src="wttt-logo.png" alt="Profile" class="profile-avatar">
-            <div class="profile-details">
-              <h4>Content Manager</h4>
-              <p>Multi-Brand Dashboard</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="profile-section">
-          <h4>Social Platforms</h4>
-          <div class="social-links">
-            <a href="https://www.instagram.com/wttt_official/" target="_blank" class="social-link">
-              <i class="fab fa-instagram"></i>
-              <span>Instagram</span>
-            </a>
-            <a href="https://www.facebook.com/wttt_official/" target="_blank" class="social-link">
-              <i class="fab fa-facebook"></i>
-              <span>Facebook</span>
-            </a>
-            <a href="https://twitter.com/wttt_official/" target="_blank" class="social-link">
-              <i class="fab fa-twitter"></i>
-              <span>Twitter</span>
-            </a>
-            <a href="https://www.tiktok.com/@wttt_official/" target="_blank" class="social-link">
-              <i class="fab fa-tiktok"></i>
-              <span>TikTok</span>
-            </a>
-          </div>
-        </div>
-        
-        <div class="profile-section">
-          <button onclick="exportPosts()" class="btn btn-outline btn-full">
-            <i class="fas fa-download"></i>
-            <span>Export Data</span>
-          </button>
-          <button onclick="logout()" class="btn btn-outline btn-full logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Post Modal -->
-  <div id="edit-modal" class="modal" style="display: none;">
-    <div class="modal-content edit-modal-content">
-      <div class="modal-header">
-        <h3>Edit Post</h3>
-        <button onclick="closeEditModal()" class="modal-close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <div class="edit-modal-body">
-        <div class="edit-image-preview">
-          <img id="edit-preview-image" src="" alt="Post preview" />
-        </div>
-        
-        <div class="edit-form-container">
-          <form id="edit-form" class="edit-form">
-            <div class="form-group">
-              <label for="edit-brand">Brand</label>
-              <select id="edit-brand" class="form-control">
-                <option value="wttt">WELCOME TO THE TRIBE</option>
-                <option value="denlys">Denly Gardens</option>
-                <option value="jabronis">Jabroni's</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label>Platforms</label>
-              <div class="platform-buttons">
-                <button type="button" class="platform-button" data-platform="Instagram" onclick="toggleEditPlatform(this)">
-                  <i class="fab fa-instagram"></i>
-                  <span>Instagram</span>
-                </button>
-                <button type="button" class="platform-button" data-platform="Facebook" onclick="toggleEditPlatform(this)">
-                  <i class="fab fa-facebook"></i>
-                  <span>Facebook</span>
-                </button>
-                <button type="button" class="platform-button" data-platform="LinkedIn" onclick="toggleEditPlatform(this)">
-                  <i class="fab fa-linkedin"></i>
-                  <span>LinkedIn</span>
-                </button>
-                <button type="button" class="platform-button" data-platform="X" onclick="toggleEditPlatform(this)">
-                  <i class="fab fa-twitter"></i>
-                  <span>X (Twitter)</span>
-                </button>
-              </div>
-              <input type="hidden" id="edit-platform" value="" />
-            </div>
-
-            <div class="form-group">
-              <label for="edit-prompt">Description</label>
-              <div class="input-group">
-                <textarea id="edit-prompt" class="form-control" placeholder="Describe the image..."></textarea>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="analyzeEditImage()">
-                  <i class="fas fa-eye"></i>
-                  <span>AI Analyze</span>
-                </button>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-caption">Caption</label>
-              <div class="input-group">
-                <textarea id="edit-caption" class="form-control" placeholder="Click generate to create a caption"></textarea>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="generateEditCaption()">
-                  <i class="fas fa-magic"></i>
-                  <span>Generate</span>
-                </button>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-hashtags">Hashtags</label>
-              <div class="input-group">
-                <input type="text" id="edit-hashtags" class="form-control" placeholder="Click generate to create hashtags" />
-                <button type="button" class="btn btn-sm btn-secondary" onclick="generateEditHashtags()">
-                  <i class="fas fa-hashtag"></i>
-                  <span>Generate</span>
-                </button>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-link">Link (Optional)</label>
-              <input type="text" id="edit-link" class="form-control" placeholder="Optional link" />
-            </div>
-            
-            <div class="form-group">
-              <label for="edit-delay">Delay (hours)</label>
-              <input type="number" id="edit-delay" class="form-control" value="0" min="0" max="168" placeholder="0" />
-            </div>
-          </form>
-          
-          <div class="edit-actions">
-            <button type="button" onclick="closeEditModal()" class="btn btn-outline">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="submitEditPost()">
-              <i class="fas fa-paper-plane"></i>
-              <span>Post Now</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Image Preview Modal -->
-  <div id="image-modal" class="modal" style="display: none;">
-    <div class="modal-content image-modal-content">
-      <button onclick="closeImageModal()" class="modal-close">
-        <i class="fas fa-times"></i>
-      </button>
-      <img id="preview-image" src="" alt="Preview" />
-    </div>
-  </div>
-
-  <!-- Toast Notifications -->
-  <div id="toast-container" class="toast-container"></div>
-
   <!-- Build Tag -->
   <div style="position:fixed;right:8px;bottom:60px;z-index:9999;color:#64748b;font-size:11px;opacity:.8;">
     Build: <span id="build-tag"></span>
   </div>
 
-  <!-- Deployment Status -->
+  <!-- Recovery Version Info -->
   <div style="position:fixed;left:8px;bottom:60px;z-index:9999;background:#10b981;color:white;padding:12px 16px;border-radius:12px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:2px solid white;">
-    <div style="font-weight:bold;margin-bottom:4px;">✅ DEPLOYMENT SUCCESSFUL</div>
-    <div style="font-size:12px;opacity:.9;">NUCLEAR v4 - Auth Removed</div>
-    <div style="font-size:10px;opacity:.7;margin-top:4px;">Deploy: 2025-09-02 17:45</div>
-    <div style="font-size:10px;opacity:.7;">Version: v2.1.0-CLEAN</div>
-  </div>
-
-  <!-- Force Deploy Script -->
-  <script>
-    // Deployment timestamp
-    window.DEPLOYMENT_TIME = '2025-09-02T09:52:00Z';
-    window.BUILD_VERSION = 'v2.1.0-nuclear';
-    
-    // NUCLEAR: Force reload if service worker exists
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        if (regs.length > 0) {
-          console.log('🚨 Service worker detected - forcing reload');
-          regs.forEach(reg => reg.unregister());
-          window.location.reload(true);
-        }
-      });
-    }
-    
-    function forceDeploy() {
-      console.log('🚨 FORCE DEPLOY triggered');
-      
-      // Clear all caches
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          names.forEach(name => {
-            console.log('🗑️ Deleting cache:', name);
-            caches.delete(name);
-          });
-        });
-      }
-      
-      // Clear localStorage and sessionStorage
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Unregister service worker if exists
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-          regs.forEach(reg => {
-            console.log('🗑️ Unregistering service worker:', reg);
-            reg.unregister();
-          });
-        });
-      }
-      
-      // Force reload with cache busting
-      const timestamp = Date.now();
-      const newUrl = window.location.origin + window.location.pathname + '?v=' + timestamp + '&deploy=' + window.DEPLOYMENT_TIME;
-      console.log('🔄 Reloading to:', newUrl);
-      window.location.href = newUrl;
-    }
-    
-    // Auto-deploy check every 15 seconds
-    setInterval(() => {
-      const buildTag = document.getElementById('build-tag');
-      if (!buildTag || !buildTag.textContent.includes('2025')) {
-        console.log('🚨 Deployment issue detected - forcing refresh');
-        forceDeploy();
-      }
-    }, 15000);
-    
-    // Nuclear option: Force refresh every minute if deployment issues persist
-    setInterval(() => {
-      const buildTag = document.getElementById('build-tag');
-      if (!buildTag || !buildTag.textContent.includes('2025')) {
-        console.log('🚨 Deployment issue persists - nuclear refresh');
-        forceDeploy();
-      }
-    }, 60000);
-  </script>
-
-  <!-- Pull to Refresh Indicator -->
-  <div id="pull-refresh" class="pull-refresh">
-    <div class="pull-refresh-content">
-      <i class="fas fa-arrow-down"></i>
-      <span>Pull to refresh</span>
-    </div>
+    <div style="font-weight:bold;margin-bottom:4px;">✅ RECOVERY VERSION</div>
+    <div style="font-size:12px;opacity:.9;">Clean & Simple</div>
+    <div style="font-size:10px;opacity:.7;margin-top:4px;">Version: v1.0.0-recovery</div>
   </div>
 
   <!-- Configuration Injection -->
@@ -543,7 +97,4 @@
   
   <script>document.getElementById('build-tag').textContent = new Date(window.__BUILD__).toISOString();</script>
 </body>
-</html>
-
-
-
+</html> 

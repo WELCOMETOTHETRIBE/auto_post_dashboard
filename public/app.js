@@ -219,25 +219,17 @@ function getBrandDisplayName(brandCode) {
 }
 
 // === Modal Functions ===
+// These functions are now handled by the new modal system in modal.js
 function toggleUploadModal() {
-  const modal = document.getElementById('upload-modal');
-  if (modal) {
-    modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-  }
+  console.log('Upload modal - use new modal system');
 }
 
 function toggleSearchModal() {
-  const modal = document.getElementById('search-modal');
-  if (modal) {
-    modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-  }
+  console.log('Search modal - use new modal system');
 }
 
 function toggleProfileModal() {
-  const modal = document.getElementById('profile-modal');
-  if (modal) {
-    modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-  }
+  console.log('Profile modal - use new modal system');
 }
 
 // === Edit Modal ===
