@@ -6,7 +6,7 @@ let currentTab = 'active';
 
 // === Initialization ===
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Tribe SPA v1.0.0-recovery initializing...');
+  console.log('🚀 Tribe SPA v1.0.1 initializing...');
   console.log('📱 User Agent:', navigator.userAgent);
   console.log('📅 Build Time:', new Date().toISOString());
   
@@ -51,18 +51,6 @@ function initializeBasicApp() {
   
   if (activeTab) activeTab.addEventListener('click', () => switchTab('active'));
   if (postedTab) postedTab.addEventListener('click', () => switchTab('posted'));
-  
-  // Initialize upload modal
-  const uploadBtn = document.querySelector('[onclick="toggleUploadModal()"]');
-  if (uploadBtn) uploadBtn.addEventListener('click', toggleUploadModal);
-  
-  // Initialize search modal
-  const searchBtn = document.querySelector('[onclick="toggleSearchModal()"]');
-  if (searchBtn) searchBtn.addEventListener('click', toggleSearchModal);
-  
-  // Initialize profile modal
-  const profileBtn = document.querySelector('[onclick="toggleProfileModal()"]');
-  if (profileBtn) profileBtn.addEventListener('click', toggleProfileModal);
 }
 
 // === iOS Splash Screen ===
@@ -114,7 +102,9 @@ async function loadPosts() {
     console.log(`✅ Loaded ${posts.length} posts successfully`);
   } catch (err) {
     console.error('❌ Failed to load posts:', err);
-    window.logError('POSTS_LOAD_ERROR', { error: err.message });
+    if (window.logError) {
+      window.logError('POSTS_LOAD_ERROR', { error: err.message });
+    }
     
     if (loadingIndicator) loadingIndicator.style.display = 'none';
     if (emptyState) emptyState.style.display = 'flex';
@@ -218,57 +208,23 @@ function getBrandDisplayName(brandCode) {
   return brandNames[brandCode] || brandCode;
 }
 
-// === Modal Functions ===
-// These functions are now handled by the new modal system in modal.js
-function toggleUploadModal() {
-  console.log('Upload modal - use new modal system');
-}
-
-function toggleSearchModal() {
-  console.log('Search modal - use new modal system');
-}
-
-function toggleProfileModal() {
-  console.log('Profile modal - use new modal system');
-}
-
 // === Edit Modal ===
 function openEditModal(index, imageUrl) {
   // Use the new modal system
   const post = allPosts[index];
-  if (post) {
+  if (post && window.openPostModal) {
     window.openPostModal(post.token_id);
   } else {
     console.error('Post not found for index:', index);
-    window.logError('MODAL_ERROR', { index, imageUrl });
+    if (window.logError) {
+      window.logError('MODAL_ERROR', { index, imageUrl });
+    }
   }
 }
 
 function closeEditModal() {
   // Use the new modal system
-  window.closePostModal();
-}
-
-// === Toast Notifications ===
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-    <span>${message}</span>
-  `;
-  
-  const container = document.getElementById('toast-container');
-  if (container) {
-    container.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 100);
-    
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
+  if (window.closePostModal) {
+    window.closePostModal();
   }
 }
