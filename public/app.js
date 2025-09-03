@@ -8,8 +8,10 @@ let currentTab = 'active';
 // === Initialization ===
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Content Hub v2.1.0 CLEAN VERSION initializing...');
+  console.log('🔥 NUCLEAR v4 - AUTH COMPLETELY REMOVED');
   console.log('📱 User Agent:', navigator.userAgent);
   console.log('📅 Build Time:', new Date().toISOString());
+  console.log('✅ This should be the working version without auth!');
   
   // NUCLEAR: Unregister ALL service workers immediately
   if ('serviceWorker' in navigator) {
