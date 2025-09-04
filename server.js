@@ -149,7 +149,7 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
-    const { description, platforms, hourDelay, caption, hashtags } = req.body;
+    const { description, platforms, hourDelay, caption, hashtags, product, brand } = req.body;
     
     // Create new post object
     const newPost = {
@@ -162,6 +162,8 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       hour_delay: parseInt(hourDelay) || 0,
       caption: caption || '',
       hashtags: hashtags || '',
+      product: product || '',
+      brand: brand || 'wttt',
       status: 'draft',
       created_at: new Date().toISOString(),
       scheduled_for: hourDelay ? new Date(Date.now() + (parseInt(hourDelay) * 60 * 60 * 1000)).toISOString() : null

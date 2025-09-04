@@ -82,7 +82,35 @@ class PostModal {
                     <input type="checkbox" id="platform-twitter" />
                     <span>Twitter</span>
                   </label>
+                  <label class="platform-toggle">
+                    <input type="checkbox" id="platform-linkedin" />
+                    <span>LinkedIn</span>
+                  </label>
+                  <label class="platform-toggle">
+                    <input type="checkbox" id="platform-tiktok" />
+                    <span>TikTok</span>
+                  </label>
                 </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="modal-product">Product (Optional)</label>
+                <input type="text" id="modal-product" placeholder="Product name or category" />
+              </div>
+              
+              <div class="form-group">
+                <label for="modal-brand">Brand</label>
+                <select id="modal-brand">
+                  <option value="wttt">WTTT</option>
+                  <option value="denlys">Denly</option>
+                  <option value="jabronis">Jabroni</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="modal-delay">Posting Delay (Hours)</label>
+                <input type="number" id="modal-delay" min="0" max="168" value="0" />
+                <small>0 = post immediately, 24 = post in 24 hours</small>
               </div>
             </div>
           </div>
@@ -206,6 +234,26 @@ class PostModal {
     document.getElementById('platform-instagram').checked = platforms.includes('instagram');
     document.getElementById('platform-facebook').checked = platforms.includes('facebook');
     document.getElementById('platform-twitter').checked = platforms.includes('twitter');
+    document.getElementById('platform-linkedin').checked = platforms.includes('linkedin');
+    document.getElementById('platform-tiktok').checked = platforms.includes('tiktok');
+
+    // Set product
+    const productEl = document.getElementById('modal-product');
+    if (productEl) {
+      productEl.value = post.product || '';
+    }
+
+    // Set brand
+    const brandEl = document.getElementById('modal-brand');
+    if (brandEl) {
+      brandEl.value = post.brand || 'wttt'; // Default to WTTT if not set
+    }
+
+    // Set delay
+    const delayEl = document.getElementById('modal-delay');
+    if (delayEl) {
+      delayEl.value = post.hourDelay || '0';
+    }
   }
 
   async generateCaption() {
@@ -278,11 +326,16 @@ class PostModal {
     const description = document.getElementById('modal-description').value;
     const caption = document.getElementById('modal-caption').value;
     const hashtags = document.getElementById('modal-hashtags').value;
+    const product = document.getElementById('modal-product').value;
+    const brand = document.getElementById('modal-brand').value;
+    const hourDelay = document.getElementById('modal-delay').value;
     const platforms = [];
     
     if (document.getElementById('platform-instagram').checked) platforms.push('instagram');
     if (document.getElementById('platform-facebook').checked) platforms.push('facebook');
     if (document.getElementById('platform-twitter').checked) platforms.push('twitter');
+    if (document.getElementById('platform-linkedin').checked) platforms.push('linkedin');
+    if (document.getElementById('platform-tiktok').checked) platforms.push('tiktok');
 
     // Validate required fields
     if (!caption.trim()) {
@@ -301,8 +354,10 @@ class PostModal {
       description: description,
       caption: caption,
       hashtags: hashtags,
+      product: product,
+      brand: brand,
+      hour_delay: parseInt(hourDelay) || 0,
       platforms: platforms.join(', '),
-      brand: this.currentPost.brand || '',
       token_id: this.currentPost.token_id,
       submitted_at: new Date().toISOString()
     };
@@ -344,17 +399,26 @@ class PostModal {
     const description = document.getElementById('modal-description').value;
     const caption = document.getElementById('modal-caption').value;
     const hashtags = document.getElementById('modal-hashtags').value;
+    const product = document.getElementById('modal-product').value;
+    const brand = document.getElementById('modal-brand').value;
+    const hourDelay = document.getElementById('modal-delay').value;
     const platforms = [];
     
     if (document.getElementById('platform-instagram').checked) platforms.push('instagram');
     if (document.getElementById('platform-facebook').checked) platforms.push('facebook');
     if (document.getElementById('platform-twitter').checked) platforms.push('twitter');
+    if (document.getElementById('platform-linkedin').checked) platforms.push('linkedin');
+    if (document.getElementById('platform-tiktok').checked) platforms.push('tiktok');
 
     // Update post data
     this.currentPost.description = description;
     this.currentPost.caption = caption;
     this.currentPost.hashtags = hashtags;
+    this.currentPost.product = product;
+    this.currentPost.brand = brand;
+    this.currentPost.hourDelay = parseInt(hourDelay) || 0;
     this.currentPost.platform = platforms.join(', ');
+    this.currentPost.scheduled_for = hourDelay > 0 ? new Date(Date.now() + (parseInt(hourDelay) * 60 * 60 * 1000)).toISOString() : null;
 
     // Save to localStorage for persistence
     this.saveToLocalStorage();
@@ -511,6 +575,20 @@ class UploadModal {
                 <input type="number" id="upload-delay" name="hourDelay" min="0" max="168" value="0" />
                 <small>0 = post immediately, 24 = post in 24 hours</small>
               </div>
+              
+              <div class="form-group">
+                <label for="upload-product">Product (Optional)</label>
+                <input type="text" id="upload-product" name="product" placeholder="Product name or category" />
+              </div>
+              
+              <div class="form-group">
+                <label for="upload-brand">Brand</label>
+                <select id="upload-brand" name="brand">
+                  <option value="wttt">WTTT</option>
+                  <option value="denlys">Denly</option>
+                  <option value="jabronis">Jabroni</option>
+                </select>
+              </div>
             </form>
           </div>
           <div class="modal-footer">
@@ -627,6 +705,12 @@ class UploadModal {
     const selectedPlatforms = Array.from(form.querySelectorAll('input[name="platforms"]:checked'))
       .map(cb => cb.value);
     formData.set('platforms', selectedPlatforms.join(','));
+    
+    // Get additional fields
+    const product = document.getElementById('upload-product').value;
+    const brand = document.getElementById('upload-brand').value;
+    formData.set('product', product);
+    formData.set('brand', brand);
     
     // Validate required fields
     if (!formData.get('image').size) {
