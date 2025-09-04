@@ -40,15 +40,22 @@ class PostModal {
             </div>
             <div class="post-form">
               <div class="form-group">
+                <label for="modal-description">Image Description</label>
+                <textarea id="modal-description" placeholder="Describe what you see in the image... This helps AI generate better captions" rows="3"></textarea>
+                <small>Describe the image content, mood, or context to help AI generate relevant captions</small>
+              </div>
+              
+              <div class="form-group">
                 <label for="modal-caption">Caption</label>
                 <div class="input-group">
-                  <textarea id="modal-caption" placeholder="Write an engaging caption..."></textarea>
+                  <textarea id="modal-caption" placeholder="Write an engaging caption..." rows="3"></textarea>
                   <button type="button" class="btn btn-sm btn-secondary" onclick="window.postModal.generateCaption()">
                     <i class="fas fa-magic"></i>
                     <span>AI Generate</span>
                   </button>
                 </div>
               </div>
+              
               <div class="form-group">
                 <label for="modal-hashtags">Hashtags</label>
                 <div class="input-group">
@@ -59,6 +66,7 @@ class PostModal {
                   </button>
                 </div>
               </div>
+              
               <div class="form-group">
                 <label>Platforms</label>
                 <div class="platform-toggles">
@@ -175,6 +183,12 @@ class PostModal {
       imageEl.alt = `Post ${post.token_id}`;
     }
 
+    // Set description
+    const descriptionEl = document.getElementById('modal-description');
+    if (descriptionEl) {
+      descriptionEl.value = post.description || '';
+    }
+
     // Set caption
     const captionEl = document.getElementById('modal-caption');
     if (captionEl) {
@@ -195,26 +209,34 @@ class PostModal {
   }
 
   async generateCaption() {
+    const description = document.getElementById('modal-description').value;
+    if (!description) {
+      this.showToast('Please describe the image first', 'warning');
+      return;
+    }
+
     try {
-      const prompt = `Generate an engaging social media caption for this image. Make it creative, authentic, and engaging.`;
+      this.showToast('🤖 Generating caption...', 'info');
       
       const response = await fetch('/api/generate-caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ 
+          prompt: `Generate an engaging, viral caption for this image: ${description}. Make it authentic, relatable, and optimized for social media engagement.` 
+        })
       });
-      
+
       if (!response.ok) {
-        throw new Error(`AI generation failed: ${response.statusText}`);
+        throw new Error(`Caption generation failed: ${response.statusText}`);
       }
+
+      const result = await response.json();
+      document.getElementById('modal-caption').value = result.caption;
+      this.showToast('✅ Caption generated!', 'success');
       
-      const data = await response.json();
-      document.getElementById('modal-caption').value = data.caption;
-      
-      window.showToast('✨ AI caption generated successfully!', 'success');
     } catch (error) {
       console.error('Caption generation error:', error);
-      window.showToast('❌ Failed to generate caption: ' + error.message, 'error');
+      this.showToast('❌ Failed to generate caption: ' + error.message, 'error');
     }
   }
 
@@ -247,40 +269,46 @@ class PostModal {
   }
 
   async submitToZapier() {
+    if (!this.currentPost) {
+      this.showToast('No post to submit', 'error');
+      return;
+    }
+
+    // Collect current form data
+    const description = document.getElementById('modal-description').value;
+    const caption = document.getElementById('modal-caption').value;
+    const hashtags = document.getElementById('modal-hashtags').value;
+    const platforms = [];
+    
+    if (document.getElementById('platform-instagram').checked) platforms.push('instagram');
+    if (document.getElementById('platform-facebook').checked) platforms.push('facebook');
+    if (document.getElementById('platform-twitter').checked) platforms.push('twitter');
+
+    // Validate required fields
+    if (!caption.trim()) {
+      this.showToast('Please add a caption before submitting', 'warning');
+      return;
+    }
+
+    if (platforms.length === 0) {
+      this.showToast('Please select at least one platform', 'warning');
+      return;
+    }
+
+    // Prepare submission data
+    const submitData = {
+      image_url: this.currentPost.image_url,
+      description: description,
+      caption: caption,
+      hashtags: hashtags,
+      platforms: platforms.join(', '),
+      brand: this.currentPost.brand || '',
+      token_id: this.currentPost.token_id,
+      submitted_at: new Date().toISOString()
+    };
+
     try {
-      if (!this.currentPost) {
-        window.showToast('❌ No post to submit', 'error');
-        return;
-      }
-
-      const caption = document.getElementById('modal-caption').value;
-      const hashtags = document.getElementById('modal-hashtags').value;
-      const platforms = [];
-      
-      if (document.getElementById('platform-instagram').checked) platforms.push('instagram');
-      if (document.getElementById('platform-facebook').checked) platforms.push('facebook');
-      if (document.getElementById('platform-twitter').checked) platforms.push('twitter');
-
-      if (!caption.trim()) {
-        window.showToast('⚠️ Please write a caption first', 'warning');
-        return;
-      }
-
-      if (platforms.length === 0) {
-        window.showToast('⚠️ Please select at least one platform', 'warning');
-        return;
-      }
-
-      const submitData = {
-        image_url: this.currentPost.image_url,
-        caption: caption,
-        hashtags: hashtags,
-        platforms: platforms.join(','),
-        brand: this.currentPost.brand || 'wttt',
-        submitted_at: new Date().toISOString()
-      };
-
-      window.showToast('📤 Submitting to Zapier...', 'info');
+      this.showToast('📤 Submitting to Zapier...', 'info');
 
       const response = await fetch('/api/submit', {
         method: 'POST',
@@ -295,14 +323,14 @@ class PostModal {
       const result = await response.json();
       
       if (result.status === 'ok') {
-        window.showToast('✅ Successfully submitted to Zapier!', 'success');
+        this.showToast('✅ Successfully submitted to Zapier!', 'success');
         this.close();
       } else {
         throw new Error(result.message || 'Unknown error');
       }
     } catch (error) {
       console.error('Zapier submission error:', error);
-      window.showToast('❌ Failed to submit: ' + error.message, 'error');
+      this.showToast('❌ Failed to submit: ' + error.message, 'error');
     }
   }
 
@@ -313,6 +341,7 @@ class PostModal {
     }
 
     // Collect form data
+    const description = document.getElementById('modal-description').value;
     const caption = document.getElementById('modal-caption').value;
     const hashtags = document.getElementById('modal-hashtags').value;
     const platforms = [];
@@ -322,6 +351,7 @@ class PostModal {
     if (document.getElementById('platform-twitter').checked) platforms.push('twitter');
 
     // Update post data
+    this.currentPost.description = description;
     this.currentPost.caption = caption;
     this.currentPost.hashtags = hashtags;
     this.currentPost.platform = platforms.join(', ');
