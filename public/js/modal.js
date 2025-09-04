@@ -5,12 +5,15 @@ class PostModal {
   constructor() {
     this.isOpen = false;
     this.currentPost = null;
-    this.init();
+    // Don't auto-initialize - wait for first use
+    console.log('🎭 Post modal constructor called');
   }
 
   init() {
-    // Create modal HTML if it doesn't exist
-    this.createModalHTML();
+    // Only create modal HTML when actually needed
+    if (!document.getElementById('post-modal')) {
+      this.createModalHTML();
+    }
     
     // Bind event listeners
     this.bindEvents();
@@ -226,6 +229,11 @@ class PostModal {
       return;
     }
 
+    // Initialize modal if this is the first time
+    if (!document.getElementById('post-modal')) {
+      this.init();
+    }
+
     // Ensure modal HTML exists
     if (!document.getElementById('post-modal')) {
       console.log('🎭 Modal HTML not found, creating it...');
@@ -243,8 +251,8 @@ class PostModal {
     console.log('🎭 Found modal element:', !!modal);
     
     if (modal) {
-      modal.classList.remove('hidden'); // Remove hidden class to show
-      console.log('✅ Modal show class added');
+      modal.classList.remove('hidden');
+      console.log('✅ Modal hidden class removed');
     } else {
       console.error('❌ Modal element not found!');
     }
@@ -568,11 +576,15 @@ class PostModal {
 class UploadModal {
   constructor() {
     this.isOpen = false;
-    this.init();
+    // Don't auto-initialize - wait for first use
+    console.log('📤 Upload modal constructor called');
   }
 
   init() {
-    this.createModalHTML();
+    // Only create modal HTML when actually needed
+    if (!document.getElementById('upload-modal')) {
+      this.createModalHTML();
+    }
     this.bindEvents();
     console.log('📤 Upload modal initialized');
   }
@@ -838,6 +850,11 @@ class UploadModal {
   }
 
   open() {
+    // Initialize modal if this is the first time
+    if (!document.getElementById('upload-modal')) {
+      this.init();
+    }
+    
     this.isOpen = true;
     const modal = document.getElementById('upload-modal');
     if (modal) {
