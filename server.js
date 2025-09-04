@@ -5,6 +5,8 @@ import path from 'path';
 import fetch from 'node-fetch';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +15,33 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${uuidv4()}-${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 // AI and GitHub configuration
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -110,6 +139,65 @@ app.post('/api/interpret-image', async (req, res) => {
   } catch (error) {
     console.error('Image Analysis Error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// === Image Upload Endpoint ===
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    const { description, platforms, hourDelay, caption, hashtags } = req.body;
+    
+    // Create new post object
+    const newPost = {
+      id: uuidv4(),
+      token_id: uuidv4(),
+      image_url: `/uploads/${req.file.filename}`,
+      original_filename: req.file.originalname,
+      description: description || '',
+      platforms: platforms ? platforms.split(',') : [],
+      hour_delay: parseInt(hourDelay) || 0,
+      caption: caption || '',
+      hashtags: hashtags || '',
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      scheduled_for: hourDelay ? new Date(Date.now() + (parseInt(hourDelay) * 60 * 60 * 1000)).toISOString() : null
+    };
+
+    // Add to posts.json
+    const postsPath = path.join(__dirname, 'public', 'posts.json');
+    let postsData = [];
+    
+    try {
+      if (fs.existsSync(postsPath)) {
+        postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
+      }
+    } catch (err) {
+      console.warn('Could not read existing posts.json, starting fresh');
+    }
+
+    postsData.unshift(newPost);
+    
+    // Write updated posts.json
+    fs.writeFileSync(postsPath, JSON.stringify(postsData, null, 2));
+    
+    console.log('✅ Image uploaded and post created:', newPost.id);
+    
+    res.json({
+      success: true,
+      post: newPost,
+      message: 'Image uploaded successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Upload Error:', error);
+    res.status(500).json({ 
+      error: 'Upload failed', 
+      details: error.message 
+    });
   }
 });
 
@@ -277,6 +365,9 @@ app.post('/submit', async (req, res) => {
   req.url = '/api/submit';
   return app._router.handle(req, res);
 });
+
+// Serve uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));

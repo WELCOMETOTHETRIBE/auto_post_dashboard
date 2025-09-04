@@ -1,5 +1,5 @@
 // === Modal Module ===
-// Handles post editing modal with proper scroll management
+// Handles post editing and image upload modals with proper scroll management
 
 class PostModal {
   constructor() {
@@ -367,9 +367,284 @@ class PostModal {
   }
 }
 
-// Create global instance
+class UploadModal {
+  constructor() {
+    this.isOpen = false;
+    this.init();
+  }
+
+  init() {
+    this.createModalHTML();
+    this.bindEvents();
+    console.log('📤 Upload modal initialized');
+  }
+
+  createModalHTML() {
+    if (document.getElementById('upload-modal')) {
+      return;
+    }
+
+    const modalHTML = `
+      <div id="upload-modal" class="upload-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Upload New Image</h3>
+            <button class="modal-close" onclick="window.uploadModal.close()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="upload-form" enctype="multipart/form-data">
+              <div class="form-group">
+                <label for="upload-image">Select Image</label>
+                <input type="file" id="upload-image" name="image" accept="image/*" required />
+                <div class="image-preview" id="image-preview" style="display: none;">
+                  <img id="preview-img" src="" alt="Preview" />
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="upload-description">Image Description</label>
+                <textarea id="upload-description" name="description" placeholder="Describe what you see in the image..." rows="3"></textarea>
+                <small>This description will be used by AI to generate better captions</small>
+              </div>
+              
+              <div class="form-group">
+                <label for="upload-caption">Caption (Optional)</label>
+                <div class="input-group">
+                  <textarea id="upload-caption" name="caption" placeholder="Write a caption or let AI generate one..."></textarea>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.uploadModal.generateCaption()">
+                    <i class="fas fa-magic"></i>
+                    <span>AI Generate</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="upload-hashtags">Hashtags (Optional)</label>
+                <div class="input-group">
+                  <input type="text" id="upload-hashtags" name="hashtags" placeholder="#hashtag1 #hashtag2" />
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.uploadModal.generateHashtags()">
+                    <i class="fas fa-hashtag"></i>
+                    <span>AI Generate</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label>Posting Platforms</label>
+                <div class="platform-toggles">
+                  <label class="platform-toggle">
+                    <input type="checkbox" name="platforms" value="instagram" />
+                    <span>Instagram</span>
+                  </label>
+                  <label class="platform-toggle">
+                    <input type="checkbox" name="platforms" value="facebook" />
+                    <span>Facebook</span>
+                  </label>
+                  <label class="platform-toggle">
+                    <input type="checkbox" name="platforms" value="twitter" />
+                    <span>Twitter</span>
+                  </label>
+                  <label class="platform-toggle">
+                    <input type="checkbox" name="platforms" value="linkedin" />
+                    <span>LinkedIn</span>
+                  </label>
+                  <label class="platform-toggle">
+                    <input type="checkbox" name="platforms" value="tiktok" />
+                    <span>TikTok</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="upload-delay">Posting Delay (Hours)</label>
+                <input type="number" id="upload-delay" name="hourDelay" min="0" max="168" value="0" />
+                <small>0 = post immediately, 24 = post in 24 hours</small>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="window.uploadModal.close()">Cancel</button>
+            <button class="btn btn-primary" onclick="window.uploadModal.upload()">
+              <i class="fas fa-upload"></i>
+              <span>Upload & Create Post</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  }
+
+  bindEvents() {
+    // Image preview
+    const imageInput = document.getElementById('upload-image');
+    if (imageInput) {
+      imageInput.addEventListener('change', (e) => this.handleImagePreview(e));
+    }
+
+    // Close modal on overlay click
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        this.close();
+      }
+    });
+  }
+
+  handleImagePreview(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async generateCaption() {
+    const description = document.getElementById('upload-description').value;
+    if (!description) {
+      window.showToast('Please describe the image first', 'warning');
+      return;
+    }
+
+    try {
+      window.showToast('🤖 Generating caption...', 'info');
+      
+      const response = await fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt: `Generate an engaging, viral caption for this image: ${description}. Make it authentic, relatable, and optimized for social media engagement.` 
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Caption generation failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      document.getElementById('upload-caption').value = result.caption;
+      window.showToast('✅ Caption generated!', 'success');
+      
+    } catch (error) {
+      console.error('Caption generation error:', error);
+      window.showToast('❌ Failed to generate caption: ' + error.message, 'error');
+    }
+  }
+
+  async generateHashtags() {
+    const caption = document.getElementById('upload-caption').value;
+    if (!caption) {
+      window.showToast('Please write a caption first', 'warning');
+      return;
+    }
+
+    try {
+      window.showToast('🤖 Generating hashtags...', 'info');
+      
+      const response = await fetch('/api/generate-hashtags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Hashtag generation failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      document.getElementById('upload-hashtags').value = result.hashtags;
+      window.showToast('✅ Hashtags generated!', 'success');
+      
+    } catch (error) {
+      console.error('Hashtag generation error:', error);
+      window.showToast('❌ Failed to generate hashtags: ' + error.message, 'error');
+    }
+  }
+
+  async upload() {
+    const form = document.getElementById('upload-form');
+    const formData = new FormData(form);
+    
+    // Get selected platforms
+    const selectedPlatforms = Array.from(form.querySelectorAll('input[name="platforms"]:checked'))
+      .map(cb => cb.value);
+    formData.set('platforms', selectedPlatforms.join(','));
+    
+    // Validate required fields
+    if (!formData.get('image').size) {
+      window.showToast('Please select an image', 'warning');
+      return;
+    }
+
+    try {
+      window.showToast('📤 Uploading image...', 'info');
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        window.showToast('✅ Image uploaded successfully!', 'success');
+        this.close();
+        
+        // Refresh posts if available
+        if (window.loadPosts) {
+          window.loadPosts();
+        }
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      window.showToast('❌ Upload failed: ' + error.message, 'error');
+    }
+  }
+
+  open() {
+    this.isOpen = true;
+    document.getElementById('upload-modal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  close() {
+    this.isOpen = false;
+    document.getElementById('upload-modal').classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Reset form
+    const form = document.getElementById('upload-form');
+    if (form) form.reset();
+    
+    // Hide preview
+    const preview = document.getElementById('image-preview');
+    if (preview) preview.style.display = 'none';
+  }
+}
+
+// Create global instances
 const postModal = new PostModal();
 window.postModal = postModal;
+
+const uploadModal = new UploadModal();
+window.uploadModal = uploadModal;
 
 // Export functions for global use
 window.openPostModal = (postId) => {
