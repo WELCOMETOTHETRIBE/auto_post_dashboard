@@ -21,96 +21,118 @@ class PostModal {
   createModalHTML() {
     // Check if modal already exists
     if (document.getElementById('post-modal')) {
+      console.log('🎭 Modal HTML already exists');
       return;
     }
 
+    console.log('🎭 Creating modal HTML...');
     const modalHTML = `
-      <div id="post-modal" class="post-modal">
-        <div class="modal-overlay"></div>
+      <div id="post-modal" class="modal-overlay hidden">
         <div class="modal-content">
           <div class="modal-header">
-            <h3>Edit Post</h3>
-            <button class="modal-close" onclick="window.postModal.close()">
-              <i class="fas fa-times"></i>
+            <h3 class="text-xl font-semibold text-secondary-900">Edit Post</h3>
+            <button class="modal-close text-secondary-400 hover:text-secondary-600 transition-colors duration-200" onclick="window.postModal.close()">
+              <i class="fas fa-times text-xl"></i>
             </button>
           </div>
           <div class="modal-body">
-            <div class="post-preview">
-              <img id="modal-image" src="" alt="Post image" />
+            <div class="mb-6 text-center">
+              <img id="modal-image" src="" alt="Post image" class="max-w-full max-h-80 rounded-lg shadow-lg mx-auto" />
             </div>
-            <div class="post-form">
-              <div class="form-group">
-                <label for="modal-description">Image Description</label>
-                <textarea id="modal-description" placeholder="Describe what you see in the image... This helps AI generate better captions" rows="3"></textarea>
-                <small>Describe the image content, mood, or context to help AI generate relevant captions</small>
+            <div class="space-y-6">
+              <div>
+                <label for="modal-description" class="form-label">Image Description</label>
+                <textarea id="modal-description" class="form-textarea" placeholder="Describe what you see in the image... This helps AI generate better captions" rows="3"></textarea>
+                <p class="form-help">Describe the image content, mood, or context to help AI generate relevant captions</p>
               </div>
               
-              <div class="form-group">
-                <label for="modal-caption">Caption</label>
-                <div class="input-group">
-                  <textarea id="modal-caption" placeholder="Write an engaging caption..." rows="3"></textarea>
-                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.postModal.generateCaption()">
-                    <i class="fas fa-magic"></i>
+              <div>
+                <label for="modal-caption" class="form-label">Caption</label>
+                <div class="flex gap-3">
+                  <textarea id="modal-caption" class="form-textarea flex-1" placeholder="Write an engaging caption..." rows="3"></textarea>
+                  <button type="button" class="btn btn-secondary btn-sm whitespace-nowrap flex-shrink-0" onclick="window.postModal.generateCaption()">
+                    <i class="fas fa-magic mr-2"></i>
                     <span>AI Generate</span>
                   </button>
                 </div>
               </div>
               
-              <div class="form-group">
-                <label for="modal-hashtags">Hashtags</label>
-                <div class="input-group">
-                  <input type="text" id="modal-hashtags" placeholder="#hashtag1 #hashtag2" />
-                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.postModal.generateHashtags()">
-                    <i class="fas fa-hashtag"></i>
+              <div>
+                <label for="modal-hashtags" class="form-label">Hashtags</label>
+                <div class="flex gap-3">
+                  <input type="text" id="modal-hashtags" class="form-input" placeholder="#hashtag1 #hashtag2" />
+                  <button type="button" class="btn btn-secondary btn-sm whitespace-nowrap flex-shrink-0" onclick="window.postModal.generateHashtags()">
+                    <i class="fas fa-hashtag mr-2"></i>
                     <span>AI Generate</span>
                   </button>
                 </div>
               </div>
               
-              <div class="form-group">
-                <label>Platforms</label>
-                <div class="platform-toggles">
+              <div>
+                <label class="form-label">Posting Platforms</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <label class="platform-toggle">
                     <input type="checkbox" id="platform-instagram" />
-                    <span>Instagram</span>
+                    <span class="text-sm font-medium">Instagram</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" id="platform-facebook" />
-                    <span>Facebook</span>
+                    <span class="text-sm font-medium">Facebook</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" id="platform-twitter" />
-                    <span>Twitter</span>
+                    <span class="text-sm font-medium">Twitter</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" id="platform-linkedin" />
-                    <span>LinkedIn</span>
+                    <span class="text-sm font-medium">LinkedIn</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" id="platform-tiktok" />
-                    <span>TikTok</span>
+                    <span class="text-sm font-medium">TikTok</span>
                   </label>
                 </div>
               </div>
               
-              <div class="form-group">
-                <label for="modal-product">Product (Optional)</label>
-                <input type="text" id="modal-product" placeholder="Product name or category" />
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="modal-brand" class="form-label">Brand</label>
+                  <select id="modal-brand" class="form-select">
+                    <option value="wttt">WTTT</option>
+                    <option value="denlys">Denly</option>
+                    <option value="jabronis">Jabroni</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="modal-product-type" class="form-label">Product Type</label>
+                  <select id="modal-product-type" class="form-select">
+                    <option value="">Select product type</option>
+                    <option value="supplement">Supplement</option>
+                    <option value="apparel">Apparel</option>
+                    <option value="accessory">Accessory</option>
+                    <option value="digital">Digital</option>
+                    <option value="service">Service</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
               </div>
               
-              <div class="form-group">
-                <label for="modal-brand">Brand</label>
-                <select id="modal-brand">
-                  <option value="wttt">WTTT</option>
-                  <option value="denlys">Denly</option>
-                  <option value="jabronis">Jabroni</option>
-                </select>
+              <div>
+                <label for="modal-product" class="form-label">Product Name</label>
+                <input type="text" id="modal-product" class="form-input" placeholder="Specific product name or category" />
               </div>
               
-              <div class="form-group">
-                <label for="modal-delay">Posting Delay (Hours)</label>
-                <input type="number" id="modal-delay" min="0" max="168" value="0" />
-                <small>0 = post immediately, 24 = post in 24 hours</small>
+              <div>
+                <label for="modal-website" class="form-label">Website URL</label>
+                <input type="url" id="modal-website" class="form-input" placeholder="https://example.com/product" />
+                <p class="form-help">Link to the product page or main website</p>
+              </div>
+              
+              <div>
+                <label for="modal-delay" class="form-label">Posting Delay (Hours)</label>
+                <input type="number" id="modal-delay" class="form-input" min="0" max="168" value="0" />
+                <p class="form-help">0 = post immediately, 24 = post in 24 hours</p>
               </div>
             </div>
           </div>
@@ -124,6 +146,35 @@ class PostModal {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    console.log('✅ Modal HTML created and inserted');
+    
+    // Debug: Check if modal is visible
+    const createdModal = document.getElementById('post-modal');
+    if (createdModal) {
+      console.log('🎭 Modal element details:', {
+        display: window.getComputedStyle(createdModal).display,
+        visibility: window.getComputedStyle(createdModal).visibility,
+        opacity: window.getComputedStyle(createdModal).opacity,
+        zIndex: window.getComputedStyle(createdModal).zIndex,
+        position: window.getComputedStyle(createdModal).position,
+        top: window.getComputedStyle(createdModal).top,
+        left: window.getComputedStyle(createdModal).left
+      });
+      
+      // Check parent elements
+      let parent = createdModal.parentElement;
+      let depth = 0;
+      while (parent && depth < 5) {
+        console.log(`🎭 Parent ${depth}:`, {
+          tagName: parent.tagName,
+          id: parent.id,
+          className: parent.className,
+          display: window.getComputedStyle(parent).display
+        });
+        parent = parent.parentElement;
+        depth++;
+      }
+    }
   }
 
   bindEvents() {
@@ -168,9 +219,17 @@ class PostModal {
   }
 
   open(post) {
+    console.log('🎭 Modal.open() called with post:', post);
+    
     if (!post) {
-      console.error('No post provided to modal');
+      console.error('❌ No post provided to modal');
       return;
+    }
+
+    // Ensure modal HTML exists
+    if (!document.getElementById('post-modal')) {
+      console.log('🎭 Modal HTML not found, creating it...');
+      this.createModalHTML();
     }
 
     this.currentPost = post;
@@ -181,7 +240,14 @@ class PostModal {
 
     // Show modal
     const modal = document.getElementById('post-modal');
-    modal.classList.add('show');
+    console.log('🎭 Found modal element:', !!modal);
+    
+    if (modal) {
+      modal.classList.remove('hidden'); // Remove hidden class to show
+      console.log('✅ Modal show class added');
+    } else {
+      console.error('❌ Modal element not found!');
+    }
 
     // Lock body scroll
     document.body.style.overflow = 'hidden';
@@ -195,7 +261,7 @@ class PostModal {
 
     // Hide modal
     const modal = document.getElementById('post-modal');
-    modal.classList.remove('show');
+    modal.classList.add('hidden'); // Add hidden class to hide
 
     // Restore body scroll
     document.body.style.overflow = '';
@@ -237,16 +303,28 @@ class PostModal {
     document.getElementById('platform-linkedin').checked = platforms.includes('linkedin');
     document.getElementById('platform-tiktok').checked = platforms.includes('tiktok');
 
-    // Set product
-    const productEl = document.getElementById('modal-product');
-    if (productEl) {
-      productEl.value = post.product || '';
-    }
-
     // Set brand
     const brandEl = document.getElementById('modal-brand');
     if (brandEl) {
       brandEl.value = post.brand || 'wttt'; // Default to WTTT if not set
+    }
+
+    // Set product type (new field)
+    const productTypeEl = document.getElementById('modal-product-type');
+    if (productTypeEl) {
+      productTypeEl.value = post.productType || '';
+    }
+
+    // Set product name (maintains backward compatibility with old 'product' field)
+    const productNameEl = document.getElementById('modal-product');
+    if (productNameEl) {
+      productNameEl.value = post.productName || post.product || '';
+    }
+
+    // Set website URL (new field)
+    const websiteEl = document.getElementById('modal-website');
+    if (websiteEl) {
+      websiteEl.value = post.websiteUrl || '';
     }
 
     // Set delay
@@ -326,8 +404,10 @@ class PostModal {
     const description = document.getElementById('modal-description').value;
     const caption = document.getElementById('modal-caption').value;
     const hashtags = document.getElementById('modal-hashtags').value;
-    const product = document.getElementById('modal-product').value;
     const brand = document.getElementById('modal-brand').value;
+    const productType = document.getElementById('modal-product-type').value;
+    const productName = document.getElementById('modal-product').value;
+    const websiteUrl = document.getElementById('modal-website').value;
     const hourDelay = document.getElementById('modal-delay').value;
     const platforms = [];
     
@@ -354,8 +434,10 @@ class PostModal {
       description: description,
       caption: caption,
       hashtags: hashtags,
-      product: product,
       brand: brand,
+      product_type: productType,
+      product_name: productName,
+      website_url: websiteUrl,
       hour_delay: parseInt(hourDelay) || 0,
       platforms: platforms.join(', '),
       token_id: this.currentPost.token_id,
@@ -399,8 +481,10 @@ class PostModal {
     const description = document.getElementById('modal-description').value;
     const caption = document.getElementById('modal-caption').value;
     const hashtags = document.getElementById('modal-hashtags').value;
-    const product = document.getElementById('modal-product').value;
     const brand = document.getElementById('modal-brand').value;
+    const productType = document.getElementById('modal-product-type').value;
+    const productName = document.getElementById('modal-product').value;
+    const websiteUrl = document.getElementById('modal-website').value;
     const hourDelay = document.getElementById('modal-delay').value;
     const platforms = [];
     
@@ -414,8 +498,10 @@ class PostModal {
     this.currentPost.description = description;
     this.currentPost.caption = caption;
     this.currentPost.hashtags = hashtags;
-    this.currentPost.product = product;
     this.currentPost.brand = brand;
+    this.currentPost.productType = productType;
+    this.currentPost.productName = productName;
+    this.currentPost.websiteUrl = websiteUrl;
     this.currentPost.hourDelay = parseInt(hourDelay) || 0;
     this.currentPost.platform = platforms.join(', ');
     this.currentPost.scheduled_for = hourDelay > 0 ? new Date(Date.now() + (parseInt(hourDelay) * 60 * 60 * 1000)).toISOString() : null;
@@ -791,4 +877,62 @@ window.closePostModal = () => postModal.close();
 // Global toast function
 window.showToast = (message, type = 'info') => {
   PostModal.showToast(message, type);
-}; 
+};
+
+// Debug logging
+console.log('🎭 Modal system initialized:', {
+  postModal: !!window.postModal,
+  uploadModal: !!window.uploadModal,
+  postModalOpen: !!window.postModal?.open,
+  postModalClose: !!window.postModal?.close
+});
+
+// Test function for debugging
+window.testModal = () => {
+  console.log('🧪 Testing modal...');
+  if (window.postModal) {
+    const testPost = {
+      token_id: 'test',
+      image_url: 'https://via.placeholder.com/300x200',
+      description: 'Test description',
+      caption: 'Test caption',
+      hashtags: '#test #debug',
+      platform: 'instagram',
+      product: 'Test product',
+      brand: 'wttt',
+      hourDelay: 0
+    };
+    window.postModal.open(testPost);
+  } else {
+    console.error('❌ Modal not available');
+  }
+};
+
+// Check modal status
+window.checkModalStatus = () => {
+  const modal = document.getElementById('post-modal');
+  console.log('🔍 Modal status check:', {
+    exists: !!modal,
+    display: modal ? window.getComputedStyle(modal).display : 'N/A',
+    visibility: modal ? window.getComputedStyle(modal).visibility : 'N/A',
+    opacity: modal ? window.getComputedStyle(modal).opacity : 'N/A',
+    zIndex: modal ? window.getComputedStyle(modal).zIndex : 'N/A',
+    position: modal ? window.getComputedStyle(modal).position : 'N/A',
+    top: modal ? window.getComputedStyle(modal).top : 'N/A',
+    left: modal ? window.getComputedStyle(modal).left : 'N/A'
+  });
+  
+  if (modal) {
+    console.log('🎭 Modal HTML:', modal.outerHTML.substring(0, 200) + '...');
+  }
+  
+  return !!modal;
+};
+
+// Ensure modal is ready after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🎭 DOM loaded, ensuring modal is ready...');
+  if (window.postModal) {
+    window.postModal.init();
+  }
+}); 

@@ -4,65 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🚀🚀🚀 NUCLEAR UPDATE: Tribe SPA v1.0.1 - OLD BANNERS GONE! 🚀🚀🚀</title>
-  <link rel="stylesheet" href="style.css?v=202509032359" />
+  <link rel="stylesheet" href="style.css?v=202509040112" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <!-- NUCLEAR UPDATE: 2025-09-03 23:59 UTC - THIS IS THE NEW HTML! -->
+<body class="bg-secondary-50 text-secondary-900 font-sans">
+  <!-- NUCLEAR UPDATE: 2025-09-04 01:12 UTC - THIS IS THE NEW HTML WITH TAILWIND! -->
   <!-- OLD UGLY BANNERS AND PANELS ARE GONE! -->
   
   <!-- iOS Splash Screen -->
-  <div id="ios-splash" class="ios-splash">
-    <div class="splash-content">
-      <img src="wttt-logo.png" alt="WTTT Logo" class="splash-logo">
-      <h1>Content Hub</h1>
-      <div class="splash-spinner"></div>
+  <div id="ios-splash" class="fixed inset-0 bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center z-[10000]">
+    <div class="text-center text-white">
+      <img src="wttt-logo.png" alt="WTTT Logo" class="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-2xl">
+      <h1 class="text-3xl font-bold mb-4 tracking-tight">Content Hub</h1>
+      <div class="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
     </div>
   </div>
 
   <!-- Bottom Navigation (Mobile First) -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchTab('active')" id="active-tab">
-      <i class="fas fa-clock"></i>
-      <span>Active</span>
-    </button>
-    <button class="nav-item" onclick="switchTab('posted')" id="posted-tab">
-      <i class="fas fa-check-circle"></i>
-      <span>Posted</span>
-    </button>
-    <button class="nav-item" onclick="window.uploadModal.open()">
-      <i class="fas fa-plus"></i>
-      <span>Upload</span>
-    </button>
-    <button class="nav-item" onclick="console.log('Search - use new modal system')">
-      <i class="fas fa-search"></i>
-      <span>Search</span>
-    </button>
-    <button class="nav-item" onclick="console.log('Profile - use new modal system')">
-      <i class="fas fa-user"></i>
-      <span>Profile</span>
-    </button>
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-secondary-200 px-4 py-2 z-40">
+    <div class="flex items-center justify-around max-w-md mx-auto">
+      <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 active:bg-primary-100" onclick="switchTab('active')" id="active-tab">
+        <i class="fas fa-clock text-lg mb-1"></i>
+        <span class="text-xs font-medium">Active</span>
+      </button>
+      <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200" onclick="switchTab('posted')" id="posted-tab">
+        <i class="fas fa-check-circle text-lg mb-1"></i>
+        <span class="text-xs font-medium">Posted</span>
+      </button>
+      <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200" onclick="window.uploadModal.open()">
+        <i class="fas fa-plus text-lg mb-1"></i>
+        <span class="text-xs font-medium">Upload</span>
+      </button>
+      <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200" onclick="console.log('Search - use new modal system')">
+        <i class="fas fa-search text-lg mb-1"></i>
+        <span class="text-xs font-medium">Search</span>
+      </button>
+      <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200" onclick="console.log('Profile - use new modal system')">
+        <i class="fas fa-user text-lg mb-1"></i>
+        <span class="text-xs font-medium">Profile</span>
+      </button>
+    </div>
   </nav>
 
   <!-- Content Area -->
-  <main class="main-content" style="padding-top: calc(0.5rem + env(safe-area-inset-top));">
+  <main class="pt-4 pb-20 px-4">
     <!-- Content Grid -->
-    <div class="content-area">
-      <div id="posts-container" class="posts-grid"></div>
+    <div class="max-w-6xl mx-auto">
+      <div id="posts-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
       
-      <div id="loading-indicator" class="loading-indicator" style="display: none;">
-        <div class="spinner"></div>
-        <span>Loading content...</span>
+      <div id="loading-indicator" class="hidden flex flex-col items-center justify-center py-12">
+        <div class="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <span class="text-secondary-600">Loading content...</span>
       </div>
       
-      <div id="empty-state" class="empty-state" style="display: none;">
-        <div class="empty-icon">
-          <i class="fas fa-images"></i>
+      <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12">
+        <div class="w-16 h-16 bg-secondary-200 rounded-full flex items-center justify-center mb-4">
+          <i class="fas fa-images text-2xl text-secondary-600"></i>
         </div>
-        <h3>No content available</h3>
-        <p>Upload new media to get started</p>
+        <h3 class="text-xl font-semibold text-secondary-900 mb-2">No content available</h3>
+        <p class="text-secondary-600 mb-6 text-center">Upload new media to get started</p>
         <button onclick="console.log('Add Content - use new modal system')" class="btn btn-primary">
-          <i class="fas fa-plus"></i>
+          <i class="fas fa-plus mr-2"></i>
           <span>Add Content</span>
         </button>
       </div>
@@ -70,15 +73,15 @@
   </main>
 
   <!-- Build Tag -->
-  <div style="position:fixed;right:8px;bottom:60px;z-index:9999;color:#64748b;font-size:11px;opacity:.8;">
+  <div class="fixed right-2 bottom-20 z-30 text-secondary-500 text-xs opacity-80">
     Build: <span id="build-tag"></span>
   </div>
 
   <!-- NUCLEAR UPDATE SUCCESS INDICATOR -->
-  <div style="position:fixed;left:8px;bottom:60px;z-index:9999;background:#10b981;color:white;padding:12px 16px;border-radius:12px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:2px solid white;">
-    <div style="font-weight:bold;margin-bottom:4px;">🚀🚀🚀 NUCLEAR UPDATE SUCCESS! 🚀🚀🚀</div>
-    <div style="font-size:12px;opacity:.9;">Old banners are GONE!</div>
-    <div style="font-size:10px;opacity:.7;margin-top:4px;">Version: v1.0.1 - Clean & Simple</div>
+  <div class="fixed left-2 bottom-20 z-30 bg-success-600 text-white px-4 py-3 rounded-xl text-sm shadow-lg border-2 border-white">
+    <div class="font-bold mb-1">🚀🚀🚀 NUCLEAR UPDATE SUCCESS! 🚀🚀🚀</div>
+    <div class="text-xs opacity-90">Old banners are GONE!</div>
+    <div class="text-xs opacity-70 mt-1">Version: v1.0.1 - Clean & Simple + Tailwind</div>
   </div>
 
   <!-- Configuration Injection -->
@@ -89,7 +92,7 @@
       enableMockData: true
     };
     window.__BUILD__ = Date.now();
-    console.log('🚀🚀🚀 NUCLEAR UPDATE: HTML file loaded successfully! 🚀🚀🚀');
+    console.log('🚀🚀🚀 NUCLEAR UPDATE: HTML file loaded successfully with Tailwind! 🚀🚀🚀');
   </script>
   
   <!-- Load JavaScript Modules -->

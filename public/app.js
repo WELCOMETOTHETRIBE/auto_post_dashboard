@@ -49,8 +49,16 @@ function initializeBasicApp() {
   const activeTab = document.getElementById('active-tab');
   const postedTab = document.getElementById('posted-tab');
   
-  if (activeTab) activeTab.addEventListener('click', () => switchTab('active'));
-  if (postedTab) postedTab.addEventListener('click', () => switchTab('posted'));
+  if (activeTab) {
+    activeTab.addEventListener('click', () => switchTab('active'));
+    // Set initial active state
+    activeTab.classList.add('bg-primary-100', 'text-primary-700');
+    activeTab.classList.remove('text-secondary-600');
+  }
+  if (postedTab) {
+    postedTab.addEventListener('click', () => switchTab('posted'));
+    postedTab.classList.add('text-secondary-600');
+  }
 }
 
 // === iOS Splash Screen ===
@@ -69,11 +77,23 @@ function switchTab(tab) {
   currentTab = tab;
   
   // Update tab buttons
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('bg-primary-100', 'text-primary-700');
+    item.classList.add('text-secondary-600');
+  });
+  
   if (tab === 'active') {
-    document.getElementById('active-tab').classList.add('active');
+    const activeTab = document.getElementById('active-tab');
+    if (activeTab) {
+      activeTab.classList.add('bg-primary-100', 'text-primary-700');
+      activeTab.classList.remove('text-secondary-600');
+    }
   } else {
-    document.getElementById('posted-tab').classList.add('active');
+    const postedTab = document.getElementById('posted-tab');
+    if (postedTab) {
+      postedTab.classList.add('bg-primary-100', 'text-primary-700');
+      postedTab.classList.remove('text-secondary-600');
+    }
   }
   
   // Reload posts for the selected tab
@@ -85,7 +105,7 @@ async function loadPosts() {
   const loadingIndicator = document.getElementById('loading-indicator');
   const emptyState = document.getElementById('empty-state');
   
-  if (loadingIndicator) loadingIndicator.style.display = 'flex';
+  if (loadingIndicator) loadingIndicator.classList.remove('hidden');
   
   try {
     // Use the new git API module with fallback
@@ -97,7 +117,7 @@ async function loadPosts() {
     
     displayPosts();
     
-    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.classList.add('hidden');
     
     console.log(`✅ Loaded ${posts.length} posts successfully`);
   } catch (err) {
@@ -106,8 +126,8 @@ async function loadPosts() {
       window.logError('POSTS_LOAD_ERROR', { error: err.message });
     }
     
-    if (loadingIndicator) loadingIndicator.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'flex';
+    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    if (emptyState) emptyState.classList.remove('hidden');
   }
 }
 
@@ -115,6 +135,7 @@ async function loadPosts() {
 function displayPosts() {
   const container = document.getElementById('posts-container');
   const emptyState = document.getElementById('empty-state');
+  const loadingIndicator = document.getElementById('loading-indicator');
   
   if (!container) return;
   
@@ -126,16 +147,18 @@ function displayPosts() {
   
   if (postsToShow.length === 0) {
     if (emptyState) {
-      emptyState.style.display = 'flex';
+      emptyState.classList.remove('hidden');
       const h3 = emptyState.querySelector('h3');
       const p = emptyState.querySelector('p');
       if (h3) h3.textContent = currentTab === 'active' ? 'No active content' : 'No posted content';
       if (p) p.textContent = currentTab === 'active' ? 'Upload new media to get started' : 'No posts have been published yet';
     }
+    if (loadingIndicator) loadingIndicator.classList.add('hidden');
     return;
   }
   
-  if (emptyState) emptyState.style.display = 'none';
+  if (emptyState) emptyState.classList.add('hidden');
+  if (loadingIndicator) loadingIndicator.classList.add('hidden');
   
   postsToShow.forEach((post, index) => {
     const postElement = createPostElement(post, index);
@@ -146,49 +169,53 @@ function displayPosts() {
 // === Create Post Element ===
 function createPostElement(post, index) {
   const postElement = document.createElement('div');
-  postElement.className = 'post';
+  postElement.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer';
   
   const isPosted = post.status === 'hidden';
   const postedDate = post.posted_date || new Date().toLocaleDateString();
   
   postElement.innerHTML = `
-    <div class="post-image-container" onclick="openEditModal(${index}, '${post.image_url}')">
-      <div class="post-image">
-        <img src="${post.image_url}" alt="Post image" loading="lazy" />
-        ${isPosted ? `<div class="posted-badge">
-          <i class="fas fa-check-circle"></i>
-          <span>Posted</span>
-        </div>` : ''}
-        ${post.brand ? `<div class="brand-badge brand-${post.brand}">
-          <i class="fas fa-tag"></i>
-          <span>${getBrandDisplayName(post.brand)}</span>
-        </div>` : ''}
+    <div class="relative group" onclick="openEditModal(${index}, '${post.image_url}')">
+      <div class="aspect-square overflow-hidden">
+        <img src="${post.image_url}" alt="Post image" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
       </div>
+      
+      ${isPosted ? `<div class="absolute top-2 right-2 bg-success-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+        <i class="fas fa-check-circle"></i>
+        <span>Posted</span>
+      </div>` : ''}
+      
+      ${post.brand ? `<div class="absolute top-2 left-2 bg-primary-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+        <i class="fas fa-tag"></i>
+        <span>${getBrandDisplayName(post.brand)}</span>
+      </div>` : ''}
     </div>
     
     ${isPosted ? `
-    <div class="post-info">
-      <div class="post-meta">
-        <span class="posted-date">
+    <div class="p-4 space-y-3">
+      <div class="flex items-center gap-4 text-xs text-secondary-600">
+        <span class="flex items-center gap-1">
           <i class="fas fa-calendar"></i>
           Posted on ${postedDate}
         </span>
-        ${post.platform ? `<span class="posted-platform">
+        ${post.platform ? `<span class="flex items-center gap-1">
           <i class="fas fa-share"></i>
           ${post.platform}
         </span>` : ''}
       </div>
-      ${post.caption ? `<div class="posted-caption">
-        <strong>Caption:</strong> ${post.caption}
+      ${post.caption ? `<div class="text-sm">
+        <strong class="text-secondary-900">Caption:</strong> 
+        <span class="text-secondary-700">${post.caption}</span>
       </div>` : ''}
-      ${post.hashtags ? `<div class="posted-hashtags">
-        <strong>Hashtags:</strong> ${post.hashtags}
+      ${post.hashtags ? `<div class="text-sm">
+        <strong class="text-secondary-900">Hashtags:</strong> 
+        <span class="text-secondary-700">${post.hashtags}</span>
       </div>` : ''}
     </div>
     ` : `
-    <div class="post-actions">
-      <button class="btn btn-primary post-now-btn" onclick="openEditModal(${index}, '${post.image_url}')">
-        <i class="fas fa-edit"></i>
+    <div class="p-4">
+      <button class="w-full btn btn-primary" onclick="openEditModal(${index}, '${post.image_url}')">
+        <i class="fas fa-edit mr-2"></i>
         <span>Edit Post</span>
       </button>
     </div>
@@ -210,12 +237,23 @@ function getBrandDisplayName(brandCode) {
 
 // === Edit Modal ===
 function openEditModal(index, imageUrl) {
+  console.log('🔍 openEditModal called:', { index, imageUrl, allPostsLength: allPosts.length });
+  
   // Use the new modal system
   const post = allPosts[index];
-  if (post && window.openPostModal) {
-    window.openPostModal(post.token_id);
+  console.log('📝 Found post:', post);
+  
+  if (post && window.postModal) {
+    console.log('✅ Opening modal with post:', post);
+    // Open the modal directly with the post object
+    window.postModal.open(post);
   } else {
-    console.error('Post not found for index:', index);
+    console.error('❌ Post not found for index:', index, 'or modal not available');
+    console.log('🔍 Debug info:', {
+      post: !!post,
+      postModal: !!window.postModal,
+      postModalOpen: !!window.postModal?.open
+    });
     if (window.logError) {
       window.logError('MODAL_ERROR', { index, imageUrl });
     }
@@ -224,7 +262,7 @@ function openEditModal(index, imageUrl) {
 
 function closeEditModal() {
   // Use the new modal system
-  if (window.closePostModal) {
-    window.closePostModal();
+  if (window.postModal) {
+    window.postModal.close();
   }
 }
