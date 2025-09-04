@@ -145,7 +145,7 @@ class PostModal {
 
     // Show modal
     const modal = document.getElementById('post-modal');
-    modal.classList.add('open');
+    modal.classList.add('show');
 
     // Lock body scroll
     document.body.style.overflow = 'hidden';
@@ -159,7 +159,7 @@ class PostModal {
 
     // Hide modal
     const modal = document.getElementById('post-modal');
-    modal.classList.remove('open');
+    modal.classList.remove('show');
 
     // Restore body scroll
     document.body.style.overflow = '';
@@ -350,6 +350,24 @@ class PostModal {
 
   showToast(message, type = 'info') {
     // Simple toast implementation
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Hide and remove toast
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Global toast function for compatibility
+  static showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
@@ -654,4 +672,9 @@ window.openPostModal = (postId) => {
   }
 };
 
-window.closePostModal = () => postModal.close(); 
+window.closePostModal = () => postModal.close();
+
+// Global toast function
+window.showToast = (message, type = 'info') => {
+  PostModal.showToast(message, type);
+}; 
