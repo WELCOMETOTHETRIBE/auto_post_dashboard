@@ -583,104 +583,105 @@ class UploadModal {
     }
 
     const modalHTML = `
-      <div id="upload-modal" class="upload-modal">
-        <div class="modal-overlay"></div>
+      <div id="upload-modal" class="modal-overlay hidden">
         <div class="modal-content">
           <div class="modal-header">
-            <h3>Upload New Image</h3>
-            <button class="modal-close" onclick="window.uploadModal.close()">
-              <i class="fas fa-times"></i>
+            <h3 class="text-xl font-semibold text-secondary-900">Upload New Image</h3>
+            <button class="modal-close text-secondary-400 hover:text-secondary-600 transition-colors duration-200" onclick="window.uploadModal.close()">
+              <i class="fas fa-times text-xl"></i>
             </button>
           </div>
           <div class="modal-body">
-            <form id="upload-form" enctype="multipart/form-data">
-              <div class="form-group">
-                <label for="upload-image">Select Image</label>
-                <input type="file" id="upload-image" name="image" accept="image/*" required />
-                <div class="image-preview" id="image-preview" style="display: none;">
-                  <img id="preview-img" src="" alt="Preview" />
+            <form id="upload-form" enctype="multipart/form-data" class="space-y-6">
+              <div>
+                <label for="upload-image" class="form-label">Select Image</label>
+                <input type="file" id="upload-image" name="image" accept="image/*" required class="form-input" />
+                <div class="image-preview mt-3" id="image-preview" style="display: none;">
+                  <img id="preview-img" src="" alt="Preview" class="max-w-full max-h-48 rounded-lg shadow-md mx-auto" />
                 </div>
               </div>
               
-              <div class="form-group">
-                <label for="upload-description">Image Description</label>
-                <textarea id="upload-description" name="description" placeholder="Describe what you see in the image..." rows="3"></textarea>
-                <small>This description will be used by AI to generate better captions</small>
+              <div>
+                <label for="upload-description" class="form-label">Image Description</label>
+                <textarea id="upload-description" name="description" placeholder="Describe what you see in the image..." rows="3" class="form-textarea"></textarea>
+                <p class="form-help">This description will be used by AI to generate better captions</p>
               </div>
               
-              <div class="form-group">
-                <label for="upload-caption">Caption (Optional)</label>
-                <div class="input-group">
-                  <textarea id="upload-caption" name="caption" placeholder="Write a caption or let AI generate one..."></textarea>
-                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.uploadModal.generateCaption()">
-                    <i class="fas fa-magic"></i>
+              <div>
+                <label for="upload-caption" class="form-label">Caption (Optional)</label>
+                <div class="flex gap-3">
+                  <textarea id="upload-caption" name="caption" placeholder="Write a caption or let AI generate one..." class="form-textarea flex-1"></textarea>
+                  <button type="button" class="btn btn-secondary btn-sm whitespace-nowrap flex-shrink-0" onclick="window.uploadModal.generateCaption()">
+                    <i class="fas fa-magic mr-2"></i>
                     <span>AI Generate</span>
                   </button>
                 </div>
               </div>
               
-              <div class="form-group">
-                <label for="upload-hashtags">Hashtags (Optional)</label>
-                <div class="input-group">
-                  <input type="text" id="upload-hashtags" name="hashtags" placeholder="#hashtag1 #hashtag2" />
-                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.uploadModal.generateHashtags()">
-                    <i class="fas fa-hashtag"></i>
+              <div>
+                <label for="upload-hashtags" class="form-label">Hashtags (Optional)</label>
+                <div class="flex gap-3">
+                  <input type="text" id="upload-hashtags" name="hashtags" placeholder="#hashtag1 #hashtag2" class="form-input" />
+                  <button type="button" class="btn btn-secondary btn-sm whitespace-nowrap flex-shrink-0" onclick="window.uploadModal.generateHashtags()">
+                    <i class="fas fa-hashtag mr-2"></i>
                     <span>AI Generate</span>
                   </button>
                 </div>
               </div>
               
-              <div class="form-group">
-                <label>Posting Platforms</label>
-                <div class="platform-toggles">
+              <div>
+                <label class="form-label">Posting Platforms</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <label class="platform-toggle">
                     <input type="checkbox" name="platforms" value="instagram" />
-                    <span>Instagram</span>
+                    <span class="text-sm font-medium">Instagram</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" name="platforms" value="facebook" />
-                    <span>Facebook</span>
+                    <span class="text-sm font-medium">Facebook</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" name="platforms" value="twitter" />
-                    <span>Twitter</span>
+                    <span class="text-sm font-medium">Twitter</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" name="platforms" value="linkedin" />
-                    <span>LinkedIn</span>
+                    <span class="text-sm font-medium">LinkedIn</span>
                   </label>
                   <label class="platform-toggle">
                     <input type="checkbox" name="platforms" value="tiktok" />
-                    <span>TikTok</span>
+                    <span class="text-sm font-medium">TikTok</span>
                   </label>
                 </div>
               </div>
               
-              <div class="form-group">
-                <label for="upload-delay">Posting Delay (Hours)</label>
-                <input type="number" id="upload-delay" name="hourDelay" min="0" max="168" value="0" />
-                <small>0 = post immediately, 24 = post in 24 hours</small>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="upload-delay" class="form-label">Posting Delay (Hours)</label>
+                  <input type="number" id="upload-delay" name="hourDelay" min="0" max="168" value="0" class="form-input" />
+                  <p class="form-help">0 = post immediately, 24 = post in 24 hours</p>
+                </div>
+                
+                <div>
+                  <label for="upload-brand" class="form-label">Brand</label>
+                  <select id="upload-brand" name="brand" class="form-select">
+                    <option value="wttt">WTTT</option>
+                    <option value="denlys">Denly</option>
+                    <option value="jabronis">Jabroni</option>
+                  </select>
+                </div>
               </div>
               
-              <div class="form-group">
-                <label for="upload-product">Product (Optional)</label>
-                <input type="text" id="upload-product" name="product" placeholder="Product name or category" />
-              </div>
-              
-              <div class="form-group">
-                <label for="upload-brand">Brand</label>
-                <select id="upload-brand" name="brand">
-                  <option value="wttt">WTTT</option>
-                  <option value="denlys">Denly</option>
-                  <option value="jabronis">Jabroni</option>
-                </select>
+              <div>
+                <label for="upload-product" class="form-label">Product (Optional)</label>
+                <input type="text" id="upload-product" name="product" placeholder="Product name or category" class="form-input" />
               </div>
             </form>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" onclick="window.uploadModal.close()">Cancel</button>
             <button class="btn btn-primary" onclick="window.uploadModal.upload()">
-              <i class="fas fa-upload"></i>
+              <i class="fas fa-upload mr-2"></i>
               <span>Upload & Create Post</span>
             </button>
           </div>
@@ -838,13 +839,19 @@ class UploadModal {
 
   open() {
     this.isOpen = true;
-    document.getElementById('upload-modal').classList.add('show');
+    const modal = document.getElementById('upload-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
     document.body.style.overflow = 'hidden';
   }
 
   close() {
     this.isOpen = false;
-    document.getElementById('upload-modal').classList.remove('show');
+    const modal = document.getElementById('upload-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
     document.body.style.overflow = '';
     
     // Reset form
@@ -932,7 +939,6 @@ window.checkModalStatus = () => {
 // Ensure modal is ready after DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🎭 DOM loaded, ensuring modal is ready...');
-  if (window.postModal) {
-    window.postModal.init();
-  }
+  // Don't auto-initialize modals - they will be created when needed
+  console.log('✅ Modal system ready - modals will be created on demand');
 }); 
