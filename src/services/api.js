@@ -9,14 +9,15 @@ export const fetchPosts = async () => {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     const data = await response.json()
-    return data.posts || []
+    // API returns array directly, not wrapped in object
+    return Array.isArray(data) ? data : []
   } catch (error) {
     console.error('Failed to fetch posts:', error)
     // Fallback to mock data
     try {
       const response = await fetch(`${API_BASE}/posts.json`)
       const data = await response.json()
-      return data || []
+      return Array.isArray(data) ? data : []
     } catch (fallbackError) {
       console.error('Failed to fetch fallback posts:', fallbackError)
       return []
@@ -35,6 +36,19 @@ export const deletePost = async (tokenId) => {
 
   if (!response.ok) {
     throw new Error(`Failed to delete post: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+export const uploadPost = async (formData) => {
+  const response = await fetch(`${API_BASE}/api/upload-image`, {
+    method: 'POST',
+    body: formData // FormData with file and other fields
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload post: ${response.status}`)
   }
 
   return response.json()

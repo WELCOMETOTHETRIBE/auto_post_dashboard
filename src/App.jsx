@@ -5,6 +5,7 @@ import PostsGrid from './components/PostsGrid'
 import LoadingScreen from './components/LoadingScreen'
 import EmptyState from './components/EmptyState'
 import PostModal from './components/PostModal'
+import UploadModal from './components/UploadModal'
 import ToastContainer from './components/ToastContainer'
 import { fetchPosts, deletePost } from './services/api'
 
@@ -14,6 +15,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPost, setSelectedPost] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [toasts, setToasts] = useState([])
 
   useEffect(() => {
@@ -66,6 +68,12 @@ function App() {
     handleCloseModal()
   }
 
+  const handleUploadSuccess = (newPost) => {
+    setPosts(prev => [newPost, ...prev])
+    showToast('Post uploaded successfully!', 'success')
+    setIsUploadModalOpen(false)
+  }
+
   const showToast = (message, type = 'info') => {
     const id = Date.now()
     const toast = { id, message, type }
@@ -89,7 +97,7 @@ function App() {
       <Header 
         activeCount={posts.filter(p => p.status !== 'posted').length}
         postedCount={posts.filter(p => p.status === 'posted').length}
-        onUpload={() => showToast('Upload functionality coming soon!', 'info')}
+        onUpload={() => setIsUploadModalOpen(true)}
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -99,7 +107,7 @@ function App() {
         />
         
         {filteredPosts.length === 0 ? (
-          <EmptyState onUpload={() => showToast('Upload functionality coming soon!', 'info')} />
+          <EmptyState onUpload={() => setIsUploadModalOpen(true)} />
         ) : (
           <PostsGrid 
             posts={filteredPosts}
@@ -117,6 +125,12 @@ function App() {
           onToast={showToast}
         />
       )}
+
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={handleUploadSuccess}
+      />
 
       <ToastContainer toasts={toasts} onRemove={(id) => 
         setToasts(prev => prev.filter(t => t.id !== id))
