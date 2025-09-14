@@ -161,13 +161,13 @@ function displayPosts() {
   if (loadingIndicator) loadingIndicator.classList.add('hidden');
   
   postsToShow.forEach((post, index) => {
-    const postElement = createPostElement(post, index);
+    const postElement = createPostElement(post, post.token_id);
     container.appendChild(postElement);
   });
 }
 
 // === Create Post Element ===
-function createPostElement(post, index) {
+function createPostElement(post, tokenId) {
   const postElement = document.createElement('div');
   postElement.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer';
   
@@ -175,7 +175,7 @@ function createPostElement(post, index) {
   const postedDate = post.posted_date || new Date().toLocaleDateString();
   
   postElement.innerHTML = `
-    <div class="relative group" onclick="openEditModal(${index}, '${post.image_url}')">
+    <div class="relative group" onclick="openEditModal('${tokenId}', '${post.image_url}')">
       <div class="aspect-square overflow-hidden">
         <img src="${post.image_url}" alt="Post image" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
       </div>
@@ -214,7 +214,7 @@ function createPostElement(post, index) {
     </div>
     ` : `
     <div class="p-4">
-      <button class="w-full btn btn-primary" onclick="openEditModal(${index}, '${post.image_url}')">
+      <button class="w-full btn btn-primary" onclick="openEditModal('${tokenId}', '${post.image_url}')">
         <i class="fas fa-edit mr-2"></i>
         <span>Edit Post</span>
       </button>
@@ -236,11 +236,11 @@ function getBrandDisplayName(brandCode) {
 }
 
 // === Edit Modal ===
-function openEditModal(index, imageUrl) {
-  console.log('🔍 openEditModal called:', { index, imageUrl, allPostsLength: allPosts.length });
+function openEditModal(tokenId, imageUrl) {
+  console.log('🔍 openEditModal called:', { tokenId, imageUrl, allPostsLength: allPosts.length });
   
-  // Use the new modal system
-  const post = allPosts[index];
+  // Use the new modal system - find post by token_id
+  const post = allPosts.find(p => p.token_id === tokenId);
   console.log('📝 Found post:', post);
   
   if (post && window.postModal) {
@@ -248,14 +248,14 @@ function openEditModal(index, imageUrl) {
     // Open the modal directly with the post object
     window.postModal.open(post);
   } else {
-    console.error('❌ Post not found for index:', index, 'or modal not available');
+    console.error('❌ Post not found for token_id:', tokenId, 'or modal not available');
     console.log('🔍 Debug info:', {
       post: !!post,
       postModal: !!window.postModal,
       postModalOpen: !!window.postModal?.open
     });
     if (window.logError) {
-      window.logError('MODAL_ERROR', { index, imageUrl });
+      window.logError('MODAL_ERROR', { tokenId, imageUrl });
     }
   }
 }
