@@ -1,11 +1,11 @@
-// === Simple Working Post Modal ===
+// === Modern Post Modal ===
 class PostModal {
   constructor() {
     this.isOpen = false;
     this.currentPost = null;
     this.createModal();
     this.bindEvents();
-    console.log('✅ Modal initialized');
+    console.log('✅ Modern modal initialized');
   }
 
   createModal() {
@@ -14,136 +14,177 @@ class PostModal {
     }
 
     const modalHTML = `
-      <div id="post-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-          <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <div id="post-modal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onclick="window.postModal.close()"></div>
+        
+        <!-- Modal -->
+        <div class="relative flex items-center justify-center min-h-screen p-4">
+          <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             
             <!-- Header -->
-            <div class="flex items-center justify-between p-4 border-b">
-              <h2 class="text-xl font-semibold">Edit Post</h2>
-              <button id="modal-close" class="text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900">Edit Post</h2>
+                <p class="text-gray-600 mt-1">Customize your content for social media</p>
+              </div>
+              <button id="modal-close" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-gray-600"></i>
               </button>
             </div>
             
-            <!-- Scrollable Content -->
-            <div class="overflow-y-auto max-h-[calc(90vh-120px)] p-4">
+            <!-- Content -->
+            <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
               
               <!-- Image Preview -->
-              <div class="mb-4">
-                <img id="modal-image" src="" alt="Post image" class="w-full h-48 object-cover rounded-lg" />
+              <div class="mb-6">
+                <img id="modal-image" src="" alt="Post image" class="w-full h-48 object-cover rounded-xl shadow-sm" />
               </div>
               
-              <!-- Form Fields -->
-              <div class="space-y-4">
+              <!-- Form -->
+              <div class="space-y-6">
                 
                 <!-- Description -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Image Description</label>
-                  <textarea id="modal-description" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Describe the image..."></textarea>
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">Image Description</label>
+                  <textarea id="modal-description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3" placeholder="Describe what you see in the image..."></textarea>
+                  <p class="text-xs text-gray-500 mt-1">Help AI generate better captions</p>
                 </div>
                 
                 <!-- Caption -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Caption</label>
-                  <textarea id="modal-caption" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Write your caption..."></textarea>
-                  <button id="generate-caption" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">Caption</label>
+                  <textarea id="modal-caption" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="4" placeholder="Write an engaging caption..."></textarea>
+                  <button id="generate-caption" class="mt-3 w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 font-medium">
+                    <i class="fas fa-magic mr-2"></i>
                     Generate with AI
                   </button>
                 </div>
                 
                 <!-- Hashtags -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Hashtags</label>
-                  <input id="modal-hashtags" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="#hashtag1 #hashtag2" />
-                  <button id="generate-hashtags" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">Hashtags</label>
+                  <input id="modal-hashtags" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="#hashtag1 #hashtag2" />
+                  <button id="generate-hashtags" class="mt-3 w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 font-medium">
+                    <i class="fas fa-hashtag mr-2"></i>
                     Generate Hashtags
                   </button>
                 </div>
                 
-                <!-- Brand -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                  <select id="modal-brand" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="wttt">WTTT</option>
-                    <option value="denlys">Denly</option>
-                    <option value="jabronis">Jabroni</option>
-                  </select>
+                <!-- Brand & Product -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Brand</label>
+                    <select id="modal-brand" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="wttt">WTTT</option>
+                      <option value="denlys">Denly</option>
+                      <option value="jabronis">Jabroni</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Product Type</label>
+                    <select id="modal-product-type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Select type</option>
+                      <option value="supplement">Supplement</option>
+                      <option value="apparel">Apparel</option>
+                      <option value="accessory">Accessory</option>
+                      <option value="digital">Digital</option>
+                      <option value="service">Service</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
                 </div>
                 
-                <!-- Product Type -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
-                  <select id="modal-product-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select product type</option>
-                    <option value="supplement">Supplement</option>
-                    <option value="apparel">Apparel</option>
-                    <option value="accessory">Accessory</option>
-                    <option value="digital">Digital</option>
-                    <option value="service">Service</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                
-                <!-- Product Name -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                  <input id="modal-product" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Product name" />
-                </div>
-                
-                <!-- Website -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
-                  <input id="modal-website" type="url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com" />
+                <!-- Product Name & Website -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Product Name</label>
+                    <input id="modal-product" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Product name" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Website URL</label>
+                    <input id="modal-website" type="url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com" />
+                  </div>
                 </div>
                 
                 <!-- Platforms -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Posting Platforms</label>
-                  <div class="grid grid-cols-2 gap-2">
-                    <label class="flex items-center">
-                      <input type="checkbox" id="platform-instagram" class="mr-2" />
-                      Instagram
+                  <label class="block text-sm font-semibold text-gray-900 mb-3">Posting Platforms</label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                      <input type="checkbox" id="platform-instagram" class="mr-3 text-pink-500" />
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+                          <i class="fab fa-instagram text-white text-sm"></i>
+                        </div>
+                        <span class="font-medium">Instagram</span>
+                      </div>
                     </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" id="platform-facebook" class="mr-2" />
-                      Facebook
+                    
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                      <input type="checkbox" id="platform-facebook" class="mr-3 text-blue-600" />
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                          <i class="fab fa-facebook text-white text-sm"></i>
+                        </div>
+                        <span class="font-medium">Facebook</span>
+                      </div>
                     </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" id="platform-twitter" class="mr-2" />
-                      Twitter
+                    
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                      <input type="checkbox" id="platform-twitter" class="mr-3 text-blue-400" />
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-400 rounded-lg flex items-center justify-center mr-3">
+                          <i class="fab fa-twitter text-white text-sm"></i>
+                        </div>
+                        <span class="font-medium">Twitter</span>
+                      </div>
                     </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" id="platform-linkedin" class="mr-2" />
-                      LinkedIn
+                    
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                      <input type="checkbox" id="platform-linkedin" class="mr-3 text-blue-700" />
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center mr-3">
+                          <i class="fab fa-linkedin text-white text-sm"></i>
+                        </div>
+                        <span class="font-medium">LinkedIn</span>
+                      </div>
                     </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" id="platform-tiktok" class="mr-2" />
-                      TikTok
+                    
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors col-span-2">
+                      <input type="checkbox" id="platform-tiktok" class="mr-3 text-black" />
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
+                          <i class="fab fa-tiktok text-white text-sm"></i>
+                        </div>
+                        <span class="font-medium">TikTok</span>
+                      </div>
                     </label>
                   </div>
                 </div>
                 
                 <!-- Delay -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Posting Delay (hours)</label>
-                  <input id="modal-delay" type="number" min="0" max="168" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label class="block text-sm font-semibold text-gray-900 mb-2">Posting Delay</label>
+                  <div class="flex items-center space-x-4">
+                    <input id="modal-delay" type="number" min="0" max="168" value="0" class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center" />
+                    <span class="text-sm text-gray-600">hours (0 = post immediately)</span>
+                  </div>
                 </div>
                 
               </div>
             </div>
             
             <!-- Footer -->
-            <div class="flex items-center justify-end space-x-3 p-4 border-t bg-gray-50">
-              <button id="modal-cancel" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+            <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+              <button id="modal-cancel" class="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors">
                 Cancel
               </button>
-              <button id="modal-save" class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">
+              <button id="modal-save" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-medium transition-colors">
                 Save Changes
               </button>
-              <button id="modal-submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+              <button id="modal-submit" class="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 font-medium transition-all duration-200">
+                <i class="fas fa-rocket mr-2"></i>
                 Submit to Zapier
               </button>
             </div>
@@ -157,17 +198,15 @@ class PostModal {
   }
 
   bindEvents() {
-    // Close button
+    // Close buttons
     document.getElementById('modal-close').addEventListener('click', () => this.close());
     document.getElementById('modal-cancel').addEventListener('click', () => this.close());
     
-    // Save button
+    // Action buttons
     document.getElementById('modal-save').addEventListener('click', () => this.save());
-    
-    // Submit button
     document.getElementById('modal-submit').addEventListener('click', () => this.submitToZapier());
     
-    // AI generation buttons
+    // AI generation
     document.getElementById('generate-caption').addEventListener('click', () => this.generateCaption());
     document.getElementById('generate-hashtags').addEventListener('click', () => this.generateHashtags());
     
@@ -177,34 +216,17 @@ class PostModal {
         this.close();
       }
     });
-    
-    // Click outside to close
-    document.getElementById('post-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'post-modal') {
-        this.close();
-      }
-    });
   }
 
   open(post) {
-    console.log('Opening modal for post:', post);
-    
-    if (!post) {
-      console.error('No post provided');
-      return;
-    }
+    if (!post) return;
 
     this.isOpen = true;
     this.currentPost = post;
-
-    // Populate form
     this.populateForm(post);
 
-    // Show modal
     const modal = document.getElementById('post-modal');
     modal.classList.remove('hidden');
-    
-    // Prevent body scroll
     document.body.style.overflow = 'hidden';
   }
 
@@ -212,22 +234,19 @@ class PostModal {
     this.isOpen = false;
     this.currentPost = null;
 
-    // Hide modal
     const modal = document.getElementById('post-modal');
     modal.classList.add('hidden');
-    
-    // Restore body scroll
     document.body.style.overflow = '';
   }
 
   populateForm(post) {
-    // Set image
+    // Image
     const imageEl = document.getElementById('modal-image');
     if (imageEl) {
       imageEl.src = post.image_url || post.imageUrl || '';
     }
 
-    // Set form fields
+    // Form fields
     const fields = {
       'modal-description': post.description || '',
       'modal-caption': post.caption || '',
@@ -241,12 +260,10 @@ class PostModal {
 
     Object.entries(fields).forEach(([id, value]) => {
       const element = document.getElementById(id);
-      if (element) {
-        element.value = value;
-      }
+      if (element) element.value = value;
     });
 
-    // Set platform checkboxes
+    // Platforms
     const platforms = post.platforms || [];
     ['instagram', 'facebook', 'twitter', 'linkedin', 'tiktok'].forEach(platform => {
       const checkbox = document.getElementById(`platform-${platform}`);
@@ -257,45 +274,23 @@ class PostModal {
   }
 
   save() {
-    if (!this.currentPost) {
-      console.error('No current post to save');
-      return;
-    }
+    if (!this.currentPost) return;
 
-    // Collect form data
-    const formData = {
-      description: document.getElementById('modal-description').value,
-      caption: document.getElementById('modal-caption').value,
-      hashtags: document.getElementById('modal-hashtags').value,
-      brand: document.getElementById('modal-brand').value,
-      product_type: document.getElementById('modal-product-type').value,
-      product: document.getElementById('modal-product').value,
-      website: document.getElementById('modal-website').value,
-      delay: parseInt(document.getElementById('modal-delay').value) || 0,
-      platforms: []
-    };
-
-    // Collect selected platforms
-    ['instagram', 'facebook', 'twitter', 'linkedin', 'tiktok'].forEach(platform => {
-      const checkbox = document.getElementById(`platform-${platform}`);
-      if (checkbox && checkbox.checked) {
-        formData.platforms.push(platform);
-      }
-    });
-
-    // Update the post object
+    const formData = this.collectFormData();
     Object.assign(this.currentPost, formData);
 
-    // Update the posts array
+    // Update global posts array
     if (window.allPosts) {
-      const postIndex = window.allPosts.findIndex(p => p.token_id === this.currentPost.token_id);
-      if (postIndex !== -1) {
-        window.allPosts[postIndex] = this.currentPost;
+      const index = window.allPosts.findIndex(p => p.token_id === this.currentPost.token_id);
+      if (index !== -1) {
+        window.allPosts[index] = this.currentPost;
       }
     }
 
-    // Show success message
-    alert('Post updated successfully!');
+    // Show success and close
+    if (window.showToast) {
+      window.showToast('Post updated successfully!', 'success');
+    }
     this.close();
   }
 
@@ -303,19 +298,18 @@ class PostModal {
     const description = document.getElementById('modal-description').value;
     const captionField = document.getElementById('modal-caption');
     
-    if (!captionField) return;
-
-    // Show loading
     captionField.placeholder = 'Generating caption...';
     captionField.disabled = true;
 
-    // Simulate AI generation
     setTimeout(() => {
       const aiCaption = `Check out this amazing ${description || 'content'}! 🚀 #amazing #content #viral`;
       captionField.value = aiCaption;
-      captionField.placeholder = 'Write your caption...';
+      captionField.placeholder = 'Write an engaging caption...';
       captionField.disabled = false;
-      alert('Caption generated!');
+      
+      if (window.showToast) {
+        window.showToast('Caption generated!', 'success');
+      }
     }, 2000);
   }
 
@@ -323,29 +317,22 @@ class PostModal {
     const description = document.getElementById('modal-description').value;
     const hashtagsField = document.getElementById('modal-hashtags');
     
-    if (!hashtagsField) return;
-
-    // Show loading
     hashtagsField.placeholder = 'Generating hashtags...';
     hashtagsField.disabled = true;
 
-    // Simulate AI generation
     setTimeout(() => {
       const aiHashtags = `#viral #trending #amazing #content #socialmedia #instagram #facebook #twitter #linkedin #tiktok`;
       hashtagsField.value = aiHashtags;
       hashtagsField.placeholder = '#hashtag1 #hashtag2';
       hashtagsField.disabled = false;
-      alert('Hashtags generated!');
+      
+      if (window.showToast) {
+        window.showToast('Hashtags generated!', 'success');
+      }
     }, 2000);
   }
 
-  submitToZapier() {
-    if (!this.currentPost) {
-      console.error('No current post to submit');
-      return;
-    }
-
-    // Collect form data
+  collectFormData() {
     const formData = {
       description: document.getElementById('modal-description').value,
       caption: document.getElementById('modal-caption').value,
@@ -358,7 +345,6 @@ class PostModal {
       platforms: []
     };
 
-    // Collect selected platforms
     ['instagram', 'facebook', 'twitter', 'linkedin', 'tiktok'].forEach(platform => {
       const checkbox = document.getElementById(`platform-${platform}`);
       if (checkbox && checkbox.checked) {
@@ -366,38 +352,44 @@ class PostModal {
       }
     });
 
-    // Show loading
-    alert('Submitting to Zapier...');
+    return formData;
+  }
 
-    // Submit to Zapier
+  submitToZapier() {
+    if (!this.currentPost) return;
+
+    const formData = this.collectFormData();
+    
+    if (window.showToast) {
+      window.showToast('Submitting to Zapier...', 'info');
+    }
+
     fetch('/api/submit-to-zapier', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...this.currentPost,
-        ...formData
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...this.currentPost, ...formData })
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert('Successfully submitted to Zapier!');
+        if (window.showToast) {
+          window.showToast('Successfully submitted to Zapier!', 'success');
+        }
         this.close();
       } else {
-        throw new Error(data.message || 'Failed to submit to Zapier');
+        throw new Error(data.message || 'Failed to submit');
       }
     })
     .catch(error => {
       console.error('Zapier submission failed:', error);
-      alert('Failed to submit to Zapier: ' + error.message);
+      if (window.showToast) {
+        window.showToast('Failed to submit to Zapier', 'error');
+      }
     });
   }
 }
 
-// Initialize modal when DOM is ready
+// Initialize modal
 document.addEventListener('DOMContentLoaded', () => {
   window.postModal = new PostModal();
-  console.log('✅ Modal ready');
 });

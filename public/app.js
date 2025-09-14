@@ -1,428 +1,286 @@
-// === Tribe SPA - Recovery Version ===
+// === Tribe SPA - Modern Dashboard ===
 
-// Global variables
+// Global state
 let allPosts = [];
 let currentTab = 'active';
+let isLoading = false;
 
 // === Initialization ===
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Tribe SPA v1.0.1 initializing...');
-  console.log('📱 User Agent:', navigator.userAgent);
-  console.log('📅 Build Time:', new Date().toISOString());
-  
-  // Check if auth is required
-  const requireAuth = window.CONFIG?.requireAuth || false;
-  
-  if (!requireAuth) {
-    console.log('✅ Auth disabled - going straight to dashboard');
-    // Initialize app directly without auth
-    initializeApp();
-  } else {
-    console.log('🔐 Auth required - showing auth screen');
-    // Show auth screen (not implemented in this version)
-    showAuthScreen();
-  }
+  console.log('🚀 Tribe SPA initializing...');
+  initializeApp();
 });
 
-// === App Initialization ===
-function initializeApp() {
-  console.log('🚀 Initializing app...');
-  
+async function initializeApp() {
   try {
-    // Initialize basic functionality
-    initializeBasicApp();
-    console.log('✅ Basic app initialized');
+    // Hide loading screen and show main app
+    setTimeout(() => {
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+    }, 1000);
+
+    // Initialize event listeners
+    initializeEventListeners();
     
-    // Register service worker
-    registerServiceWorker();
-    console.log('✅ Service worker registered');
+    // Load posts
+    await loadPosts();
     
-    // Load posts using new git API module
-    loadPosts().catch(error => {
-      console.error('❌ Failed to load posts:', error);
-      // Show empty state if posts fail to load
-      showEmptyState();
-    });
-    console.log('✅ Posts loading started');
-    
+    console.log('✅ App initialized successfully');
   } catch (error) {
     console.error('❌ App initialization failed:', error);
+    showError('Failed to initialize app');
   }
+}
+
+// === Event Listeners ===
+function initializeEventListeners() {
+  // Tab switching
+  document.getElementById('active-tab').addEventListener('click', () => switchTab('active'));
+  document.getElementById('posted-tab').addEventListener('click', () => switchTab('posted'));
   
-  // Always hide splash screen after a delay, even if there are errors
-  setTimeout(() => {
-    console.log('🔄 Hiding splash screen...');
-    hideSplashScreen();
-  }, 2500);
+  // Upload button
+  document.getElementById('upload-btn').addEventListener('click', () => {
+    // TODO: Implement upload functionality
+    showToast('Upload functionality coming soon!', 'info');
+  });
 }
 
-// === Service Worker Registration ===
-function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    // Simple service worker registration without aggressive updates
-    navigator.serviceWorker.register('/sw.js?v=20250914-stable')
-      .then(registration => {
-        console.log('✅ Service Worker registered:', registration);
-        
-        // Listen for messages from service worker
-        navigator.serviceWorker.addEventListener('message', event => {
-          if (event.data && event.data.type === 'FORCE_RELOAD') {
-            console.log('🔄 Force reload requested by service worker');
-            window.location.reload(true);
-          }
-        });
-        
-        // Only check for updates once, not continuously
-        if (registration.waiting) {
-          // There's already a waiting service worker
-          console.log('Service worker waiting, skipping update check');
-          return;
-        }
-        
-        // Check for updates only once
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content is available, but don't prompt immediately
-              console.log('New service worker installed, will update on next page load');
-            }
-          });
-        });
-      })
-      .catch(error => {
-        console.error('❌ Service Worker registration failed:', error);
-      });
-  }
-}
-
-// === Auth Screen (placeholder) ===
-function showAuthScreen() {
-  console.log('Auth screen not implemented in recovery version');
-  // For now, just initialize the app anyway
-  initializeApp();
-}
-
-// === Basic App Initialization ===
-function initializeBasicApp() {
-  // Add basic event listeners
-  const activeTab = document.getElementById('active-tab');
-  const postedTab = document.getElementById('posted-tab');
-  
-  if (activeTab) {
-    activeTab.addEventListener('click', () => switchTab('active'));
-    // Set initial active state
-    activeTab.classList.add('bg-primary-100', 'text-primary-700');
-    activeTab.classList.remove('text-secondary-600');
-  }
-  if (postedTab) {
-    postedTab.addEventListener('click', () => switchTab('posted'));
-    postedTab.classList.add('text-secondary-600');
-  }
-}
-
-// === iOS Splash Screen ===
-function hideSplashScreen() {
-  console.log('🔄 Hiding splash screen...');
-  const splash = document.getElementById('ios-splash');
-  if (splash) {
-    splash.style.opacity = '0';
-    setTimeout(() => {
-      splash.style.display = 'none';
-      console.log('✅ Splash screen hidden');
-    }, 500);
-  } else {
-    console.log('❌ Splash screen element not found');
-  }
-}
-
-// Emergency fallback - hide splash screen after 5 seconds no matter what
-setTimeout(() => {
-  const splash = document.getElementById('ios-splash');
-  if (splash && splash.style.display !== 'none') {
-    console.log('🚨 Emergency splash screen hide');
-    splash.style.display = 'none';
-  }
-}, 5000);
-
-// === Tab Switching ===
+// === Tab Management ===
 function switchTab(tab) {
   currentTab = tab;
   
   // Update tab buttons
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('bg-primary-100', 'text-primary-700');
-    item.classList.add('text-secondary-600');
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('border-blue-500', 'text-blue-600');
+    btn.classList.add('border-transparent', 'text-gray-500');
   });
   
-  if (tab === 'active') {
-    const activeTab = document.getElementById('active-tab');
-    if (activeTab) {
-      activeTab.classList.add('bg-primary-100', 'text-primary-700');
-      activeTab.classList.remove('text-secondary-600');
-    }
-  } else {
-    const postedTab = document.getElementById('posted-tab');
-    if (postedTab) {
-      postedTab.classList.add('bg-primary-100', 'text-primary-700');
-      postedTab.classList.remove('text-secondary-600');
-    }
+  const activeBtn = document.getElementById(`${tab}-tab`);
+  if (activeBtn) {
+    activeBtn.classList.add('border-blue-500', 'text-blue-600');
+    activeBtn.classList.remove('border-transparent', 'text-gray-500');
   }
   
-  // Reload posts for the selected tab
+  // Update display
   displayPosts();
+  updateStats();
 }
 
-// === Load Posts ===
+// === Data Loading ===
 async function loadPosts() {
-  const loadingIndicator = document.getElementById('loading-indicator');
-  const emptyState = document.getElementById('empty-state');
+  if (isLoading) return;
   
-  if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+  isLoading = true;
+  showLoadingState();
   
   try {
-    // Use the new git API module with fallback
     const posts = await window.fetchPosts();
     allPosts = posts;
-    
-    // Store in global scope for modal access
-    window.allPosts = allPosts;
+    window.allPosts = allPosts; // For modal access
     
     displayPosts();
+    updateStats();
     
-    if (loadingIndicator) loadingIndicator.classList.add('hidden');
-    
-    console.log(`✅ Loaded ${posts.length} posts successfully`);
-  } catch (err) {
-    console.error('❌ Failed to load posts:', err);
-    if (window.logError) {
-      window.logError('POSTS_LOAD_ERROR', { error: err.message });
-    }
-    
-    if (loadingIndicator) loadingIndicator.classList.add('hidden');
-    if (emptyState) emptyState.classList.remove('hidden');
+    console.log(`✅ Loaded ${posts.length} posts`);
+  } catch (error) {
+    console.error('❌ Failed to load posts:', error);
+    showError('Failed to load posts');
+  } finally {
+    isLoading = false;
+    hideLoadingState();
   }
 }
 
-// === Display Posts ===
+// === Display Functions ===
 function displayPosts() {
-  const container = document.getElementById('posts-container');
+  const grid = document.getElementById('posts-grid');
   const emptyState = document.getElementById('empty-state');
-  const loadingIndicator = document.getElementById('loading-indicator');
   
-  if (!container) {
-    console.error('❌ Posts container not found');
-    return;
-  }
+  if (!grid) return;
   
-  container.innerHTML = '';
-  
+  // Filter posts based on current tab
   const postsToShow = currentTab === 'active' 
-    ? allPosts.filter(post => post.status !== 'hidden')
-    : allPosts.filter(post => post.status === 'hidden');
+    ? allPosts.filter(post => post.status !== 'posted')
+    : allPosts.filter(post => post.status === 'posted');
+  
+  // Clear grid
+  grid.innerHTML = '';
   
   if (postsToShow.length === 0) {
-    if (emptyState) {
-      emptyState.classList.remove('hidden');
-      const h3 = emptyState.querySelector('h3');
-      const p = emptyState.querySelector('p');
-      if (h3) h3.textContent = currentTab === 'active' ? 'No active content' : 'No posted content';
-      if (p) p.textContent = currentTab === 'active' ? 'Upload new media to get started' : 'No posts have been published yet';
-    }
-    if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    showEmptyState();
     return;
   }
   
-  if (emptyState) emptyState.classList.add('hidden');
-  if (loadingIndicator) loadingIndicator.classList.add('hidden');
+  hideEmptyState();
   
-  postsToShow.forEach((post, index) => {
-    const postElement = createPostElement(post, post.token_id);
-    container.appendChild(postElement);
+  // Create post cards
+  postsToShow.forEach(post => {
+    const card = createPostCard(post);
+    grid.appendChild(card);
   });
 }
 
-// === Create Post Element ===
-function createPostElement(post, tokenId) {
-  const postElement = document.createElement('div');
-  postElement.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer';
+function createPostCard(post) {
+  const card = document.createElement('div');
+  card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 group';
   
-  const isPosted = post.status === 'hidden';
-  const postedDate = post.posted_date || new Date().toLocaleDateString();
+  const imageUrl = post.image_url || post.imageUrl || '';
+  const caption = post.caption || 'No caption';
+  const isPosted = post.status === 'posted';
   
-  postElement.innerHTML = `
-    <div class="relative group" onclick="openEditModal('${tokenId}', '${post.image_url}')">
-      <div class="aspect-square overflow-hidden">
-        <img src="${post.image_url}" alt="Post image" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+  card.innerHTML = `
+    <div class="relative">
+      <img src="${imageUrl}" alt="Post image" class="w-full h-48 object-cover" />
+      
+      <!-- Status Badge -->
+      <div class="absolute top-3 right-3">
+        ${isPosted ? 
+          '<span class="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">Posted</span>' :
+          '<span class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium">Active</span>'
+        }
       </div>
       
-      <!-- Delete button -->
-      <button class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold opacity-80 hover:opacity-100 transition-opacity duration-200 z-10 shadow-lg" 
-              onclick="event.stopPropagation(); deletePost('${tokenId}')" 
-              title="Delete post">
-        <i class="fas fa-times"></i>
+      <!-- Delete Button -->
+      <button onclick="deletePost('${post.token_id}')" class="absolute top-3 left-3 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center hover:bg-red-600">
+        <i class="fas fa-times text-sm"></i>
       </button>
       
-      ${isPosted ? `<div class="absolute top-2 right-12 bg-success-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-        <i class="fas fa-check-circle"></i>
-        <span>Posted</span>
-      </div>` : ''}
-      
-      ${post.brand ? `<div class="absolute top-2 left-2 bg-primary-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-        <i class="fas fa-tag"></i>
-        <span>${getBrandDisplayName(post.brand)}</span>
-      </div>` : ''}
+      <!-- Overlay -->
+      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200"></div>
     </div>
     
-    ${isPosted ? `
-    <div class="p-4 space-y-3">
-      <div class="flex items-center gap-4 text-xs text-secondary-600">
-        <span class="flex items-center gap-1">
-          <i class="fas fa-calendar"></i>
-          Posted on ${postedDate}
-        </span>
-        ${post.platform ? `<span class="flex items-center gap-1">
-          <i class="fas fa-share"></i>
-          ${post.platform}
-        </span>` : ''}
-      </div>
-      ${post.caption ? `<div class="text-sm">
-        <strong class="text-secondary-900">Caption:</strong> 
-        <span class="text-secondary-700">${post.caption}</span>
-      </div>` : ''}
-      ${post.hashtags ? `<div class="text-sm">
-        <strong class="text-secondary-900">Hashtags:</strong> 
-        <span class="text-secondary-700">${post.hashtags}</span>
-      </div>` : ''}
-    </div>
-    ` : `
     <div class="p-4">
-      <button class="w-full btn btn-primary" onclick="openEditModal('${tokenId}', '${post.image_url}')">
-        <i class="fas fa-edit mr-2"></i>
-        <span>Edit Post</span>
-      </button>
+      <p class="text-gray-900 text-sm line-clamp-2 mb-3">${caption}</p>
+      
+      <div class="flex items-center justify-between">
+        <div class="flex items-center text-xs text-gray-500">
+          <i class="fas fa-hashtag mr-1"></i>
+          <span>${(post.hashtags || '').split(' ').length} tags</span>
+        </div>
+        
+        <button onclick="openEditModal('${post.token_id}')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-xs font-medium transition-colors duration-200">
+          <i class="fas fa-edit mr-1"></i>
+          Edit
+        </button>
+      </div>
     </div>
-    `}
   `;
   
-  return postElement;
+  return card;
 }
 
-// === Utility Functions ===
-function getBrandDisplayName(brandCode) {
-  const brandNames = {
-    'wttt': 'WTTT',
-    'denlys': 'Denly',
-    'jabronis': 'Jabroni'
-  };
-  return brandNames[brandCode] || brandCode;
+// === State Management ===
+function showLoadingState() {
+  document.getElementById('loading-state').classList.remove('hidden');
+  document.getElementById('posts-grid').classList.add('hidden');
+  document.getElementById('empty-state').classList.add('hidden');
 }
 
-// === Edit Modal ===
-function openEditModal(tokenId, imageUrl) {
-  console.log('🔍 openEditModal called:', { tokenId, imageUrl, allPostsLength: allPosts.length });
+function hideLoadingState() {
+  document.getElementById('loading-state').classList.add('hidden');
+}
+
+function showEmptyState() {
+  document.getElementById('empty-state').classList.remove('hidden');
+  document.getElementById('posts-grid').classList.add('hidden');
+}
+
+function hideEmptyState() {
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('posts-grid').classList.remove('hidden');
+}
+
+function updateStats() {
+  const activeCount = allPosts.filter(post => post.status !== 'posted').length;
+  const postedCount = allPosts.filter(post => post.status === 'posted').length;
   
-  // Use the new modal system - find post by token_id
+  const activeElement = document.getElementById('active-count');
+  const postedElement = document.getElementById('posted-count');
+  
+  if (activeElement) activeElement.textContent = activeCount;
+  if (postedElement) postedElement.textContent = postedCount;
+}
+
+// === Post Actions ===
+function openEditModal(tokenId) {
   const post = allPosts.find(p => p.token_id === tokenId);
-  console.log('📝 Found post:', post);
-  
   if (post && window.postModal) {
-    console.log('✅ Opening modal with post:', post);
-    // Open the modal directly with the post object
     window.postModal.open(post);
-  } else {
-    console.error('❌ Post not found for token_id:', tokenId, 'or modal not available');
-    console.log('🔍 Debug info:', {
-      post: !!post,
-      postModal: !!window.postModal,
-      postModalOpen: !!window.postModal?.open
-    });
-    if (window.logError) {
-      window.logError('MODAL_ERROR', { tokenId, imageUrl });
-    }
   }
 }
 
-function closeEditModal() {
-  // Use the new modal system
-  if (window.postModal) {
-    window.postModal.close();
-  }
-}
-
-// === Delete Post Function ===
 async function deletePost(tokenId) {
-  // Find the post to get confirmation details
-  const post = allPosts.find(p => p.token_id === tokenId);
-  if (!post) {
-    console.error('Post not found for deletion:', tokenId);
+  if (!confirm('Are you sure you want to delete this post?')) {
     return;
   }
-
-  // Show confirmation dialog
-  const confirmed = confirm(`Are you sure you want to delete this post?\n\nImage: ${post.image_url.split('/').pop()}\nBrand: ${post.brand || 'Unknown'}\n\nThis action cannot be undone.`);
   
-  if (!confirmed) {
-    return;
-  }
-
   try {
-    console.log('🗑️ Deleting post:', tokenId);
-    
     // Remove from local array
-    const postIndex = allPosts.findIndex(p => p.token_id === tokenId);
-    if (postIndex !== -1) {
-      allPosts.splice(postIndex, 1);
-      console.log('✅ Post removed from local array');
-    }
-
-    // Update posts.json file
-    await updatePostsJsonAfterDelete(tokenId);
+    allPosts = allPosts.filter(post => post.token_id !== tokenId);
+    window.allPosts = allPosts;
     
-    // Refresh the display
+    // Update display
     displayPosts();
+    updateStats();
     
-    // Show success message
-    if (window.showToast) {
-      window.showToast('✅ Post deleted successfully!', 'success');
-    } else {
-      alert('Post deleted successfully!');
-    }
-    
-  } catch (error) {
-    console.error('❌ Error deleting post:', error);
-    
-    // Show error message
-    if (window.showToast) {
-      window.showToast('❌ Failed to delete post: ' + error.message, 'error');
-    } else {
-      alert('Failed to delete post: ' + error.message);
-    }
-  }
-}
-
-// === Update Posts JSON After Delete ===
-async function updatePostsJsonAfterDelete(tokenId) {
-  try {
-    // Update GitHub posts.json via API
-    const response = await fetch('/api/delete-post', {
+    // Delete from server
+    await fetch('/api/delete-post', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        token_id: tokenId
-      })
+      body: JSON.stringify({ token_id: tokenId })
     });
     
-    if (!response.ok) {
-      throw new Error(`Failed to delete post: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    console.log('✅ Post deleted from server:', result);
-    
+    showToast('Post deleted successfully!', 'success');
   } catch (error) {
-    console.error('❌ Error deleting post from server:', error);
-    throw error;
+    console.error('❌ Failed to delete post:', error);
+    showToast('Failed to delete post', 'error');
   }
 }
 
+// === Toast Notifications ===
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  const colors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-500'
+  };
+  
+  toast.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300`;
+  toast.innerHTML = `
+    <div class="flex items-center">
+      <span class="flex-1">${message}</span>
+      <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full');
+  }, 100);
+  
+  // Auto remove
+  setTimeout(() => {
+    toast.classList.add('translate-x-full');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+function showError(message) {
+  showToast(message, 'error');
+}
+
+// === Service Worker ===
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js?v=20250914-rebuild')
+    .then(registration => console.log('✅ Service Worker registered'))
+    .catch(error => console.error('❌ Service Worker registration failed:', error));
+}
