@@ -42,21 +42,36 @@ function initializeApp() {
 // === Service Worker Registration ===
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    // Clear all caches first
+    // NUCLEAR CACHE CLEAR - Delete everything
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          console.log('🗑️ Deleting cache:', cacheName);
+          console.log('🗑️ NUCLEAR: Deleting cache:', cacheName);
           return caches.delete(cacheName);
         })
       );
     }).then(() => {
-      console.log('✅ All caches cleared');
+      console.log('✅ NUCLEAR: All caches cleared');
       
-      // Register service worker
-      return navigator.serviceWorker.register('/sw.js?v=20250914-modal-redesign');
+      // Unregister all service workers first
+      return navigator.serviceWorker.getRegistrations();
+    }).then(registrations => {
+      return Promise.all(
+        registrations.map(registration => {
+          console.log('🗑️ NUCLEAR: Unregistering service worker');
+          return registration.unregister();
+        })
+      );
+    }).then(() => {
+      console.log('✅ NUCLEAR: All service workers unregistered');
+      
+      // Wait a moment then register new one
+      return new Promise(resolve => setTimeout(resolve, 1000));
+    }).then(() => {
+      // Register service worker with new version
+      return navigator.serviceWorker.register('/sw.js?v=20250914-nuclear-clear');
     }).then(registration => {
-      console.log('✅ Service Worker registered:', registration);
+      console.log('✅ NUCLEAR: New Service Worker registered:', registration);
       
       // Listen for messages from service worker
       navigator.serviceWorker.addEventListener('message', event => {

@@ -1,7 +1,7 @@
 // === Service Worker for Content Hub PWA ===
 
-// Force cache clear with new version - MODAL REDESIGN
-const CACHE_VERSION = 'v' + Date.now() + '-modal-redesign';
+// NUCLEAR CACHE CLEAR - FORCE NEW MODAL DESIGN
+const CACHE_VERSION = 'v' + Date.now() + '-nuclear-clear';
 const CACHE_NAME = 'content-hub-' + CACHE_VERSION;
 const STATIC_CACHE = 'content-hub-static-v1';
 
@@ -24,7 +24,9 @@ const urlsToCache = [
 const NO_CACHE_URLS = [
   '/posts.json',
   '/api/',
-  '/api/git/posts'
+  '/api/git/posts',
+  '/js/modal.js',
+  '/app.js'
 ];
 
 // Install event - cache resources
