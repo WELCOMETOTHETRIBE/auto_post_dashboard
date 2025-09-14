@@ -368,6 +368,104 @@ app.post('/submit', async (req, res) => {
   return app._router.handle(req, res);
 });
 
+// Delete post endpoint
+app.post('/api/delete-post', async (req, res) => {
+  try {
+    const { token_id } = req.body;
+    
+    if (!token_id) {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'token_id is required' 
+      });
+    }
+
+    console.log('🗑️ Deleting post with token_id:', token_id);
+    
+    // Read current posts.json
+    const postsPath = path.join(__dirname, 'public', 'posts.json');
+    const postsData = JSON.parse(fs.readFileSync(postsPath, 'utf-8'));
+    
+    // Find and remove the post
+    const postIndex = postsData.findIndex(p => p.token_id === token_id);
+    if (postIndex === -1) {
+      return res.status(404).json({ 
+        status: 'error', 
+        message: 'Post not found' 
+      });
+    }
+    
+    const deletedPost = postsData[postIndex];
+    postsData.splice(postIndex, 1);
+    
+    // Update local posts.json
+    const updatedContent = JSON.stringify(postsData, null, 2);
+    fs.writeFileSync(postsPath, updatedContent);
+    console.log('✅ Local posts.json updated');
+    
+    // Update GitHub posts.json
+    if (GH_TOKEN) {
+      try {
+        const githubPath = 'public/posts.json';
+        const commitMessage = `🗑️ Delete post ${deletedPost.image_url.split('/').pop()}`;
+        
+        const response = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${githubPath}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${GH_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: commitMessage,
+            content: Buffer.from(updatedContent).toString('base64'),
+            sha: await getFileSHA(githubPath)
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ GitHub posts.json updated');
+        } else {
+          console.warn('⚠️ Failed to update GitHub posts.json:', response.statusText);
+        }
+      } catch (githubError) {
+        console.warn('⚠️ GitHub update failed:', githubError.message);
+      }
+    }
+    
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'Post deleted successfully',
+      deleted_post: deletedPost
+    });
+    
+  } catch (error) {
+    console.error('❌ Delete Post Error:', error.message);
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.message 
+    });
+  }
+});
+
+// Helper function to get file SHA for GitHub API
+async function getFileSHA(filePath) {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${filePath}`, {
+      headers: {
+        'Authorization': `token ${GH_TOKEN}`,
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.sha;
+    }
+  } catch (error) {
+    console.warn('Failed to get file SHA:', error.message);
+  }
+  return null;
+}
+
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

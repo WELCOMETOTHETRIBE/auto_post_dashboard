@@ -180,7 +180,14 @@ function createPostElement(post, tokenId) {
         <img src="${post.image_url}" alt="Post image" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
       </div>
       
-      ${isPosted ? `<div class="absolute top-2 right-2 bg-success-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+      <!-- Delete button -->
+      <button class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10" 
+              onclick="event.stopPropagation(); deletePost('${tokenId}')" 
+              title="Delete post">
+        <i class="fas fa-times"></i>
+      </button>
+      
+      ${isPosted ? `<div class="absolute top-2 right-12 bg-success-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
         <i class="fas fa-check-circle"></i>
         <span>Posted</span>
       </div>` : ''}
@@ -264,5 +271,81 @@ function closeEditModal() {
   // Use the new modal system
   if (window.postModal) {
     window.postModal.close();
+  }
+}
+
+// === Delete Post Function ===
+async function deletePost(tokenId) {
+  // Find the post to get confirmation details
+  const post = allPosts.find(p => p.token_id === tokenId);
+  if (!post) {
+    console.error('Post not found for deletion:', tokenId);
+    return;
+  }
+
+  // Show confirmation dialog
+  const confirmed = confirm(`Are you sure you want to delete this post?\n\nImage: ${post.image_url.split('/').pop()}\nBrand: ${post.brand || 'Unknown'}\n\nThis action cannot be undone.`);
+  
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    console.log('🗑️ Deleting post:', tokenId);
+    
+    // Remove from local array
+    const postIndex = allPosts.findIndex(p => p.token_id === tokenId);
+    if (postIndex !== -1) {
+      allPosts.splice(postIndex, 1);
+      console.log('✅ Post removed from local array');
+    }
+
+    // Update posts.json file
+    await updatePostsJsonAfterDelete(tokenId);
+    
+    // Refresh the display
+    displayPosts();
+    
+    // Show success message
+    if (window.showToast) {
+      window.showToast('✅ Post deleted successfully!', 'success');
+    } else {
+      alert('Post deleted successfully!');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error deleting post:', error);
+    
+    // Show error message
+    if (window.showToast) {
+      window.showToast('❌ Failed to delete post: ' + error.message, 'error');
+    } else {
+      alert('Failed to delete post: ' + error.message);
+    }
+  }
+}
+
+// === Update Posts JSON After Delete ===
+async function updatePostsJsonAfterDelete(tokenId) {
+  try {
+    // Update GitHub posts.json via API
+    const response = await fetch('/api/delete-post', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        token_id: tokenId
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete post: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Post deleted from server:', result);
+    
+  } catch (error) {
+    console.error('❌ Error deleting post from server:', error);
+    throw error;
   }
 }
