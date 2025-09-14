@@ -181,7 +181,7 @@ function createPostElement(post, tokenId) {
       </div>
       
       <!-- Delete button -->
-      <button class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10" 
+      <button class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold opacity-80 hover:opacity-100 transition-opacity duration-200 z-10 shadow-lg" 
               onclick="event.stopPropagation(); deletePost('${tokenId}')" 
               title="Delete post">
         <i class="fas fa-times"></i>

@@ -31,118 +31,154 @@ class PostModal {
     console.log('🎭 Creating modal HTML...');
     const modalHTML = `
       <div id="post-modal" class="modal-overlay hidden">
-        <div class="modal-content">
+        <div class="modal-content max-w-4xl">
           <div class="modal-header">
             <h3 class="text-xl font-semibold text-secondary-900">Edit Post</h3>
             <button class="modal-close text-secondary-400 hover:text-secondary-600 transition-colors duration-200" onclick="window.postModal.close()">
               <i class="fas fa-times text-xl"></i>
             </button>
           </div>
+          
           <div class="modal-body">
+            <!-- Image Preview -->
             <div class="mb-6 text-center">
-              <img id="modal-image" src="" alt="Post image" class="max-w-full max-h-80 rounded-lg shadow-lg mx-auto" />
+              <img id="modal-image" src="" alt="Post image" class="max-w-full max-h-64 rounded-xl shadow-lg mx-auto" />
             </div>
-            <div class="space-y-6">
-              <div>
-                <label for="modal-description" class="form-label">Image Description</label>
-                <textarea id="modal-description" class="form-textarea" placeholder="Describe what you see in the image... This helps AI generate better captions" rows="3"></textarea>
-                <p class="form-help">Describe the image content, mood, or context to help AI generate relevant captions</p>
-              </div>
-              
-              <div>
-                <label for="modal-caption" class="form-label">Caption</label>
-                <div class="flex gap-3">
-                  <textarea id="modal-caption" class="form-textarea flex-1" placeholder="Write an engaging caption..." rows="3"></textarea>
-                  <button type="button" class="btn btn-secondary btn-sm whitespace-nowrap flex-shrink-0" onclick="window.postModal.generateCaption()">
-                    <i class="fas fa-magic mr-2"></i>
-                    <span>AI Generate</span>
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <label for="modal-hashtags" class="form-label">Hashtags</label>
-                <div class="flex gap-3">
-                  <input type="text" id="modal-hashtags" class="form-input" placeholder="#hashtag1 #hashtag2" />
-                  <button type="button" class="btn btn-secondary btn-sm whitespace-nowrap flex-shrink-0" onclick="window.postModal.generateHashtags()">
-                    <i class="fas fa-hashtag mr-2"></i>
-                    <span>AI Generate</span>
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <label class="form-label">Posting Platforms</label>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <label class="platform-toggle">
-                    <input type="checkbox" id="platform-instagram" />
-                    <span class="text-sm font-medium">Instagram</span>
-                  </label>
-                  <label class="platform-toggle">
-                    <input type="checkbox" id="platform-facebook" />
-                    <span class="text-sm font-medium">Facebook</span>
-                  </label>
-                  <label class="platform-toggle">
-                    <input type="checkbox" id="platform-twitter" />
-                    <span class="text-sm font-medium">Twitter</span>
-                  </label>
-                  <label class="platform-toggle">
-                    <input type="checkbox" id="platform-linkedin" />
-                    <span class="text-sm font-medium">LinkedIn</span>
-                  </label>
-                  <label class="platform-toggle">
-                    <input type="checkbox" id="platform-tiktok" />
-                    <span class="text-sm font-medium">TikTok</span>
-                  </label>
-                </div>
-              </div>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Tab Navigation -->
+            <div class="flex border-b border-gray-200 mb-6">
+              <button class="tab-btn active px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600" data-tab="content">
+                <i class="fas fa-edit mr-2"></i>Content
+              </button>
+              <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700" data-tab="settings">
+                <i class="fas fa-cog mr-2"></i>Settings
+              </button>
+              <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700" data-tab="publish">
+                <i class="fas fa-rocket mr-2"></i>Publish
+              </button>
+            </div>
+            
+            <!-- Content Tab -->
+            <div id="tab-content" class="tab-content">
+              <div class="space-y-6">
                 <div>
-                  <label for="modal-brand" class="form-label">Brand</label>
-                  <select id="modal-brand" class="form-select">
-                    <option value="wttt">WTTT</option>
-                    <option value="denlys">Denly</option>
-                    <option value="jabronis">Jabroni</option>
-                  </select>
+                  <label for="modal-description" class="block text-sm font-medium text-gray-700 mb-2">Image Description</label>
+                  <textarea id="modal-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe what you see in the image..." rows="2"></textarea>
+                  <p class="text-xs text-gray-500 mt-1">Help AI generate better captions by describing the image</p>
                 </div>
                 
                 <div>
-                  <label for="modal-product-type" class="form-label">Product Type</label>
-                  <select id="modal-product-type" class="form-select">
-                    <option value="">Select product type</option>
-                    <option value="supplement">Supplement</option>
-                    <option value="apparel">Apparel</option>
-                    <option value="accessory">Accessory</option>
-                    <option value="digital">Digital</option>
-                    <option value="service">Service</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <label for="modal-caption" class="block text-sm font-medium text-gray-700 mb-2">Caption</label>
+                  <div class="flex gap-2">
+                    <textarea id="modal-caption" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Write an engaging caption..." rows="3"></textarea>
+                    <button type="button" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors whitespace-nowrap" onclick="window.postModal.generateCaption()">
+                      <i class="fas fa-magic mr-1"></i>AI
+                    </button>
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="modal-hashtags" class="block text-sm font-medium text-gray-700 mb-2">Hashtags</label>
+                  <div class="flex gap-2">
+                    <input type="text" id="modal-hashtags" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="#hashtag1 #hashtag2" />
+                    <button type="button" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors whitespace-nowrap" onclick="window.postModal.generateHashtags()">
+                      <i class="fas fa-hashtag mr-1"></i>AI
+                    </button>
+                  </div>
                 </div>
               </div>
-              
-              <div>
-                <label for="modal-product" class="form-label">Product Name</label>
-                <input type="text" id="modal-product" class="form-input" placeholder="Specific product name or category" />
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden">
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="modal-brand" class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+                    <select id="modal-brand" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="wttt">WTTT</option>
+                      <option value="denlys">Denly</option>
+                      <option value="jabronis">Jabroni</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label for="modal-product-type" class="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+                    <select id="modal-product-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Select product type</option>
+                      <option value="supplement">Supplement</option>
+                      <option value="apparel">Apparel</option>
+                      <option value="accessory">Accessory</option>
+                      <option value="digital">Digital</option>
+                      <option value="service">Service</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="modal-product" class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                  <input type="text" id="modal-product" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Specific product name or category" />
+                </div>
+                
+                <div>
+                  <label for="modal-website" class="block text-sm font-medium text-gray-700 mb-2">Website URL</label>
+                  <input type="url" id="modal-website" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com/product" />
+                </div>
               </div>
-              
-              <div>
-                <label for="modal-website" class="form-label">Website URL</label>
-                <input type="url" id="modal-website" class="form-input" placeholder="https://example.com/product" />
-                <p class="form-help">Link to the product page or main website</p>
-              </div>
-              
-              <div>
-                <label for="modal-delay" class="form-label">Posting Delay (Hours)</label>
-                <input type="number" id="modal-delay" class="form-input" min="0" max="168" value="0" />
-                <p class="form-help">0 = post immediately, 24 = post in 24 hours</p>
+            </div>
+            
+            <!-- Publish Tab -->
+            <div id="tab-publish" class="tab-content hidden">
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-3">Posting Platforms</label>
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input type="checkbox" id="platform-instagram" class="mr-3" />
+                      <i class="fab fa-instagram text-pink-500 mr-2"></i>
+                      <span class="text-sm font-medium">Instagram</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input type="checkbox" id="platform-facebook" class="mr-3" />
+                      <i class="fab fa-facebook text-blue-600 mr-2"></i>
+                      <span class="text-sm font-medium">Facebook</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input type="checkbox" id="platform-twitter" class="mr-3" />
+                      <i class="fab fa-twitter text-blue-400 mr-2"></i>
+                      <span class="text-sm font-medium">Twitter</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input type="checkbox" id="platform-linkedin" class="mr-3" />
+                      <i class="fab fa-linkedin text-blue-700 mr-2"></i>
+                      <span class="text-sm font-medium">LinkedIn</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input type="checkbox" id="platform-tiktok" class="mr-3" />
+                      <i class="fab fa-tiktok text-black mr-2"></i>
+                      <span class="text-sm font-medium">TikTok</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="modal-delay" class="block text-sm font-medium text-gray-700 mb-2">Posting Delay</label>
+                  <div class="flex items-center gap-3">
+                    <input type="number" id="modal-delay" class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" min="0" max="168" value="0" />
+                    <span class="text-sm text-gray-600">hours (0 = post immediately)</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          
           <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="window.postModal.close()">Cancel</button>
-            <button class="btn btn-primary" onclick="window.postModal.save()">Save Changes</button>
-            <button class="btn btn-success" onclick="window.postModal.submitToZapier()">🚀 Submit to Zapier</button>
+            <button class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors" onclick="window.postModal.close()">Cancel</button>
+            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onclick="window.postModal.save()">Save Changes</button>
+            <button class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" onclick="window.postModal.submitToZapier()">
+              <i class="fas fa-rocket mr-2"></i>Submit to Zapier
+            </button>
           </div>
         </div>
       </div>
@@ -210,6 +246,16 @@ class PostModal {
         }
       }
     });
+
+    // Handle tab switching
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.tab-btn')) {
+        e.preventDefault();
+        const tabBtn = e.target.closest('.tab-btn');
+        const tabName = tabBtn.dataset.tab;
+        this.switchTab(tabName);
+      }
+    });
   }
 
   findPostById(postId) {
@@ -219,6 +265,30 @@ class PostModal {
       return window.allPosts.find(post => post.token_id === postId);
     }
     return null;
+  }
+
+  switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active', 'text-blue-600', 'border-blue-600');
+      btn.classList.add('text-gray-500');
+    });
+    
+    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeBtn) {
+      activeBtn.classList.add('active', 'text-blue-600', 'border-blue-600');
+      activeBtn.classList.remove('text-gray-500');
+    }
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    
+    const activeContent = document.getElementById(`tab-${tabName}`);
+    if (activeContent) {
+      activeContent.classList.remove('hidden');
+    }
   }
 
   open(post) {
@@ -245,6 +315,9 @@ class PostModal {
 
     // Populate modal with post data
     this.populateModal(post);
+
+    // Switch to Content tab by default
+    this.switchTab('content');
 
     // Show modal
     const modal = document.getElementById('post-modal');
