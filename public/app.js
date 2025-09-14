@@ -42,61 +42,40 @@ function initializeApp() {
 // === Service Worker Registration ===
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    // NUCLEAR CACHE CLEAR - Delete everything
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          console.log('🗑️ NUCLEAR: Deleting cache:', cacheName);
-          return caches.delete(cacheName);
-        })
-      );
-    }).then(() => {
-      console.log('✅ NUCLEAR: All caches cleared');
-      
-      // Unregister all service workers first
-      return navigator.serviceWorker.getRegistrations();
-    }).then(registrations => {
-      return Promise.all(
-        registrations.map(registration => {
-          console.log('🗑️ NUCLEAR: Unregistering service worker');
-          return registration.unregister();
-        })
-      );
-    }).then(() => {
-      console.log('✅ NUCLEAR: All service workers unregistered');
-      
-      // Wait a moment then register new one
-      return new Promise(resolve => setTimeout(resolve, 1000));
-    }).then(() => {
-      // Register service worker with new version
-      return navigator.serviceWorker.register('/sw.js?v=20250914-nuclear-clear');
-    }).then(registration => {
-      console.log('✅ NUCLEAR: New Service Worker registered:', registration);
-      
-      // Listen for messages from service worker
-      navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data && event.data.type === 'FORCE_RELOAD') {
-          console.log('🔄 Force reload requested by service worker');
-          window.location.reload(true);
-        }
-      });
-      
-      // Check for updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New content is available, prompt user to refresh
-            if (confirm('New version available! Refresh to update?')) {
-              window.location.reload(true);
-            }
+    // Simple service worker registration without aggressive updates
+    navigator.serviceWorker.register('/sw.js?v=20250914-stable')
+      .then(registration => {
+        console.log('✅ Service Worker registered:', registration);
+        
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener('message', event => {
+          if (event.data && event.data.type === 'FORCE_RELOAD') {
+            console.log('🔄 Force reload requested by service worker');
+            window.location.reload(true);
           }
         });
+        
+        // Only check for updates once, not continuously
+        if (registration.waiting) {
+          // There's already a waiting service worker
+          console.log('Service worker waiting, skipping update check');
+          return;
+        }
+        
+        // Check for updates only once
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New content is available, but don't prompt immediately
+              console.log('New service worker installed, will update on next page load');
+            }
+          });
+        });
+      })
+      .catch(error => {
+        console.error('❌ Service Worker registration failed:', error);
       });
-    })
-    .catch(error => {
-      console.error('❌ Service Worker registration failed:', error);
-    });
   }
 }
 

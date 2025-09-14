@@ -1,7 +1,7 @@
 // === Service Worker for Content Hub PWA ===
 
-// NUCLEAR CACHE CLEAR - FORCE NEW MODAL DESIGN
-const CACHE_VERSION = 'v' + Date.now() + '-nuclear-clear';
+// Stable cache version for modal design
+const CACHE_VERSION = 'v20250914-stable';
 const CACHE_NAME = 'content-hub-' + CACHE_VERSION;
 const STATIC_CACHE = 'content-hub-static-v1';
 
@@ -104,24 +104,16 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Delete ALL old caches to force fresh load
-          console.log('Deleting cache:', cacheName);
-          return caches.delete(cacheName);
+          // Only delete old content-hub caches, not all caches
+          if (cacheName.startsWith('content-hub-') && cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
         })
       );
     }).then(() => {
       // Take control of all clients immediately
       return self.clients.claim();
-    }).then(() => {
-      // Force reload all clients
-      return self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ type: 'FORCE_RELOAD' });
-        });
-      });
-    }).then(() => {
-      // Clear all storage
-      return self.registration.update();
     })
   );
 });
