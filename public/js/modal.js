@@ -31,81 +31,142 @@ class PostModal {
     console.log('🎭 Creating modal HTML...');
     const modalHTML = `
       <div id="post-modal" class="fixed inset-0 z-50 hidden">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300" onclick="window.postModal.close()"></div>
+        <!-- Premium Backdrop -->
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-purple-900/40 to-pink-900/60 backdrop-blur-xl transition-all duration-500" onclick="window.postModal.close()"></div>
         
         <!-- Modal Container -->
         <div class="relative flex items-center justify-center min-h-screen p-4">
-          <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-container">
+          <div class="relative w-full max-w-4xl bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 transform transition-all duration-500 scale-95 opacity-0" id="modal-container" style="box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);">
             
-            <!-- Header -->
-            <div class="flex items-center justify-between p-6 border-b border-gray-100">
-              <div>
-                <h2 class="text-2xl font-semibold text-gray-900 tracking-tight">Edit Post</h2>
-                <p class="text-sm text-gray-500 mt-1">Customize your content for social media</p>
-              </div>
-              <button class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200" onclick="window.postModal.close()">
-                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            
-            <!-- Image Preview -->
-            <div class="p-6 border-b border-gray-100">
-              <div class="relative group">
-                <img id="modal-image" src="" alt="Post image" class="w-full h-48 object-cover rounded-2xl shadow-sm" />
-                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-2xl transition-colors duration-200"></div>
-              </div>
-            </div>
-            
-            <!-- Tab Navigation -->
-            <div class="px-6 pt-4">
-              <div class="flex space-x-1 bg-gray-100 p-1 rounded-xl">
-                <button class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 bg-white text-gray-900 shadow-sm" data-tab="content">
-                  Content
-                </button>
-                <button class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-900" data-tab="settings">
-                  Settings
-                </button>
-                <button class="tab-btn flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-900" data-tab="publish">
-                  Publish
-                </button>
-              </div>
-            </div>
-            
-            <!-- Content -->
-            <div class="p-6 max-h-96 overflow-y-auto">
-              <!-- Content Tab -->
-              <div id="tab-content" class="tab-content space-y-6">
+            <!-- Premium Header -->
+            <div class="relative p-8 border-b border-gradient-to-r from-transparent via-gray-200/50 to-transparent">
+              <div class="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-purple-50/30 to-pink-50/50 rounded-t-3xl"></div>
+              <div class="relative flex items-center justify-between">
                 <div>
-                  <label for="modal-description" class="block text-sm font-semibold text-gray-900 mb-3">Image Description</label>
-                  <textarea id="modal-description" class="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200 resize-none" placeholder="Describe what you see in the image..." rows="3"></textarea>
-                  <p class="text-xs text-gray-500 mt-2">Help AI generate better captions by describing the image</p>
+                  <h2 class="text-3xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 bg-clip-text text-transparent tracking-tight">Edit Post</h2>
+                  <p class="text-gray-600 mt-2 font-medium">Craft the perfect social media content</p>
                 </div>
-                
-                <div>
-                  <label for="modal-caption" class="block text-sm font-semibold text-gray-900 mb-3">Caption</label>
-                  <div class="space-y-3">
-                    <textarea id="modal-caption" class="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200 resize-none" placeholder="Write an engaging caption..." rows="4"></textarea>
-                    <button type="button" class="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-sm" onclick="window.postModal.generateCaption()">
-                      <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="group w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 hover:from-red-100 hover:to-red-200 flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105" onclick="window.postModal.close()">
+                  <svg class="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Premium Image Preview -->
+            <div class="p-8">
+              <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative">
+                  <img id="modal-image" src="" alt="Post image" class="w-full h-64 object-cover rounded-2xl shadow-2xl border-4 border-white/50" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent rounded-2xl"></div>
+                  <div class="absolute bottom-4 left-4 right-4">
+                    <div class="bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg">
+                      <p class="text-sm font-medium text-gray-800">Preview your content</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Premium Tab Navigation -->
+            <div class="px-8 pb-6">
+              <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-purple-50/30 to-pink-50/50 rounded-2xl"></div>
+                <div class="relative flex space-x-2 bg-white/60 backdrop-blur-sm p-2 rounded-2xl border border-white/40 shadow-lg">
+                  <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform hover:scale-105" data-tab="content">
+                    <div class="flex items-center justify-center space-x-2">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                      <span>Content</span>
+                    </div>
+                  </button>
+                  <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold rounded-xl transition-all duration-300 text-gray-600 hover:text-gray-900 hover:bg-white/80" data-tab="settings">
+                    <div class="flex items-center justify-center space-x-2">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                      <span>Settings</span>
+                    </div>
+                  </button>
+                  <button class="tab-btn flex-1 px-6 py-4 text-sm font-semibold rounded-xl transition-all duration-300 text-gray-600 hover:text-gray-900 hover:bg-white/80" data-tab="publish">
+                    <div class="flex items-center justify-center space-x-2">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                       </svg>
-                      Generate with AI
+                      <span>Publish</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Premium Content -->
+            <div class="px-8 pb-8 max-h-96 overflow-y-auto">
+              <!-- Content Tab -->
+              <div id="tab-content" class="tab-content space-y-8">
+                <div class="group">
+                  <label for="modal-description" class="block text-sm font-bold text-gray-800 mb-4 flex items-center">
+                    <div class="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-3"></div>
+                    Image Description
+                  </label>
+                  <div class="relative">
+                    <textarea id="modal-description" class="w-full px-6 py-4 bg-gradient-to-br from-gray-50 to-gray-100/50 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300 resize-none shadow-inner" placeholder="Describe what you see in the image..." rows="3"></textarea>
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-3 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Help AI generate better captions by describing the image
+                  </p>
+                </div>
+                
+                <div class="group">
+                  <label for="modal-caption" class="block text-sm font-bold text-gray-800 mb-4 flex items-center">
+                    <div class="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mr-3"></div>
+                    Caption
+                  </label>
+                  <div class="space-y-4">
+                    <div class="relative">
+                      <textarea id="modal-caption" class="w-full px-6 py-4 bg-gradient-to-br from-gray-50 to-gray-100/50 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-4 focus:ring-purple-500/20 focus:outline-none transition-all duration-300 resize-none shadow-inner" placeholder="Write an engaging caption..." rows="4"></textarea>
+                      <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                    <button type="button" class="group relative w-full px-6 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 text-white rounded-2xl font-bold hover:from-purple-700 hover:via-pink-700 hover:to-red-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105" onclick="window.postModal.generateCaption()">
+                      <div class="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                      <div class="relative flex items-center justify-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span>Generate with AI</span>
+                        <div class="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                      </div>
                     </button>
                   </div>
                 </div>
                 
-                <div>
-                  <label for="modal-hashtags" class="block text-sm font-semibold text-gray-900 mb-3">Hashtags</label>
-                  <div class="space-y-3">
-                    <input type="text" id="modal-hashtags" class="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200" placeholder="#hashtag1 #hashtag2" />
-                    <button type="button" class="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-sm" onclick="window.postModal.generateHashtags()">
-                      <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
-                      </svg>
-                      Generate Hashtags
+                <div class="group">
+                  <label for="modal-hashtags" class="block text-sm font-bold text-gray-800 mb-4 flex items-center">
+                    <div class="w-2 h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mr-3"></div>
+                    Hashtags
+                  </label>
+                  <div class="space-y-4">
+                    <div class="relative">
+                      <input type="text" id="modal-hashtags" class="w-full px-6 py-4 bg-gradient-to-br from-gray-50 to-gray-100/50 border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/20 focus:outline-none transition-all duration-300 shadow-inner" placeholder="#hashtag1 #hashtag2" />
+                      <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                    <button type="button" class="group relative w-full px-6 py-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white rounded-2xl font-bold hover:from-cyan-600 hover:via-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105" onclick="window.postModal.generateHashtags()">
+                      <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                      <div class="relative flex items-center justify-center space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                        </svg>
+                        <span>Generate Hashtags</span>
+                        <div class="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -225,20 +286,28 @@ class PostModal {
               </div>
             </div>
             
-            <!-- Footer -->
-            <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-100">
-              <button class="px-6 py-2.5 text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200" onclick="window.postModal.close()">
-                Cancel
-              </button>
-              <button class="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors duration-200" onclick="window.postModal.save()">
-                Save Changes
-              </button>
-              <button class="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-sm" onclick="window.postModal.submitToZapier()">
-                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                Submit to Zapier
-              </button>
+            <!-- Premium Footer -->
+            <div class="relative p-8 border-t border-gradient-to-r from-transparent via-gray-200/50 to-transparent">
+              <div class="absolute inset-0 bg-gradient-to-r from-gray-50/50 via-white/30 to-gray-50/50 rounded-b-3xl"></div>
+              <div class="relative flex items-center justify-end space-x-4">
+                <button class="px-8 py-3 text-gray-600 hover:text-gray-900 font-semibold transition-all duration-300 hover:bg-gray-100 rounded-xl" onclick="window.postModal.close()">
+                  Cancel
+                </button>
+                <button class="group relative px-8 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-xl font-bold hover:from-gray-900 hover:to-black transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105" onclick="window.postModal.save()">
+                  <div class="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                  <span class="relative">Save Changes</span>
+                </button>
+                <button class="group relative px-8 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white rounded-xl font-bold hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105" onclick="window.postModal.submitToZapier()">
+                  <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                  <div class="relative flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span>Submit to Zapier</span>
+                    <div class="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -331,14 +400,14 @@ class PostModal {
   switchTab(tabName) {
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
-      btn.classList.add('text-gray-600');
+      btn.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-purple-600', 'text-white', 'shadow-lg', 'transform', 'hover:scale-105');
+      btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-white/80');
     });
     
     const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
     if (activeBtn) {
-      activeBtn.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
-      activeBtn.classList.remove('text-gray-600');
+      activeBtn.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-purple-600', 'text-white', 'shadow-lg', 'transform', 'hover:scale-105');
+      activeBtn.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-white/80');
     }
     
     // Update tab content
