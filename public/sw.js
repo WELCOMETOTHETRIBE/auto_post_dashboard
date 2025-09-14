@@ -1,22 +1,17 @@
 // === Service Worker for Content Hub PWA ===
 
-// Stable cache version for modal design
-const CACHE_VERSION = 'v20250914-stable';
-const CACHE_NAME = 'content-hub-' + CACHE_VERSION;
+// React app cache version - force clear all old caches
+const CACHE_VERSION = 'v20250914-react-clear';
+const CACHE_NAME = 'tribe-spa-' + CACHE_VERSION;
 const STATIC_CACHE = 'content-hub-static-v1';
 
 const urlsToCache = [
   '/',
   '/index.html',
   '/style.css',
-  '/app.js',
-  '/js/modal.js',
-  '/js/config.js',
-  '/js/git.js',
-  '/js/log.js',
   '/wttt-logo.png',
   '/products.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
 ];
 
@@ -24,9 +19,7 @@ const urlsToCache = [
 const NO_CACHE_URLS = [
   '/posts.json',
   '/api/',
-  '/api/git/posts',
-  '/js/modal.js',
-  '/app.js'
+  '/api/git/posts'
 ];
 
 // Install event - cache resources
@@ -34,13 +27,15 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Opened React app cache');
         return cache.addAll(urlsToCache);
       })
       .catch(error => {
         console.log('Cache failed:', error);
       })
   );
+  // Force activation of new service worker
+  self.skipWaiting();
 });
 
 // Fetch event - serve from cache when offline
@@ -104,8 +99,8 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Only delete old content-hub caches, not all caches
-          if (cacheName.startsWith('content-hub-') && cacheName !== CACHE_NAME) {
+          // Delete ALL old caches to force fresh load
+          if (cacheName !== CACHE_NAME) {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
