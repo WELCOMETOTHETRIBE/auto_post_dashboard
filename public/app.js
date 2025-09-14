@@ -46,6 +46,14 @@ function registerServiceWorker() {
       .then(registration => {
         console.log('✅ Service Worker registered:', registration);
         
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener('message', event => {
+          if (event.data && event.data.type === 'FORCE_RELOAD') {
+            console.log('🔄 Force reload requested by service worker');
+            window.location.reload(true);
+          }
+        });
+        
         // Check for updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
@@ -53,7 +61,7 @@ function registerServiceWorker() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New content is available, prompt user to refresh
               if (confirm('New version available! Refresh to update?')) {
-                window.location.reload();
+                window.location.reload(true);
               }
             }
           });

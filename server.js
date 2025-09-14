@@ -506,9 +506,9 @@ app.get('*', (_req, res) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log('🚀🚀🚀 NUCLEAR UPDATE: Tribe SPA server listening on port 3000 🚀🚀🚀');
+  console.log('Tribe SPA server listening on port 3000');
   console.log('📊 Health check: http://localhost:3000/healthz');
   console.log('🌐 GitHub proxy: http://localhost:3000/api/git/posts');
   console.log('🔑 GitHub token: Not configured (using mock data)');
-  console.log('✅✅✅ THIS IS THE NEW CODE RUNNING! ✅✅✅');
+  console.log('Server ready and running');
 });

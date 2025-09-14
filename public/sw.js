@@ -1,7 +1,7 @@
 // === Service Worker for Content Hub PWA ===
 
-// Use timestamp-based cache name for automatic cache invalidation
-const CACHE_VERSION = 'v' + Date.now();
+// Force cache clear with new version
+const CACHE_VERSION = 'v' + Date.now() + '-force-clear';
 const CACHE_NAME = 'content-hub-' + CACHE_VERSION;
 const STATIC_CACHE = 'content-hub-static-v1';
 
@@ -102,16 +102,21 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Delete all old content-hub caches except current one
-          if (cacheName.startsWith('content-hub-') && cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
+          // Delete ALL old caches to force fresh load
+          console.log('Deleting cache:', cacheName);
+          return caches.delete(cacheName);
         })
       );
     }).then(() => {
       // Take control of all clients immediately
       return self.clients.claim();
+    }).then(() => {
+      // Force reload all clients
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'FORCE_RELOAD' });
+        });
+      });
     })
   );
 });
@@ -176,6 +181,13 @@ self.addEventListener('notificationclick', event => {
 // Message handling from main thread
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Handle force reload messages
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'FORCE_RELOAD') {
     self.skipWaiting();
   }
 }); 
