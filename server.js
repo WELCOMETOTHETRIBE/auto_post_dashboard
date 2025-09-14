@@ -469,8 +469,34 @@ async function getFileSHA(filePath) {
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
+// Serve static files from public directory with appropriate caching
+app.use(express.static(path.join(__dirname, 'public'), { 
+  maxAge: process.env.NODE_ENV === 'production' ? '1h' : '0',
+  etag: true,
+  lastModified: true
+}));
+
+// Add cache-busting headers for frequently changing files
+app.use('/app.js', (req, res, next) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
+app.use('/js/modal.js', (req, res, next) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
+app.use('/posts.json', (req, res, next) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
 
 // SPA fallback - serve index.html for all other routes
 app.get('*', (_req, res) => {
