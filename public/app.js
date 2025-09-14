@@ -26,17 +26,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // === App Initialization ===
 function initializeApp() {
-  // Initialize basic functionality
-  initializeBasicApp();
+  console.log('🚀 Initializing app...');
   
-  // Register service worker
-  registerServiceWorker();
+  try {
+    // Initialize basic functionality
+    initializeBasicApp();
+    console.log('✅ Basic app initialized');
+    
+    // Register service worker
+    registerServiceWorker();
+    console.log('✅ Service worker registered');
+    
+    // Load posts using new git API module
+    loadPosts().catch(error => {
+      console.error('❌ Failed to load posts:', error);
+      // Show empty state if posts fail to load
+      showEmptyState();
+    });
+    console.log('✅ Posts loading started');
+    
+  } catch (error) {
+    console.error('❌ App initialization failed:', error);
+  }
   
-  // Load posts using new git API module
-  loadPosts();
-  
-  // Hide splash screen after a delay
-  setTimeout(hideSplashScreen, 2500);
+  // Always hide splash screen after a delay, even if there are errors
+  setTimeout(() => {
+    console.log('🔄 Hiding splash screen...');
+    hideSplashScreen();
+  }, 2500);
 }
 
 // === Service Worker Registration ===
@@ -106,14 +123,27 @@ function initializeBasicApp() {
 
 // === iOS Splash Screen ===
 function hideSplashScreen() {
+  console.log('🔄 Hiding splash screen...');
   const splash = document.getElementById('ios-splash');
   if (splash) {
     splash.style.opacity = '0';
     setTimeout(() => {
       splash.style.display = 'none';
+      console.log('✅ Splash screen hidden');
     }, 500);
+  } else {
+    console.log('❌ Splash screen element not found');
   }
 }
+
+// Emergency fallback - hide splash screen after 5 seconds no matter what
+setTimeout(() => {
+  const splash = document.getElementById('ios-splash');
+  if (splash && splash.style.display !== 'none') {
+    console.log('🚨 Emergency splash screen hide');
+    splash.style.display = 'none';
+  }
+}, 5000);
 
 // === Tab Switching ===
 function switchTab(tab) {
@@ -392,3 +422,4 @@ async function updatePostsJsonAfterDelete(tokenId) {
     throw error;
   }
 }
+
