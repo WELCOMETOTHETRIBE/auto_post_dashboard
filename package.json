@@ -4,16 +4,26 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node server.js",
+    "dev:client": "vite",
+    "build": "vite build && npm run build:css:prod",
     "build:css": "tailwindcss -i ./src/input.css -o ./public/style.css --watch",
     "build:css:prod": "tailwindcss -i ./src/input.css -o ./public/style.css --minify",
-    "dev": "node server.js",
     "lint": "echo \"(optional)\""
   },
   "dependencies": {
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "concurrently": "^9.2.1",
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
-    "uuid": "^9.0.1"
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "uuid": "^9.0.1",
+    "vite": "^7.1.5"
   },
   "engines": {
     "node": ">=18.x"
