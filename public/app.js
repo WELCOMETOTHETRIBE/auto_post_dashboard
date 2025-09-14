@@ -42,34 +42,46 @@ function initializeApp() {
 // === Service Worker Registration ===
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('✅ Service Worker registered:', registration);
-        
-        // Listen for messages from service worker
-        navigator.serviceWorker.addEventListener('message', event => {
-          if (event.data && event.data.type === 'FORCE_RELOAD') {
-            console.log('🔄 Force reload requested by service worker');
-            window.location.reload(true);
+    // Clear all caches first
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          console.log('🗑️ Deleting cache:', cacheName);
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(() => {
+      console.log('✅ All caches cleared');
+      
+      // Register service worker
+      return navigator.serviceWorker.register('/sw.js?v=20250914-modal-redesign');
+    }).then(registration => {
+      console.log('✅ Service Worker registered:', registration);
+      
+      // Listen for messages from service worker
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'FORCE_RELOAD') {
+          console.log('🔄 Force reload requested by service worker');
+          window.location.reload(true);
+        }
+      });
+      
+      // Check for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New content is available, prompt user to refresh
+            if (confirm('New version available! Refresh to update?')) {
+              window.location.reload(true);
+            }
           }
         });
-        
-        // Check for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content is available, prompt user to refresh
-              if (confirm('New version available! Refresh to update?')) {
-                window.location.reload(true);
-              }
-            }
-          });
-        });
-      })
-      .catch(error => {
-        console.error('❌ Service Worker registration failed:', error);
       });
+    })
+    .catch(error => {
+      console.error('❌ Service Worker registration failed:', error);
+    });
   }
 }
 

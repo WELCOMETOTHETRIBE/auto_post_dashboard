@@ -1,7 +1,7 @@
 // === Service Worker for Content Hub PWA ===
 
-// Force cache clear with new version
-const CACHE_VERSION = 'v' + Date.now() + '-force-clear';
+// Force cache clear with new version - MODAL REDESIGN
+const CACHE_VERSION = 'v' + Date.now() + '-modal-redesign';
 const CACHE_NAME = 'content-hub-' + CACHE_VERSION;
 const STATIC_CACHE = 'content-hub-static-v1';
 
@@ -117,6 +117,9 @@ self.addEventListener('activate', event => {
           client.postMessage({ type: 'FORCE_RELOAD' });
         });
       });
+    }).then(() => {
+      // Clear all storage
+      return self.registration.update();
     })
   );
 });
