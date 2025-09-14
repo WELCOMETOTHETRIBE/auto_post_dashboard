@@ -210,7 +210,10 @@ function displayPosts() {
   const emptyState = document.getElementById('empty-state');
   const loadingIndicator = document.getElementById('loading-indicator');
   
-  if (!container) return;
+  if (!container) {
+    console.error('❌ Posts container not found');
+    return;
+  }
   
   container.innerHTML = '';
   
