@@ -1,5 +1,18 @@
 {
   "version": 1,
-  "drafts": [],
+  "drafts": [
+    {
+      "id": "dcdd4b86-43a9-4765-9ad4-a2f2bb7dffb6",
+      "created_at": "2025-09-15T11:48:00.086Z",
+      "product_name": "Test Product",
+      "description": "Test upload to verify GitHub integration",
+      "image_path": "public/uploads/2025/09/65073eca-59fc-45fd-8f35-1845bdc7d820.jpg",
+      "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/uploads/2025/09/65073eca-59fc-45fd-8f35-1845bdc7d820.jpg",
+      "platforms": [],
+      "publish_now": false,
+      "token": "88b7ae6e-5e55-4dd8-b704-022588ebc33f",
+      "status": "draft"
+    }
+  ],
   "posted": []
 }
