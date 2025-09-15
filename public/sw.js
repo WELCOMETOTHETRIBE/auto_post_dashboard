@@ -1,7 +1,7 @@
 // === Service Worker for Content Hub PWA ===
 
 // React app cache version - force clear all old caches
-const CACHE_VERSION = 'v20250914-react-clear';
+const CACHE_VERSION = 'v20250915-ui-redesign';
 const CACHE_NAME = 'tribe-spa-' + CACHE_VERSION;
 const STATIC_CACHE = 'content-hub-static-v1';
 
