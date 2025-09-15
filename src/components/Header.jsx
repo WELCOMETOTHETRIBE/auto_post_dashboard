@@ -21,7 +21,7 @@ function Header({ activeCount, postedCount, onUpload }) {
           <div className="hidden md:flex items-center space-x-8">
             <div className="text-center glass-card px-6 py-3 rounded-xl">
               <div className="text-3xl font-bold gradient-text">{activeCount}</div>
-              <div className="text-sm text-gray-600 font-medium">Active Posts</div>
+              <div className="text-sm text-gray-600 font-medium">Drafts</div>
             </div>
             <div className="text-center glass-card px-6 py-3 rounded-xl">
               <div className="text-3xl font-bold gradient-text">{postedCount}</div>

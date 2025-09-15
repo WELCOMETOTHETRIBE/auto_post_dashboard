@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { generateAICaption, generateAIHashtags } from '../services/api'
 
 function PostModal({ post, onClose, onSave, onToast }) {
   const [formData, setFormData] = useState({
@@ -71,17 +72,35 @@ function PostModal({ post, onClose, onSave, onToast }) {
     }
   }
 
-  const generateCaption = () => {
-    const description = formData.description
-    const aiCaption = `Check out this amazing ${description || 'content'}! 🚀 #amazing #content #viral`
-    handleInputChange('caption', aiCaption)
-    onToast('Caption generated!', 'success')
+  const generateCaption = async () => {
+    try {
+      onToast('Generating AI caption...', 'info')
+      const result = await generateAICaption(post.image_url || post.imageUrl, formData.description)
+      handleInputChange('caption', result.caption || 'Check out this amazing content! 🚀')
+      onToast('AI caption generated!', 'success')
+    } catch (error) {
+      console.error('Caption generation failed:', error)
+      // Fallback to simple caption
+      const description = formData.description
+      const aiCaption = `Check out this amazing ${description || 'content'}! 🚀 #amazing #content #viral`
+      handleInputChange('caption', aiCaption)
+      onToast('Generated fallback caption', 'info')
+    }
   }
 
-  const generateHashtags = () => {
-    const aiHashtags = `#viral #trending #amazing #content #socialmedia #instagram #facebook #twitter #linkedin #tiktok`
-    handleInputChange('hashtags', aiHashtags)
-    onToast('Hashtags generated!', 'success')
+  const generateHashtags = async () => {
+    try {
+      onToast('Generating AI hashtags...', 'info')
+      const result = await generateAIHashtags(formData.caption, formData.description)
+      handleInputChange('hashtags', result.hashtags || '#viral #trending #amazing #content #socialmedia')
+      onToast('AI hashtags generated!', 'success')
+    } catch (error) {
+      console.error('Hashtag generation failed:', error)
+      // Fallback to simple hashtags
+      const aiHashtags = `#viral #trending #amazing #content #socialmedia #instagram #facebook #twitter #linkedin #tiktok`
+      handleInputChange('hashtags', aiHashtags)
+      onToast('Generated fallback hashtags', 'info')
+    }
   }
 
   if (!post) return null

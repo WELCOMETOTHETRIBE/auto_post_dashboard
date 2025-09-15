@@ -54,6 +54,38 @@ export const uploadPost = async (formData) => {
   return response.json()
 }
 
+export const generateAICaption = async (imageUrl, description = '') => {
+  const response = await fetch(`${API_BASE}/api/generate-caption`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ imageUrl, description })
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to generate caption: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+export const generateAIHashtags = async (caption = '', description = '') => {
+  const response = await fetch(`${API_BASE}/api/generate-hashtags`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ caption, description })
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to generate hashtags: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 export const submitToZapier = async (postData) => {
   const response = await fetch(`${API_BASE}/api/submit-to-zapier`, {
     method: 'POST',

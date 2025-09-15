@@ -13,8 +13,8 @@ function TabNavigation({ currentTab, onTabChange }) {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-clock mr-2"></i>
-            Active Posts
+            <i className="fas fa-edit mr-2"></i>
+            Drafts
           </button>
           <button 
             onClick={() => onTabChange('posted')}

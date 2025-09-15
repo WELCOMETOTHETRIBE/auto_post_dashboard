@@ -106,7 +106,9 @@ app.post('/api/generate-caption', async (req, res) => {
     if (!OPENAI_API_KEY || !ASSISTANT_ID) {
       return res.status(500).json({ error: 'OpenAI not configured' });
     }
-    const caption = await runAssistant(req.body.prompt || "Generate a caption.");
+    const { imageUrl, description } = req.body;
+    const prompt = `Generate an engaging social media caption for this image. ${description ? `Image description: ${description}` : ''} Make it viral, engaging, and include relevant emojis.`;
+    const caption = await runAssistant(prompt);
     res.json({ caption });
   } catch (error) {
     console.error('Caption Error:', error);
@@ -120,7 +122,9 @@ app.post('/api/generate-hashtags', async (req, res) => {
     if (!OPENAI_API_KEY || !ASSISTANT_ID) {
       return res.status(500).json({ error: 'OpenAI not configured' });
     }
-    const hashtags = await runAssistant(`Generate relevant, concise, viral hashtags for this caption: ${req.body.caption}`);
+    const { caption, description } = req.body;
+    const prompt = `Generate 10-15 relevant, viral hashtags for this social media post. Caption: ${caption || 'No caption provided'}. ${description ? `Description: ${description}` : ''} Make them trending and relevant.`;
+    const hashtags = await runAssistant(prompt);
     res.json({ hashtags });
   } catch (error) {
     console.error('Hashtag Error:', error);
