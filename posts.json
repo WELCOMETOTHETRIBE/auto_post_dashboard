@@ -26,10 +26,16 @@
       ],
       "image_path": "public/uploads/2025/09/65073eca-59fc-45fd-8f35-1845bdc7d820.jpg",
       "image_url": "https://raw.githubusercontent.com/WELCOMETOTHETRIBE/auto_post_dashboard/main/public/uploads/2025/09/65073eca-59fc-45fd-8f35-1845bdc7d820.jpg",
-      "platforms": [],
+      "link": "https://example.com",
+      "platforms": [
+        "twitter",
+        "linkedin"
+      ],
       "publish_now": false,
+      "delay_hours": 1,
+      "publish_at": "2025-09-15T12:48:33.267Z",
       "token": "88b7ae6e-5e55-4dd8-b704-022588ebc33f",
-      "status": "draft"
+      "status": "queued"
     }
   ],
   "posted": []
