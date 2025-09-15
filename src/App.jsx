@@ -94,10 +94,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Test element to verify new CSS is working */}
-      <div className="fixed top-4 left-4 z-50 btn btn-primary">
-        🎨 New UI Active
-      </div>
       <Header 
         activeCount={posts.filter(p => p.status !== 'posted').length}
         postedCount={posts.filter(p => p.status === 'posted').length}
