@@ -2,26 +2,9 @@ import React, { useState } from 'react'
 import { uploadPost } from '../services/api'
 
 function UploadModal({ isOpen, onClose, onUploadSuccess }) {
-  const [formData, setFormData] = useState({
-    image: null,
-    caption: '',
-    hashtags: '',
-    product: '',
-    brand: 'wttt',
-    platforms: 'instagram,facebook,twitter',
-    hourDelay: '0'
-  })
+  const [selectedFile, setSelectedFile] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
-
-  const handleInputChange = (e) => {
-    const { name, value, files } = e.target
-    if (name === 'image') {
-      setFormData(prev => ({ ...prev, image: files[0] }))
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }))
-    }
-  }
 
   const handleDrag = (e) => {
     e.preventDefault()
@@ -39,27 +22,32 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setDragActive(false)
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData(prev => ({ ...prev, image: e.dataTransfer.files[0] }))
+      setSelectedFile(e.dataTransfer.files[0])
+    }
+  }
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0])
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.image) {
-      alert('Please select an image')
+    if (!selectedFile) {
       return
     }
 
     setIsUploading(true)
     try {
       const uploadData = new FormData()
-      uploadData.append('image', formData.image)
-      uploadData.append('caption', formData.caption)
-      uploadData.append('hashtags', formData.hashtags)
-      uploadData.append('product', formData.product)
-      uploadData.append('brand', formData.brand)
-      uploadData.append('platforms', formData.platforms)
-      uploadData.append('hourDelay', formData.hourDelay)
+      uploadData.append('image', selectedFile)
+      uploadData.append('caption', '') // Empty - will be filled in edit
+      uploadData.append('hashtags', '') // Empty - will be filled in edit
+      uploadData.append('product', '') // Empty - will be filled in edit
+      uploadData.append('brand', 'wttt')
+      uploadData.append('platforms', 'instagram,facebook,twitter')
+      uploadData.append('hourDelay', '0')
 
       const result = await uploadPost(uploadData)
       onUploadSuccess(result.post)
@@ -73,225 +61,135 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   }
 
   const handleClose = () => {
-    setFormData({
-      image: null,
-      caption: '',
-      hashtags: '',
-      product: '',
-      brand: 'wttt',
-      platforms: 'instagram,facebook,twitter',
-      hourDelay: '0'
-    })
+    setSelectedFile(null)
+    setDragActive(false)
     onClose()
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="glass-card max-w-3xl w-full max-h-[92vh] overflow-y-auto">
-        <div className="p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold gradient-text">Upload New Post</h2>
-              <p className="text-gray-600 mt-2">Create amazing content for your social media</p>
-            </div>
-            <button
-              onClick={handleClose}
-              className="w-10 h-10 bg-white/70 hover:bg-white text-gray-700 rounded-full flex items-center justify-center transition-all shadow-sm"
-            >
-              <i className="fas fa-times text-gray-600"></i>
-            </button>
+    <div className="modal-overlay" onClick={handleClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="modal-header">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Upload New Post</h2>
+            <p className="text-gray-600 mt-1">Add an image to create a new draft</p>
           </div>
+          <button
+            onClick={handleClose}
+            className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200"
+          >
+            <i className="fas fa-times text-gray-600"></i>
+          </button>
+        </div>
 
+        {/* Body */}
+        <div className="modal-body">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Image Upload */}
+            {/* Upload Zone */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Upload Image *
-              </label>
+              <label className="form-label">Choose Image</label>
               <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                  dragActive 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
+                className={`upload-zone ${dragActive ? 'drag-active' : ''} ${selectedFile ? 'has-file' : ''}`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
+                onClick={() => document.getElementById('file-input').click()}
               >
-                {formData.image ? (
+                {selectedFile ? (
                   <div className="space-y-4">
-                    <img
-                      src={URL.createObjectURL(formData.image)}
-                      alt="Preview"
-                      className="max-h-48 mx-auto rounded-lg shadow-lg"
-                    />
-                    <p className="text-sm text-gray-600">{formData.image.name}</p>
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                      <i className="fas fa-check text-green-600 text-2xl"></i>
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">{selectedFile.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, image: null }))}
-                      className="text-red-500 hover:text-red-700 text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedFile(null)
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm font-medium"
                     >
-                      Remove image
+                      Remove
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto">
-                      <i className="fas fa-cloud-upload-alt text-white text-2xl"></i>
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto animate-gentle-bounce">
+                      <i className="fas fa-cloud-upload-alt text-blue-600 text-2xl"></i>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-gray-700">Drop your image here</p>
+                      <p className="text-lg font-semibold text-gray-900">Drop your image here</p>
                       <p className="text-gray-500">or click to browse</p>
                     </div>
-                    <input
-                      type="file"
-                      name="image"
-                      accept="image/*"
-                      onChange={handleInputChange}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label
-                      htmlFor="image-upload"
-                      className="btn-primary cursor-pointer inline-block"
-                    >
-                      Choose File
-                    </label>
+                    <div className="text-xs text-gray-400">
+                      Supports JPG, PNG, GIF up to 10MB
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Caption */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Caption
-              </label>
-              <textarea
-                name="caption"
-                value={formData.caption}
-                onChange={handleInputChange}
-                rows={3}
-                className="input-field"
-                placeholder="Write an engaging caption for your post..."
-              />
-            </div>
-
-            {/* Hashtags */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Hashtags
-              </label>
               <input
-                type="text"
-                name="hashtags"
-                value={formData.hashtags}
-                onChange={handleInputChange}
-                className="input-field"
-                placeholder="#amazing #product #viral"
+                id="file-input"
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
               />
             </div>
 
-            {/* Product & Brand */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Product
-                </label>
-                <input
-                  type="text"
-                  name="product"
-                  value={formData.product}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  placeholder="Product name"
-                />
+            {/* Info */}
+            <div className="bg-blue-50 rounded-xl p-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <i className="fas fa-info text-white text-xs"></i>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-900">What happens next?</p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Your image will be added to drafts. Click "Edit" on the draft to add captions, hashtags, and schedule your post.
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Brand
-                </label>
-                <input
-                  type="text"
-                  name="brand"
-                  value={formData.brand}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  placeholder="Brand name"
-                />
-              </div>
-            </div>
-
-            {/* Platforms */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Platforms
-              </label>
-              <input
-                type="text"
-                name="platforms"
-                value={formData.platforms}
-                onChange={handleInputChange}
-                className="input-field"
-                placeholder="instagram,facebook,twitter"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Separate platforms with commas
-              </p>
-            </div>
-
-            {/* Hour Delay */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Schedule Delay (hours)
-              </label>
-              <input
-                type="number"
-                name="hourDelay"
-                value={formData.hourDelay}
-                onChange={handleInputChange}
-                className="input-field"
-                min="0"
-                placeholder="0"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Leave as 0 to post immediately
-              </p>
-            </div>
-
-            {/* Submit Buttons */}
-            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="btn-secondary"
-                disabled={isUploading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={isUploading || !formData.image}
-              >
-                {isUploading ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-upload mr-2"></i>
-                    Upload Post
-                  </>
-                )}
-              </button>
             </div>
           </form>
+        </div>
+
+        {/* Footer */}
+        <div className="modal-footer">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="btn btn-ghost"
+            disabled={isUploading}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            className="btn btn-primary"
+            disabled={!selectedFile || isUploading}
+          >
+            {isUploading ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i>
+                Uploading...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-plus"></i>
+                Add to Drafts
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
