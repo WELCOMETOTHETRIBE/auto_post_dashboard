@@ -4,27 +4,7 @@ import { uploadPost } from '../services/api'
 function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [dragActive, setDragActive] = useState(false)
-
-  const handleDrag = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
-  }
-
-  const handleDrop = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0])
-    }
-  }
+  // Removed drag and drop functionality for iOS compatibility
 
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -62,7 +42,6 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
 
   const handleClose = () => {
     setSelectedFile(null)
-    setDragActive(false)
     onClose()
   }
 
@@ -92,11 +71,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             <div>
               <label className="form-label">Choose Image</label>
               <div
-                className={`upload-zone ${dragActive ? 'drag-active' : ''} ${selectedFile ? 'has-file' : ''}`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
+                className={`upload-zone ${selectedFile ? 'has-file' : ''}`}
                 onClick={() => document.getElementById('file-input').click()}
               >
                 {selectedFile ? (
@@ -124,11 +99,11 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
                 ) : (
                   <div className="space-y-4">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto animate-gentle-bounce">
-                      <i className="fas fa-cloud-upload-alt text-blue-600 text-2xl"></i>
+                      <i className="fas fa-camera text-blue-600 text-2xl"></i>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-gray-900">Drop your image here</p>
-                      <p className="text-gray-500">or click to browse</p>
+                      <p className="text-lg font-semibold text-gray-900">Choose an image</p>
+                      <p className="text-gray-500">Tap to select from your device</p>
                     </div>
                     <div className="text-xs text-gray-400">
                       Supports JPG, PNG, GIF up to 10MB
@@ -140,6 +115,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
                 id="file-input"
                 type="file"
                 accept="image/*"
+                capture="environment"
                 onChange={handleFileSelect}
                 className="hidden"
               />
