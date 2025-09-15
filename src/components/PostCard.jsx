@@ -2,9 +2,10 @@ import React from 'react'
 
 function PostCard({ post, onEdit, onDelete }) {
   const imageUrl = post.image_url || post.imageUrl || ''
-  const caption = post.caption || 'No caption'
+  const caption = (post.caption || '').trim()
   const isPosted = post.status === 'posted'
-  const hashtagCount = (post.hashtags || '').split(' ').filter(tag => tag.trim()).length
+  const hashtagsList = (post.hashtags || '').split(' ').filter(tag => tag.trim())
+  const hashtagCount = hashtagsList.length
 
   return (
     <div className="card group cursor-pointer">
@@ -44,29 +45,35 @@ function PostCard({ post, onEdit, onDelete }) {
           <i className="fas fa-times text-sm"></i>
         </button>
         
-        {/* Edit Button Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button 
-            onClick={() => onEdit(post)}
-            className="btn-primary transform scale-90 group-hover:scale-100 transition-transform duration-300"
-          >
-            <i className="fas fa-edit mr-2"></i>
-            Edit Post
-          </button>
-        </div>
+        {/* Edit Button Overlay (hidden for posted posts) */}
+        {!isPosted && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button 
+              onClick={() => onEdit(post)}
+              className="btn-primary transform scale-90 group-hover:scale-100 transition-transform duration-300"
+            >
+              <i className="fas fa-edit mr-2"></i>
+              Edit Post
+            </button>
+          </div>
+        )}
       </div>
       
       <div className="p-6">
-        <p className="text-gray-800 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
-          {caption}
-        </p>
-        
+        {caption && (
+          <p className="text-gray-800 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
+            {caption}
+          </p>
+        )}
+
         <div className="flex items-center justify-between">
-          <div className="flex items-center text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-            <i className="fas fa-hashtag mr-1 text-blue-500"></i>
-            <span className="font-medium">{hashtagCount} tags</span>
-          </div>
-          
+          {hashtagCount > 0 ? (
+            <div className="flex items-center text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+              <i className="fas fa-hashtag mr-1 text-blue-500"></i>
+              <span className="font-medium">{hashtagCount} tags</span>
+            </div>
+          ) : <div />}
+
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             <span className="text-xs text-gray-500 font-medium">Ready</span>

@@ -85,8 +85,8 @@ function App() {
   }
 
   const filteredPosts = currentTab === 'active' 
-    ? posts.filter(post => post.status !== 'posted')
-    : posts.filter(post => post.status === 'posted')
+    ? posts.filter(post => (post.status || '').toLowerCase() !== 'posted')
+    : posts.filter(post => (post.status || '').toLowerCase() === 'posted')
 
   if (isLoading) {
     return <LoadingScreen />

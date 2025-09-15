@@ -90,37 +90,37 @@ function PostModal({ post, onClose, onSave, onToast }) {
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" 
+        className="absolute inset-0 bg-black/40 backdrop-blur-md" 
         onClick={onClose}
       ></div>
       
       {/* Modal */}
       <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="glass-card w-full max-w-3xl max-h-[92vh] overflow-hidden">
           
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-white/20">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
+              <h2 className="text-2xl font-bold gradient-text">Edit Post</h2>
               <p className="text-gray-600 mt-1">Customize your content for social media</p>
             </div>
             <button 
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+              className="w-10 h-10 rounded-full bg-white/70 hover:bg-white text-gray-700 flex items-center justify-center transition-all shadow-sm"
             >
               <i className="fas fa-times text-gray-600"></i>
             </button>
           </div>
           
           {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
+          <div className="overflow-y-auto max-h-[calc(92vh-140px)] p-6">
             
             {/* Image Preview */}
             <div className="mb-6">
               <img 
                 src={post.image_url || post.imageUrl || ''} 
                 alt="Post image" 
-                className="w-full h-48 object-cover rounded-xl shadow-sm" 
+                className="w-full h-56 object-cover rounded-xl shadow-lg"
               />
             </div>
             
@@ -137,7 +137,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   className="input-field resize-none" 
                   rows="3" 
-                  placeholder="Describe what you see in the image..."
+                  placeholder=""
                 />
                 <p className="text-xs text-gray-500 mt-1">Help AI generate better captions</p>
               </div>
@@ -152,7 +152,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
                   onChange={(e) => handleInputChange('caption', e.target.value)}
                   className="input-field resize-none" 
                   rows="4" 
-                  placeholder="Write an engaging caption..."
+                  placeholder=""
                 />
                 <button 
                   onClick={generateCaption}
@@ -173,7 +173,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
                   onChange={(e) => handleInputChange('hashtags', e.target.value)}
                   type="text" 
                   className="input-field" 
-                  placeholder="#hashtag1 #hashtag2" 
+                  placeholder="" 
                 />
                 <button 
                   onClick={generateHashtags}
@@ -296,22 +296,22 @@ function PostModal({ post, onClose, onSave, onToast }) {
           </div>
           
           {/* Footer */}
-          <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-end space-x-3 p-6 border-t border-white/20 bg-white/60 backdrop-blur-sm">
             <button 
               onClick={onClose}
-              className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button 
               onClick={handleSave}
-              className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-medium transition-colors"
+              className="btn-primary"
             >
               Save Changes
             </button>
             <button 
               onClick={handleSubmitToZapier}
-              className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 font-medium transition-all duration-200"
+              className="btn-primary"
             >
               <i className="fas fa-rocket mr-2"></i>
               Submit to Zapier
