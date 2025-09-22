@@ -103,6 +103,8 @@
     font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     font-variation-settings: 'wght' 400;
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
   }
   
   body {
@@ -112,6 +114,10 @@
     color: hsl(var(--surface-foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+    margin: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior-y: none;
   }
 
   /* Typography */
@@ -219,6 +225,8 @@
   .modal-overlay {
     @apply fixed inset-0 bg-black/40 backdrop-blur-md z-50;
     animation: fadeIn var(--motion-duration-normal) var(--motion-easing-gentle);
+    /* Prevent background scroll when modal open */
+    touch-action: none;
   }
   
   .modal-content {
@@ -226,6 +234,8 @@
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-xl);
     animation: slideUp var(--motion-duration-normal) var(--motion-easing-spring);
+    display: flex;
+    flex-direction: column;
   }
   
   .modal-header {
@@ -233,11 +243,15 @@
   }
   
   .modal-body {
-    @apply p-6 overflow-y-auto max-h-[calc(90vh-140px)];
+    @apply p-6 overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
   }
   
   .modal-footer {
     @apply flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50/50;
+    flex-wrap: wrap;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
 
   /* Upload Zone - Mobile-First */
@@ -257,6 +271,27 @@
 
   /* Mobile optimizations */
   @media (max-width: 768px) {
+    .modal-content {
+      left: 0;
+      top: 0;
+      transform: none;
+      width: 100vw;
+      height: 100dvh;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      border-radius: 0; /* Fullscreen on phones */
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .modal-header {
+      padding-top: calc(env(safe-area-inset-top) + 1rem);
+    }
+
+    .modal-body {
+      max-height: none;
+    }
+
     .upload-zone {
       @apply p-6;
       min-height: 180px;

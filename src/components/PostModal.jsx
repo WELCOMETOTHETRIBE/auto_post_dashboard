@@ -131,7 +131,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
         
         {/* Content */}
         <div className="modal-body">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {/* Left Column - Image */}
             <div className="space-y-6">
               <div>
@@ -140,7 +140,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
                   <img 
                     src={post.image_url || post.imageUrl || ''} 
                     alt="Post image" 
-                    className="w-full h-64 object-cover" 
+                    className="w-full h-56 md:h-64 object-cover" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>
@@ -221,7 +221,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
               </div>
               
               {/* Brand & Product */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="form-label">Brand</label>
                   <select 
@@ -253,7 +253,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
               </div>
               
               {/* Product Name & Website */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="form-label">Product Name</label>
                   <input 
@@ -279,17 +279,17 @@ function PostModal({ post, onClose, onSave, onToast }) {
               {/* Platforms */}
               <div>
                 <label className="form-label">Posting Platforms</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
                     { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: 'from-purple-500 to-pink-500' },
-                    { id: 'facebook', name: 'Facebook', icon: 'fab fa-facebook', color: 'bg-blue-600' },
-                    { id: 'twitter', name: 'Twitter', icon: 'fab fa-twitter', color: 'bg-blue-400' },
-                    { id: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin', color: 'bg-blue-700' },
+                    { id: 'facebook', name: 'Facebook', icon: 'fab fa-facebook-f', color: 'bg-blue-600' },
+                    { id: 'twitter', name: 'X', icon: 'fab fa-x-twitter', color: 'bg-black' },
+                    { id: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin-in', color: 'bg-blue-700' },
                     { id: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok', color: 'bg-black' }
                   ].map(platform => (
                     <label 
                       key={platform.id}
-                      className="flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                      className="flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition-all duration-200 select-none"
                     >
                       <input 
                         type="checkbox" 
@@ -298,8 +298,8 @@ function PostModal({ post, onClose, onSave, onToast }) {
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3"
                       />
                       <div className="flex items-center">
-                        <div className={`w-8 h-8 ${platform.color} rounded-lg flex items-center justify-center mr-3`}>
-                          <i className={`${platform.icon} text-white text-sm`}></i>
+                        <div className={`w-9 h-9 ${platform.color} rounded-lg flex items-center justify-center mr-3`}>
+                          <i className={`${platform.icon} text-white text-base`}></i>
                         </div>
                         <span className="font-medium text-gray-900">{platform.name}</span>
                       </div>
@@ -329,25 +329,27 @@ function PostModal({ post, onClose, onSave, onToast }) {
         
         {/* Footer */}
         <div className="modal-footer">
-          <button 
-            onClick={onClose}
-            className="btn btn-ghost"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={handleSave}
-            className="btn btn-secondary"
-          >
-            Save Changes
-          </button>
-          <button 
-            onClick={handleSubmitToZapier}
-            className="btn btn-primary"
-          >
-            <i className="fas fa-rocket"></i>
-            Submit to Zapier
-          </button>
+          <div className="flex flex-1 flex-col-reverse sm:flex-row gap-3 justify-end">
+            <button 
+              onClick={onClose}
+              className="btn btn-ghost w-full sm:w-auto"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleSave}
+              className="btn btn-secondary w-full sm:w-auto"
+            >
+              Save Changes
+            </button>
+            <button 
+              onClick={handleSubmitToZapier}
+              className="btn btn-primary w-full sm:w-auto"
+            >
+              <i className="fas fa-rocket"></i>
+              Submit to Zapier
+            </button>
+          </div>
         </div>
       </div>
     </div>

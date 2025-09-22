@@ -140,32 +140,34 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
 
         {/* Footer */}
         <div className="modal-footer">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="btn btn-ghost"
-            disabled={isUploading}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="btn btn-primary"
-            disabled={!selectedFile || isUploading}
-          >
-            {isUploading ? (
-              <>
-                <i className="fas fa-spinner fa-spin"></i>
-                Uploading...
-              </>
-            ) : (
-              <>
-                <i className="fas fa-plus"></i>
-                Add to Drafts
-              </>
-            )}
-          </button>
+          <div className="flex flex-1 flex-col-reverse sm:flex-row gap-3 justify-end">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="btn btn-ghost w-full sm:w-auto"
+              disabled={isUploading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="btn btn-primary w-full sm:w-auto"
+              disabled={!selectedFile || isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i>
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-plus"></i>
+                  Add to Drafts
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
