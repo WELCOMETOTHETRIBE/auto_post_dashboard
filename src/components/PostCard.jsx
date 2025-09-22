@@ -61,14 +61,14 @@ function PostCard({ post, onEdit, onDelete }) {
       
       <div className="p-6">
         {caption && (
-          <p className="text-gray-800 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
+          <p className="text-gray-800 dark:text-gray-100 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
             {caption}
           </p>
         )}
 
         <div className="flex items-center justify-between">
           {hashtagCount > 0 ? (
-            <div className="flex items-center text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+            <div className="flex items-center text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
               <i className="fas fa-hashtag mr-1 text-blue-500"></i>
               <span className="font-medium">{hashtagCount} tags</span>
             </div>
@@ -76,7 +76,7 @@ function PostCard({ post, onEdit, onDelete }) {
 
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-xs text-gray-500 font-medium">Ready</span>
+            <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">Ready</span>
           </div>
         </div>
       </div>

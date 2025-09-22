@@ -346,8 +346,8 @@ function PostModal({ post, onClose, onSave, onToast }) {
               onClick={handleSubmitToZapier}
               className="btn btn-primary w-full sm:w-auto"
             >
-              <i className="fas fa-rocket"></i>
-              Submit to Zapier
+              <i className="fas fa-paper-plane"></i>
+              Post
             </button>
           </div>
         </div>
