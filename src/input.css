@@ -259,6 +259,9 @@
     @apply flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50/50;
     flex-wrap: wrap;
     padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
   }
 
   /* Upload Zone - Mobile-First */

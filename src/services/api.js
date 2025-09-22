@@ -13,15 +13,8 @@ export const fetchPosts = async () => {
     return Array.isArray(data) ? data : []
   } catch (error) {
     console.error('Failed to fetch posts:', error)
-    // Fallback to mock data
-    try {
-      const response = await fetch(`${API_BASE}/posts.json`)
-      const data = await response.json()
-      return Array.isArray(data) ? data : []
-    } catch (fallbackError) {
-      console.error('Failed to fetch fallback posts:', fallbackError)
-      return []
-    }
+    // No mock fallback in production
+    return []
   }
 }
 
@@ -87,7 +80,7 @@ export const generateAIHashtags = async (caption = '', description = '') => {
 }
 
 export const submitToZapier = async (postData) => {
-  const response = await fetch(`${API_BASE}/api/submit-to-zapier`, {
+  const response = await fetch(`${API_BASE}/api/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -53,7 +53,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
     try {
       onToast('Submitting to Zapier...', 'info')
       
-      const response = await fetch('/api/submit-to-zapier', {
+      const response = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...post, ...formData })
@@ -82,11 +82,9 @@ function PostModal({ post, onClose, onSave, onToast }) {
       onToast('AI caption generated!', 'success')
     } catch (error) {
       console.error('Caption generation failed:', error)
-      // Fallback to simple caption
-      const description = formData.description
-      const aiCaption = `Check out this amazing ${description || 'content'}! 🚀 #amazing #content #viral`
-      handleInputChange('caption', aiCaption)
-      onToast('Generated fallback caption', 'info')
+      // No mock fallback content in production
+      handleInputChange('caption', '')
+      onToast('Caption generation unavailable', 'warning')
     } finally {
       setIsGenerating(prev => ({ ...prev, caption: false }))
     }
@@ -101,10 +99,9 @@ function PostModal({ post, onClose, onSave, onToast }) {
       onToast('AI hashtags generated!', 'success')
     } catch (error) {
       console.error('Hashtag generation failed:', error)
-      // Fallback to simple hashtags
-      const aiHashtags = `#viral #trending #amazing #content #socialmedia #instagram #facebook #twitter #linkedin #tiktok`
-      handleInputChange('hashtags', aiHashtags)
-      onToast('Generated fallback hashtags', 'info')
+      // No mock fallback content in production
+      handleInputChange('hashtags', '')
+      onToast('Hashtag generation unavailable', 'warning')
     } finally {
       setIsGenerating(prev => ({ ...prev, hashtags: false }))
     }

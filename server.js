@@ -28,13 +28,8 @@ if (OPENAI_API_KEY) {
 // Simple AI function for fallback when OpenAI is not configured
 const runAssistant = async (prompt) => {
   if (!openai) {
-    // Fallback: Generate simple content without AI
-    if (prompt.includes('caption')) {
-      return 'Check out this amazing content! 🚀 #amazing #content #viral';
-    } else if (prompt.includes('hashtag')) {
-      return '#viral #trending #amazing #content #socialmedia #instagram #facebook #twitter #linkedin #tiktok';
-    }
-    return 'Generated content';
+    // No mock generation in production when OpenAI is not configured
+    return '';
   }
   
   try {
@@ -53,13 +48,8 @@ const runAssistant = async (prompt) => {
     return completion.choices[0].message.content;
   } catch (error) {
     console.error('OpenAI API Error:', error);
-    // Fallback content
-    if (prompt.includes('caption')) {
-      return 'Check out this amazing content! 🚀 #amazing #content #viral';
-    } else if (prompt.includes('hashtag')) {
-      return '#viral #trending #amazing #content #socialmedia #instagram #facebook #twitter #linkedin #tiktok';
-    }
-    return 'Generated content';
+    // Fail closed without mock content
+    return '';
   }
 };
 
