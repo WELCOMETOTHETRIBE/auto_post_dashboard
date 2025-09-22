@@ -99,6 +99,17 @@ app.get('/healthz', (_req, res) => {
   });
 });
 
+// Version info endpoint to verify current deploy
+app.get('/version', (_req, res) => {
+  res.json({
+    ok: true,
+    timestamp: new Date().toISOString(),
+    branch: process.env.RAILWAY_GIT_BRANCH || process.env.GIT_BRANCH || null,
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
+    node: process.version
+  });
+});
+
 // GitHub posts proxy API
 app.get('/api/git/posts', async (_req, res) => {
   try {
