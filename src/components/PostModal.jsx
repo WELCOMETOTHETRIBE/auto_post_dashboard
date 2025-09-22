@@ -280,7 +280,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
                   {[
                     { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: 'from-purple-500 to-pink-500' },
                     { id: 'facebook', name: 'Facebook', icon: 'fab fa-facebook-f', color: 'bg-blue-600' },
-                    { id: 'twitter', name: 'X', icon: 'fab fa-x-twitter', color: 'bg-black' },
+                    { id: 'twitter', name: 'X', icon: 'fa-brands fa-x-twitter', color: 'bg-black' },
                     { id: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin-in', color: 'bg-blue-700' },
                     { id: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok', color: 'bg-black' }
                   ].map(platform => (
@@ -296,7 +296,7 @@ function PostModal({ post, onClose, onSave, onToast }) {
                       />
                       <div className="flex items-center">
                         <div className={`w-9 h-9 ${platform.color} rounded-lg flex items-center justify-center mr-3`}>
-                          <i className={`${platform.icon} text-white text-base`}></i>
+                          <i className={`${platform.icon} text-white text-base leading-none`}></i>
                         </div>
                         <span className="font-medium text-gray-900">{platform.name}</span>
                       </div>

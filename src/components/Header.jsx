@@ -32,7 +32,7 @@ function Header({ activeCount, postedCount, onUpload }) {
           {/* Upload Button */}
           <button 
             onClick={onUpload}
-            className="btn-primary flex items-center group"
+            className="btn btn-primary flex items-center group"
           >
             <i className="fas fa-plus mr-2 group-hover:rotate-90 transition-transform duration-300"></i>
             <span className="hidden sm:inline">Upload Post</span>

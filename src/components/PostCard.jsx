@@ -47,10 +47,10 @@ function PostCard({ post, onEdit, onDelete }) {
         
         {/* Edit Button Overlay (hidden for posted posts) */}
         {!isPosted && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute inset-x-0 bottom-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button 
               onClick={() => onEdit(post)}
-              className="btn btn-sm btn-primary transform group-hover:scale-105 transition-transform duration-300"
+              className="btn btn-sm btn-primary"
             >
               <i className="fas fa-edit mr-2"></i>
               Edit Post
