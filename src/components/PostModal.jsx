@@ -278,9 +278,9 @@ function PostModal({ post, onClose, onSave, onToast }) {
                 <label className="form-label">Posting Platforms</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
-                    { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: 'from-purple-500 to-pink-500' },
+                    { id: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: 'bg-gradient-to-r from-purple-500 to-pink-500' },
                     { id: 'facebook', name: 'Facebook', icon: 'fab fa-facebook-f', color: 'bg-blue-600' },
-                    { id: 'twitter', name: 'X', icon: 'fa-brands fa-x-twitter', color: 'bg-black' },
+                    { id: 'twitter', name: 'X/Twitter', icon: 'fab fa-twitter', color: 'bg-black' },
                     { id: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin-in', color: 'bg-blue-700' },
                     { id: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok', color: 'bg-black' }
                   ].map(platform => (
