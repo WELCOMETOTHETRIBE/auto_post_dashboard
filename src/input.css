@@ -167,6 +167,13 @@
     box-shadow: var(--shadow-sm);
   }
   
+  /* Compact button size for tight UI on mobile */
+  .btn-sm {
+    @apply px-3 py-2 text-sm;
+    min-height: 36px;
+    border-radius: var(--radius-lg);
+  }
+  
   .btn-secondary {
     @apply bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500 active:scale-95 border border-gray-200;
     background: var(--surface);
@@ -212,7 +219,7 @@
     @apply bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden;
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-lg);
-    background: var(--surface);
+    background: #ffffff !important; /* Force light card background for readability */
   }
   
   .glass-card {

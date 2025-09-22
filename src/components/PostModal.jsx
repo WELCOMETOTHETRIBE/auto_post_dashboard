@@ -332,19 +332,19 @@ function PostModal({ post, onClose, onSave, onToast }) {
           <div className="flex flex-1 flex-col-reverse sm:flex-row gap-3 justify-end">
             <button 
               onClick={onClose}
-              className="btn btn-ghost w-full sm:w-auto"
+              className="btn btn-sm btn-ghost w-full sm:w-auto"
             >
               Cancel
             </button>
             <button 
               onClick={handleSave}
-              className="btn btn-secondary w-full sm:w-auto"
+              className="btn btn-sm btn-secondary w-full sm:w-auto"
             >
               Save Changes
             </button>
             <button 
               onClick={handleSubmitToZapier}
-              className="btn btn-primary w-full sm:w-auto"
+              className="btn btn-sm btn-primary w-full sm:w-auto"
             >
               <i className="fas fa-paper-plane"></i>
               Post

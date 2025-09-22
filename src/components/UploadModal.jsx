@@ -144,7 +144,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             <button
               type="button"
               onClick={handleClose}
-              className="btn btn-ghost w-full sm:w-auto"
+              className="btn btn-sm btn-ghost w-full sm:w-auto"
               disabled={isUploading}
             >
               Cancel
@@ -152,7 +152,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             <button
               type="submit"
               onClick={handleSubmit}
-              className="btn btn-primary w-full sm:w-auto"
+              className="btn btn-sm btn-primary w-full sm:w-auto"
               disabled={!selectedFile || isUploading}
             >
               {isUploading ? (

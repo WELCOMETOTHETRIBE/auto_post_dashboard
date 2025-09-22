@@ -16,8 +16,8 @@ function PostCard({ post, onEdit, onDelete }) {
           className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500" 
         />
         
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        {/* Subtle top gradient only on hover for desktop; avoid dark overlay on mobile */}
+        <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         
         {/* Status Badge */}
         <div className="absolute top-4 right-4">
@@ -50,7 +50,7 @@ function PostCard({ post, onEdit, onDelete }) {
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button 
               onClick={() => onEdit(post)}
-              className="btn-primary transform scale-90 group-hover:scale-100 transition-transform duration-300"
+              className="btn btn-sm btn-primary transform group-hover:scale-105 transition-transform duration-300"
             >
               <i className="fas fa-edit mr-2"></i>
               Edit Post
@@ -61,14 +61,14 @@ function PostCard({ post, onEdit, onDelete }) {
       
       <div className="p-6">
         {caption && (
-          <p className="text-gray-800 dark:text-gray-100 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
+          <p className="text-gray-900 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
             {caption}
           </p>
         )}
 
         <div className="flex items-center justify-between">
           {hashtagCount > 0 ? (
-            <div className="flex items-center text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+            <div className="flex items-center text-xs text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
               <i className="fas fa-hashtag mr-1 text-blue-500"></i>
               <span className="font-medium">{hashtagCount} tags</span>
             </div>
