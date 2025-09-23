@@ -154,6 +154,17 @@ app.get('/env', (_req, res) => {
   });
 });
 
+// AI readiness status (no secrets leaked)
+app.get('/ai/status', (_req, res) => {
+  const maskedId = ASSISTANT_ID ? `${String(ASSISTANT_ID).slice(0, 8)}…${String(ASSISTANT_ID).slice(-6)}` : null;
+  res.json({
+    ok: true,
+    openai_initialized: Boolean(openai),
+    assistant_id_present: Boolean(ASSISTANT_ID),
+    assistant_id_masked: maskedId
+  });
+});
+
 // GitHub posts proxy API
 app.get('/api/git/posts', async (_req, res) => {
   try {
@@ -204,6 +215,18 @@ app.post('/api/generate-caption', async (req, res) => {
   } catch (error) {
     console.error('Caption Error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Quick AI test endpoint
+app.post('/api/ai-test', async (req, res) => {
+  try {
+    const { prompt } = req.body || {};
+    const text = await runAssistant(prompt || 'Say hello from the assistant.');
+    res.json({ ok: true, text });
+  } catch (error) {
+    console.error('AI Test Error:', error);
+    res.status(500).json({ ok: false, error: error.message });
   }
 });
 
