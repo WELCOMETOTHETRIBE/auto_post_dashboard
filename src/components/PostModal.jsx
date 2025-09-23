@@ -319,35 +319,33 @@ function PostModal({ post, onClose, onSave, onToast }) {
                   />
                   <span className="text-sm text-gray-600">hours (0 = post immediately)</span>
                 </div>
+                {/* Action buttons placed beneath Posting Delay */}
+                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                  <button 
+                    onClick={handleSubmitToZapier}
+                    className="btn btn-primary w-full sm:w-auto"
+                  >
+                    <i className="fas fa-paper-plane"></i>
+                    Post
+                  </button>
+                  <button 
+                    onClick={handleSave}
+                    className="btn btn-secondary w-full sm:w-auto"
+                  >
+                    Save Changes
+                  </button>
+                  <button 
+                    onClick={onClose}
+                    className="btn btn-ghost w-full sm:w-auto"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Footer */}
-        <div className="modal-footer">
-          <div className="flex flex-1 flex-col-reverse sm:flex-row gap-3 justify-end">
-            <button 
-              onClick={onClose}
-              className="btn btn-sm btn-ghost w-full sm:w-auto"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleSave}
-              className="btn btn-sm btn-secondary w-full sm:w-auto"
-            >
-              Save Changes
-            </button>
-            <button 
-              onClick={handleSubmitToZapier}
-              className="btn btn-sm btn-primary w-full sm:w-auto"
-            >
-              <i className="fas fa-paper-plane"></i>
-              Post
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
