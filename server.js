@@ -270,11 +270,53 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
 
     const { description, platforms, hourDelay, caption, hashtags, product, brand } = req.body;
     
+    // Build GitHub upload path and raw URL if token is available
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const githubUploadPath = `public/uploads/${year}/${month}/${req.file.filename}`;
+    const rawBase = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main`;
+
+    // Default to local URL; may be replaced by GitHub raw URL below
+    let imageUrl = `/uploads/${req.file.filename}`;
+
+    // Attempt to push the uploaded image to GitHub and switch URL to raw
+    if (GH_TOKEN) {
+      try {
+        const fileBuffer = fs.readFileSync(path.join(__dirname, 'uploads', req.file.filename));
+        const createRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${githubUploadPath}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${GH_TOKEN}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'tribe-spa'
+          },
+          body: JSON.stringify({
+            message: `🖼️ Add upload ${req.file.originalname || req.file.filename}`,
+            content: Buffer.from(fileBuffer).toString('base64'),
+            branch: 'main'
+          })
+        });
+
+        if (createRes.ok) {
+          imageUrl = `${rawBase}/${githubUploadPath}`;
+          console.log('✅ Uploaded image to GitHub:', githubUploadPath);
+        } else {
+          const errText = await createRes.text();
+          console.warn('⚠️ Failed to upload image to GitHub:', createRes.status, createRes.statusText, errText);
+        }
+      } catch (ghErr) {
+        console.warn('⚠️ GitHub image upload error:', ghErr.message);
+      }
+    } else {
+      console.log('ℹ️ No GITHUB_TOKEN configured. Using local upload URL.');
+    }
+
     // Create new post object
     const newPost = {
       id: uuidv4(),
       token_id: uuidv4(),
-      image_url: `/uploads/${req.file.filename}`,
+      image_url: imageUrl,
       original_filename: req.file.originalname,
       description: description || '',
       platforms: platforms ? platforms.split(',') : [],
