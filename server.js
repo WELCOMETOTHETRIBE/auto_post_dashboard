@@ -88,7 +88,8 @@ const upload = multer({
 
 // AI and GitHub configuration
 // OPENAI_API_KEY and ASSISTANT_ID already declared above
-const GH_TOKEN = process.env.GITHUB_TOKEN || '';
+// Accept multiple possible env var names for GitHub token
+const GH_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || process.env.GH_PAT || '';
 const GH_OWNER = process.env.GITHUB_OWNER || 'WELCOMETOTHETRIBE';
 const GH_REPO = process.env.GITHUB_REPO || 'auto_post_dashboard';
 
@@ -120,7 +121,7 @@ app.get('/env', (_req, res) => {
     ok: true,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY ? mask(process.env.OPENAI_API_KEY) : null,
     OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID || process.env.ASSISTANT_ID || null,
-    GITHUB_TOKEN: process.env.GITHUB_TOKEN ? mask(process.env.GITHUB_TOKEN) : null,
+    GITHUB_TOKEN: (process.env.GITHUB_TOKEN || process.env.GH_TOKEN || process.env.GH_PAT) ? mask(process.env.GITHUB_TOKEN || process.env.GH_TOKEN || process.env.GH_PAT) : null,
     NODE_ENV: process.env.NODE_ENV || null,
     PORT: process.env.PORT || null
   });
