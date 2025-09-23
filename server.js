@@ -128,6 +128,19 @@ app.get('/version', (_req, res) => {
   });
 });
 
+// Minimal env introspection (masked) to verify deployment configuration
+app.get('/env', (_req, res) => {
+  const mask = (val = '') => (val ? `${val.slice(0, 6)}…${val.slice(-4)}` : null);
+  res.json({
+    ok: true,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY ? mask(process.env.OPENAI_API_KEY) : null,
+    OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID || process.env.ASSISTANT_ID || null,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN ? mask(process.env.GITHUB_TOKEN) : null,
+    NODE_ENV: process.env.NODE_ENV || null,
+    PORT: process.env.PORT || null
+  });
+});
+
 // GitHub posts proxy API
 app.get('/api/git/posts', async (_req, res) => {
   try {
