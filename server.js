@@ -38,49 +38,17 @@ const runAssistant = async (prompt) => {
   }
 
   try {
-    // Create a new thread for this request
     const thread = await openai.beta.threads.create();
-    if (!thread?.id || !String(thread.id).startsWith('thread_')) {
-      console.error('Invalid thread id from OpenAI:', thread);
-      return '';
-    }
-
-    // Add the user's message to the thread
-    await openai.beta.threads.messages.create(thread.id, {
-      role: 'user',
-      content: prompt
-    });
-
-    // Create a run with the configured assistant
-    let run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: ASSISTANT_ID,
-      instructions: 'Respond concisely in plain text. Do not request tools. Answer directly.'
-    });
-    if (!run?.id || !String(run.id).startsWith('run_')) {
-      console.error('Invalid run id from OpenAI:', run);
-      return '';
-    }
-
-    // Poll until the run completes
+    await openai.beta.threads.messages.create(thread.id, { role: 'user', content: prompt });
+    let run = await openai.beta.threads.runs.create(thread.id, { assistant_id: ASSISTANT_ID });
     while (run.status === 'queued' || run.status === 'in_progress') {
       await new Promise((r) => setTimeout(r, 800));
       run = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
     }
-
-    if (run.status !== 'completed') {
-      console.error('Assistant run did not complete:', run.status);
-      return '';
-    }
-
-    // Fetch recent messages and pick the first assistant reply
+    if (run.status !== 'completed') return '';
     const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 20 });
     const assistantMsg = messages.data?.find((m) => m.role === 'assistant');
-    const contentParts = assistantMsg?.content || [];
-    const textPart = contentParts.find((p) => p.type === 'text');
-    const text = textPart?.text?.value || '';
-    if (!text) {
-      console.warn('Assistant completed but returned no text. Messages length:', messages.data?.length || 0);
-    }
+    const text = assistantMsg?.content?.find((c) => c.type === 'text')?.text?.value || '';
     return text.trim();
   } catch (error) {
     console.error('OpenAI Assistants API Error:', error?.message || error);
