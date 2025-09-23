@@ -64,7 +64,7 @@ const runAssistant = async (prompt) => {
     // Poll until the run completes
     while (run.status === 'queued' || run.status === 'in_progress') {
       await new Promise((r) => setTimeout(r, 800));
-      run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      run = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
     }
 
     if (run.status !== 'completed') {
@@ -250,7 +250,7 @@ app.post('/api/ai-debug', async (req, res) => {
     let run = await openai.beta.threads.runs.create(thread.id, { assistant_id: ASSISTANT_ID });
     while (run.status === 'queued' || run.status === 'in_progress') {
       await new Promise((r) => setTimeout(r, 700));
-      run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      run = await openai.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
     }
 
     const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 20 });
