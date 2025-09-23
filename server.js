@@ -233,6 +233,41 @@ app.post('/api/ai-test', async (req, res) => {
   }
 });
 
+// AI debug endpoint: returns raw messages metadata and text
+app.post('/api/ai-debug', async (req, res) => {
+  try {
+    if (!openai) return res.status(500).json({ ok: false, error: 'OpenAI not initialized' });
+    if (!ASSISTANT_ID) return res.status(500).json({ ok: false, error: 'ASSISTANT_ID not configured' });
+
+    const { prompt } = req.body || {};
+
+    const thread = await openai.beta.threads.create();
+    await openai.beta.threads.messages.create(thread.id, {
+      role: 'user',
+      content: prompt || 'Test message'
+    });
+    let run = await openai.beta.threads.runs.create(thread.id, { assistant_id: ASSISTANT_ID });
+    while (run.status === 'queued' || run.status === 'in_progress') {
+      await new Promise((r) => setTimeout(r, 700));
+      run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    }
+
+    const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 20 });
+    const simplified = (messages.data || []).map((m) => ({
+      id: m.id,
+      role: m.role,
+      created_at: m.created_at,
+      content_types: (m.content || []).map((c) => c.type),
+      text: (m.content || []).find((c) => c.type === 'text')?.text?.value || ''
+    }));
+
+    res.json({ ok: true, run_status: run.status, messages: simplified });
+  } catch (error) {
+    console.error('AI Debug Error:', error?.message || error);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 // Hashtag Generation
 app.post('/api/generate-hashtags', async (req, res) => {
   try {
