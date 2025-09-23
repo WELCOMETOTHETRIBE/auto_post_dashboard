@@ -16,7 +16,8 @@ const app = express();
 
 // OpenAI Configuration
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ASSISTANT_ID = process.env.ASSISTANT_ID || 'asst_default';
+// Prefer explicit env var, otherwise default to the provided assistant id
+const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID || process.env.ASSISTANT_ID || 'asst_ctMxotObRC89Ymd8yNPzd9MI';
 
 let openai = null;
 if (OPENAI_API_KEY) {
@@ -25,30 +26,47 @@ if (OPENAI_API_KEY) {
   });
 }
 
-// Simple AI function for fallback when OpenAI is not configured
+// AI function using OpenAI Assistants API (v2 beta)
 const runAssistant = async (prompt) => {
-  if (!openai) {
-    // No mock generation in production when OpenAI is not configured
+  if (!openai || !ASSISTANT_ID) {
     return '';
   }
-  
+
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 150,
-      temperature: 0.7,
+    // Create a new thread for this request
+    const thread = await openai.beta.threads.create();
+
+    // Add the user's message to the thread
+    await openai.beta.threads.messages.create(thread.id, {
+      role: 'user',
+      content: prompt
     });
-    
-    return completion.choices[0].message.content;
+
+    // Create a run with the configured assistant
+    let run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: ASSISTANT_ID
+    });
+
+    // Poll until the run completes
+    while (run.status === 'queued' || run.status === 'in_progress') {
+      await new Promise((r) => setTimeout(r, 800));
+      run = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    }
+
+    if (run.status !== 'completed') {
+      console.error('Assistant run did not complete:', run.status);
+      return '';
+    }
+
+    // Fetch the latest message (assistant response)
+    const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 1 });
+    const latest = messages.data?.[0];
+    const parts = latest?.content || [];
+    const textPart = parts.find((p) => p.type === 'text');
+    const text = textPart?.text?.value || '';
+    return text.trim();
   } catch (error) {
-    console.error('OpenAI API Error:', error);
-    // Fail closed without mock content
+    console.error('OpenAI Assistants API Error:', error?.message || error);
     return '';
   }
 };
