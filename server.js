@@ -71,12 +71,15 @@ const runAssistant = async (prompt) => {
       return '';
     }
 
-    // Fetch the latest message (assistant response)
-    const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 1 });
-    const latest = messages.data?.[0];
-    const parts = latest?.content || [];
-    const textPart = parts.find((p) => p.type === 'text');
+    // Fetch recent messages and pick the first assistant reply
+    const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 20 });
+    const assistantMsg = messages.data?.find((m) => m.role === 'assistant');
+    const contentParts = assistantMsg?.content || [];
+    const textPart = contentParts.find((p) => p.type === 'text');
     const text = textPart?.text?.value || '';
+    if (!text) {
+      console.warn('Assistant completed but returned no text. Messages length:', messages.data?.length || 0);
+    }
     return text.trim();
   } catch (error) {
     console.error('OpenAI Assistants API Error:', error?.message || error);
