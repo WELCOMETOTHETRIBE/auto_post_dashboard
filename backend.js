@@ -113,6 +113,13 @@ async function commitToGitHubFile(filepath, content, message) {
 
 // === OpenAI Assistant ===
 async function runAssistant(userMessage) {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not set');
+  }
+  if (!ASSISTANT_ID) {
+    throw new Error('ASSISTANT_ID/OPENAI_ASSISTANT_ID is not set');
+  }
+
   const threadRes = await fetch('https://api.openai.com/v1/threads', {
     method: 'POST',
     headers: {
@@ -124,7 +131,10 @@ async function runAssistant(userMessage) {
   });
 
   const threadData = await threadRes.json();
-  const threadId = threadData.id;
+  const threadId = threadData?.id;
+  if (!threadId || typeof threadId !== 'string' || !threadId.startsWith('thread_')) {
+    throw new Error(`Failed to create thread. Response id invalid: ${JSON.stringify(threadData)}`);
+  }
 
   await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
     method: 'POST',
@@ -147,7 +157,10 @@ async function runAssistant(userMessage) {
   });
 
   const runData = await runRes.json();
-  const runId = runData.id;
+  const runId = runData?.id;
+  if (!runId || typeof runId !== 'string' || !runId.startsWith('run_')) {
+    throw new Error(`Failed to create run. Got invalid run id: ${JSON.stringify(runData)}`);
+  }
 
   let output = "";
   let attempts = 0;

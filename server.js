@@ -28,13 +28,22 @@ if (OPENAI_API_KEY) {
 
 // AI function using OpenAI Assistants API (v2 beta)
 const runAssistant = async (prompt) => {
-  if (!openai || !ASSISTANT_ID) {
+  if (!openai) {
+    console.error('OpenAI client is not initialized. Missing OPENAI_API_KEY');
+    return '';
+  }
+  if (!ASSISTANT_ID) {
+    console.error('Missing ASSISTANT_ID/OPENAI_ASSISTANT_ID');
     return '';
   }
 
   try {
     // Create a new thread for this request
     const thread = await openai.beta.threads.create();
+    if (!thread?.id || !String(thread.id).startsWith('thread_')) {
+      console.error('Invalid thread id from OpenAI:', thread);
+      return '';
+    }
 
     // Add the user's message to the thread
     await openai.beta.threads.messages.create(thread.id, {
@@ -46,6 +55,10 @@ const runAssistant = async (prompt) => {
     let run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: ASSISTANT_ID
     });
+    if (!run?.id || !String(run.id).startsWith('run_')) {
+      console.error('Invalid run id from OpenAI:', run);
+      return '';
+    }
 
     // Poll until the run completes
     while (run.status === 'queued' || run.status === 'in_progress') {
