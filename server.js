@@ -53,7 +53,8 @@ const runAssistant = async (prompt) => {
 
     // Create a run with the configured assistant
     let run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: ASSISTANT_ID
+      assistant_id: ASSISTANT_ID,
+      instructions: 'Respond concisely in plain text. Do not request tools. Answer directly.'
     });
     if (!run?.id || !String(run.id).startsWith('run_')) {
       console.error('Invalid run id from OpenAI:', run);
